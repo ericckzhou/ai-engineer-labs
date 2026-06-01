@@ -40,9 +40,14 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 - Tier 1: `sources/official-docs/scikit-learn-cosine-similarity.md` — formula `x·y / (‖x‖‖y‖)`, cosine of the angle, magnitude-invariance, range [−1, 1]
 
-## Vector Databases
+## Vector Databases & Approximate Nearest Neighbor
 
-- Tier 1: `sources/official-docs/` — ChromaDB, Qdrant documentation (to be added)
+- Tier 1: `sources/official-docs/chromadb.md` — Chroma vector DB: collections/documents/embeddings/metadata/ids, `collection.query()`, HNSW index, `space` = l2 (default)/cosine/ip, returns *distances* (lower = closer), `ef_search`/`ef_construction`/`max_neighbors`, persistent vs in-memory
+- Tier 2: `sources/papers/hnsw.md` — Malkov & Yashunin 2016: hierarchical navigable small-world graphs, greedy multi-layer routing, ~O(log N) ANN search vs O(N) brute force, approximate-not-exact tradeoff
+
+## Re-Ranking / Two-Stage Retrieval
+
+- Tier 3: `sources/articles/sbert-retrieve-rerank.md` — retrieve with bi-encoder (fast, scalable) then re-rank top-k with cross-encoder (accurate); why cross-encoder alone can't scale
 
 ## RAG (Retrieval-Augmented Generation)
 

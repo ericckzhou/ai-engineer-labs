@@ -85,19 +85,24 @@ When reasoning about a concept:
 - Known issues: —
 
 **Vector Databases**
-- Source: `sources/official-docs/` (ChromaDB, Qdrant docs)
+- Source: `sources/official-docs/chromadb.md` (Chroma: collections, query API, HNSW index, distance vs similarity)
 - Lesson: `projects/03-semantic-search/source/lesson.agent.md`
 - Known issues: —
 
-**Approximate Nearest Neighbor (ANN)**
-- Source: `sources/papers/`
+**Approximate Nearest Neighbor (ANN) / HNSW**
+- Source: `sources/papers/hnsw.md` (Malkov & Yashunin 2016: hierarchical NSW graphs, ~O(log N) search)
+- Lesson: `projects/03-semantic-search/source/lesson.agent.md`
+- Known issues: —
+
+**Re-Ranking (bi-encoder → cross-encoder)**
+- Source: `sources/articles/sbert-retrieve-rerank.md`, `sources/papers/sentence-bert.md`
 - Lesson: `projects/03-semantic-search/source/lesson.agent.md`
 - Known issues: —
 
 **Hybrid Search (BM25 + Semantic)**
-- Source: `sources/articles/`
+- Source: `sources/articles/` (deferred — not yet sourced)
 - Lesson: `projects/03-semantic-search/source/lesson.agent.md`
-- Known issues: —
+- Known issues: not yet covered; Chroma supports keyword/regex + dense, fold in if lesson scope grows
 
 ---
 
