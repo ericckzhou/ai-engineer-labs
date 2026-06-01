@@ -436,12 +436,14 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>Explain what a <strong>token</strong> is and why LLMs operate on tokens instead of words or characters.</span></li>
+        <li><div class="obj-check"></div><span>Run a real <strong>BPE tokenizer</strong> (<code>tiktoken</code>), inspect token boundaries and integer IDs, and predict roughly how many tokens text will cost before calling an API.</span></li>
+        <li><div class="obj-check"></div><span>Reproduce two or three <strong>BPE merge steps by hand</strong> and explain why merges are driven by corpus frequency, not grammar.</span></li>
+        <li><div class="obj-check"></div><span>Explain what an <strong>embedding vector</strong> is — what the numbers represent and why "meaning becomes geometry."</span></li>
+        <li><div class="obj-check"></div><span>Compute <strong>cosine similarity</strong> by hand and explain why it measures <em>angle</em>, not distance or magnitude.</span></li>
+        <li><div class="obj-check"></div><span>Explain why <code>king − man + woman ≈ queen</code> works in embedding space — and demonstrate a case where analogy arithmetic <em>fails</em>.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish a <strong>tokenizer</strong> from an <strong>embedding model</strong>, and a word embedding from a sentence embedding (bi-encoder).</span></li>
+        <li><div class="obj-check"></div><span>Choose an appropriate <strong>embedding model</strong> and reason about why its <strong>dimensionality</strong> (e.g. 768 vs 1536) is model-specific.</span></li>
       </ul>
     </section>
 
@@ -450,22 +452,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>Computers process numbers, not text. Two distinct numeric conversions stand between raw text and a working AI system: <strong>tokenization</strong> (text → integer IDs the model can read) and <strong>embedding</strong> (text → a vector that encodes <em>meaning</em>). Both predate modern LLMs — BPE began as a compression technique, and dense word vectors were popularized by word2vec in 2013 — but they are the unglamorous machinery every AI engineer must understand to debug real systems.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>Most engineers treat embeddings as a black box — "text goes in, magic happens, numbers come out." That black box produces real, expensive bugs. You cannot debug what you cannot see.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>Mismatched embedding models, wrong chunk sizes, failed similarity searches, surprise token bills. If you embed a query with one model and your documents with another, similarity scores become meaningless and retrieval silently returns garbage — <strong>with no error raised</strong>.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>Every semantic search, RAG pipeline, recommendation engine, and deduplication system rests on these two conversions. Misjudge tokenization and you blow the context window or the budget; mismatch embedding models and retrieval quietly fails. This connects directly to Project 01's token-cost work and forward to Projects 03–04.</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>Would users pay for the explorer tool itself? Probably not. But the <strong>judgment</strong> it builds — which embedding model to use, how to chunk, when embeddings fail — is the foundation of search, matching, and recommendation products people pay for every day. The value is in the engineering judgment, not the visualization.</p>
       </div>
     </section>
 
@@ -474,25 +476,30 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine you have to mail a long book, but the post office only accepts numbered LEGO bricks. First you chop the book into common little pieces ("ing", "the", "pre") and give each piece a brick number — that's <strong>tokenization</strong>. Now imagine a magic map of a city where every word lives at an address, and words that <em>mean</em> similar things live on the same street. "King" and "queen" are neighbors; "banana" is across town. The address of a word is its <strong>embedding</strong>. To ask "are these two words similar?" you don't measure how far apart the houses are — you stand at the city center and check whether they're in the <em>same direction</em>. That "same direction?" check is <strong>cosine similarity</strong>.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li><strong>Tokenization</strong> is a lossless, reversible <code>str ⇄ list[int]</code> codec with a learned dictionary. BPE builds that dictionary by starting from bytes and greedily merging the most frequent adjacent pair until it hits a target vocabulary size. <code>len(enc.encode(text))</code> is your token count; on average one token ≈ 4 bytes of text.</li>
+        <li><strong>Embedding</strong> is a function <code>str → R^d</code> (d = 768, 1536, …) learned so that semantically related inputs map to vectors pointing in similar directions. word2vec established this for words; SBERT extended it to whole sentences with a fixed-size output vector.</li>
+        <li><strong>Cosine similarity</strong> is the L2-normalized dot product, <code>x·y / (‖x‖‖y‖)</code> — the cosine of the angle between two vectors, ranging −1…1.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>A <strong>tokenizer is like syllables</strong>; an <strong>embedding is like a thesaurus coordinate</strong>. Syllables let you pronounce (process) any word, even an unfamiliar one, by breaking it into known pieces — but they carry no meaning ("un-be-liev-able" tells you nothing about belief). The thesaurus coordinate is the opposite: it ignores spelling entirely and places the <em>meaning</em> near related meanings. You need both: one to read, one to understand.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre>  "unbelievable"
+        │ tokenizer (BPE)            │ embedding model
+        ▼                            ▼
+  [un][bel][iev][able]        [ 0.02, 0.41, -0.13, ... , 0.07 ]   (d numbers)
+  4 integer IDs                       a point/direction in R^d
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+  cosine( vec("unbelievable"), vec("incredible") )  →  ~0.7   (close direction = similar)
+  cosine( vec("unbelievable"), vec("granite")     )  →  ~0.1   (near-orthogonal = unrelated)</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,15 +507,18 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p><strong>BPE tokenization:</strong> given a target vocab size V, learn an ordered list of merge rules over a base alphabet; at encode time, apply merges greedily to map a string to a sequence of token IDs. <strong>Final vocab size = base size + number of merges.</strong></p>
+      <p><strong>Embedding:</strong> a learned map <code>E: text → R^d</code>. Cosine similarity <code>cos(x,y) = (x·y)/(‖x‖‖y‖)</code> measures the angle between two embeddings, in <code>[−1, 1]</code>.</p>
 
-      <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
+      <h3>How It Works Step by Step (BPE by hand)</h3>
+      <p>Start from a corpus of word→frequency, each word split into characters:</p>
+      <pre>("h" "u" "g", 10) ("p" "u" "g", 5) ("p" "u" "n", 12) ("b" "u" "n", 4) ("h" "u" "g" "s", 5)</pre>
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li>The most frequent adjacent pair is <code>u·g</code> (in hug, pug, hugs) → merge to <code>ug</code>.</li>
+        <li>Next is <code>u·n</code> (in pun, bun) → merge to <code>un</code>.</li>
+        <li>The vocabulary grows <code>[b,g,h,n,p,s,u] → […, ug, un]</code>. Continue until the target size.</li>
       </ol>
+      <p>The merges <em>look</em> morphological but are pure frequency statistics. <strong>Byte-level BPE</strong> (what GPT-2 / <code>tiktoken</code> use) starts from the 256 byte values, so <em>every</em> string is tokenizable and there is <strong>no <code>&lt;unk&gt;</code> token, ever</strong>.</p>
 
       <h3>Key Concepts</h3>
       <table>
@@ -516,14 +526,18 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Token</td><td>An integer ID for a chunk of text (often a subword), produced by a tokenizer</td><td>The model never sees characters; it sees token IDs. Tokens are the unit of cost and context.</td></tr>
+          <tr><td>Byte-Pair Encoding (BPE)</td><td>An algorithm that builds a vocabulary by iteratively merging the most frequent adjacent pair of symbols</td><td>The dominant subword tokenizer; explains <em>why</em> <code>encoding</code> splits into <code>encod</code>+<code>ing</code>.</td></tr>
+          <tr><td>Vocabulary</td><td>The fixed set of tokens a tokenizer knows (base symbols + learned merges)</td><td>Different models use different vocabs, so token counts differ across providers.</td></tr>
+          <tr><td>Embedding</td><td>A dense vector that encodes meaning, produced by an embedding model</td><td>Turns text into geometry so "similar meaning" becomes "nearby vectors."</td></tr>
+          <tr><td>Cosine similarity</td><td>The cosine of the angle between two vectors: <code>x·y / (‖x‖‖y‖)</code></td><td>The standard score for "how similar" two embeddings are, ignoring magnitude.</td></tr>
+          <tr><td>Sentence embedding</td><td>One fixed-size vector for a whole sentence, comparable by cosine</td><td>Encode once, compare many — the basis of semantic search.</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>The tokenizer and the embedding model are <strong>not</strong> the same thing. A tokenizer turns text into integer IDs (reversible; the <em>value</em> of the ID carries no meaning — ID 500 isn't "more" than ID 5). An embedding model turns text into a meaning-bearing vector. Keep them separate.</p>
       </div>
     </section>
 
@@ -531,30 +545,57 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: <code>tiktoken</code> (tokenization), <code>litellm</code> (embeddings — provider chosen by <code>config.py</code>, default local <code>ollama/nomic-embed-text</code> at 768-dim), and <code>numpy</code> (cosine).</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — see the tokens</h3>
+      <pre><code class="language-python">import tiktoken
 
-# Example code here
+enc = tiktoken.get_encoding("o200k_base")          # GPT-4o-family encoding
+ids = enc.encode("Tokenization is not magic.")
+print(ids)                                          # e.g. [2350, 2860, ...] integer IDs
+print([enc.decode([i]) for i in ids])               # the text chunk each ID maps to
+print("token count:", len(ids))                     # what you'd be billed on
+print("round-trip:", enc.decode(ids))               # lossless: exact original text
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>Spaces attach to the <em>front</em> of words; common words are one token while rare words split into several; the count is exactly what Project 01's cost formula multiplies.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — meaning by cosine</h3>
+      <pre><code class="language-python">import numpy as np, litellm
+from config import default_embedding_model
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+def embed(text: str) -> np.ndarray:
+    r = litellm.embedding(model=default_embedding_model(), input=[text])
+    return np.array(r["data"][0]["embedding"])
+
+def cosine(a, b) -> float:
+    return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+a = embed("the cat sat on the mat")
+b = embed("a feline rested on the rug")   # paraphrase
+c = embed("quarterly tax filing")          # unrelated
+print(round(cosine(a, b), 3))   # high: same meaning, different words
+print(round(cosine(a, c), 3))   # low: unrelated topics
+print("dims:", a.shape[0])      # 768 for nomic-embed-text — model-specific
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>Paraphrases score high <em>despite sharing few words</em> — proof that embeddings encode meaning, not surface tokens. This is exactly what keyword search cannot do.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — analogy arithmetic</h3>
+      <pre><code class="language-python">king, man, woman = embed("king"), embed("man"), embed("woman")
+queen, banana = embed("queen"), embed("banana")
+analogy = king - man + woman
+print("→ queen :", round(cosine(analogy, queen), 3))    # expected: relatively high
+print("→ banana:", round(cosine(analogy, banana), 3))   # expected: low
+# Now try a pair the model has weak signal for and watch the analogy degrade.
+</code></pre>
       <div class="callout danger">
         <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <p>The famous <code>king − man + woman ≈ queen</code> regularity holds <em>approximately</em> — it is a demonstrated tendency, not a law. Finding a triple where it fails is a <strong>required</strong> Failure Analysis experiment, not a bug.</p>
       </div>
     </section>
 
@@ -570,13 +611,12 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>Explain a token in your own words (ELI12 then ELI-Engineer). Why not just feed the model characters?</li>
+          <li>Draw the data flow from raw text to a cosine-similarity score. Where does the tokenizer sit? Where does the embedding model sit? Are they the same component?</li>
+          <li>Predict: if you embed your documents with model A and your queries with model B, what happens — and will you get an error?</li>
+          <li>Predict: what is <code>cosine(v, v)</code> for any vector <code>v</code>? What about <code>cosine(v, -v)</code>? Why?</li>
+          <li>Where have you seen "represent meaning as coordinates" before, inside or outside AI?</li>
+          <li>What is the one thing about embeddings you still don't fully understand?</li>
         </ol>
       </div>
 
@@ -589,11 +629,18 @@ import litellm
       <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build the explorer in <code>code/</code> — four modules:</p>
+      <ul>
+        <li><code>tokenizer_explorer.py</code> — given text, show each token's boundary, its integer ID, and the total count; demonstrate the lossless round-trip.</li>
+        <li><code>embedding_explorer.py</code> — embed text via <code>litellm</code> and report the vector's dimensionality and a few components.</li>
+        <li><code>similarity_calculator.py</code> — implement cosine similarity <strong>by hand with numpy</strong> (no library shortcut for the core function) and score pairs of texts.</li>
+        <li><code>corpus_search.py</code> — embed a small corpus, then return the nearest neighbors of a query by cosine.</li>
+      </ul>
+      <p><strong>Extended:</strong> reproduce <code>king − man + woman</code> and find one analogy that <em>fails</em>; compare token counts of the same text under two encodings; (optional) swap the embedding model and confirm you cannot compare vectors across models.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p>All four modules run; <code>cosine_similarity</code> is implemented by hand; the guiding tests in <code>code/tests/</code> pass; <code>UNDERSTANDING.md</code> is completed before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 intentional experiments (one a failed analogy); <code>EVALUATION.md</code> has quantitative results; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +653,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Tokenize</h4>
+            <p><code>tokenizer_explorer.py</code> prints IDs + per-token text + count. <strong>Validation:</strong> round-trip <code>decode(encode(s)) == s</code> for several strings.</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — BPE by hand</h4>
+            <p>Written: 2–3 merges on the hug/pug corpus. <strong>Validation:</strong> your merges match BPE's frequency rule.</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Embed</h4>
+            <p><code>embedding_explorer.py</code> returns a vector; you print its length. <strong>Validation:</strong> same text → same vector; length matches the model (e.g. 768).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — Cosine</h4>
+            <p><code>similarity_calculator.py</code> implements cosine from scratch. <strong>Validation:</strong> <code>cos(v,v)=1</code>, <code>cos(v,-v)=−1</code>; paraphrases score higher than unrelated text.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — Search</h4>
+            <p><code>corpus_search.py</code> ranks a corpus by similarity to a query. <strong>Validation:</strong> the top result is semantically (not lexically) the closest.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break it</h4>
+            <p>Analogy failure + cross-model dimension mismatch documented. <strong>Validation:</strong> at least one surprising/failed result recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +705,12 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Tokenizer truth</td><td>show real <code>tiktoken</code> IDs and a lossless round-trip?</td><td>☐</td></tr>
+          <tr><td>Count accuracy</td><td>report a token count equal to <code>len(enc.encode(text))</code>?</td><td>☐</td></tr>
+          <tr><td>Cosine from scratch</td><td>compute <code>x·y/(‖x‖‖y‖)</code> yourself, not via a library helper?</td><td>☐</td></tr>
+          <tr><td>Semantic win</td><td>rank a paraphrase above a keyword-overlapping but unrelated text?</td><td>☐</td></tr>
+          <tr><td>Dimensionality</td><td>read the vector length from the model rather than hardcoding it?</td><td>☐</td></tr>
+          <tr><td>Separation</td><td>keep tokenizer and embedding model as distinct components?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +718,10 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>Your cosine values fall outside <code>[−1, 1]</code> (you forgot to divide by the norms).</li>
+          <li>You compare embeddings produced by two different models and trust the score.</li>
+          <li>You hardcoded <code>1536</code> (or any dimension) instead of reading <code>len(vector)</code>.</li>
+          <li>You assume <code>tiktoken</code> counts are exact for a non-OpenAI provider.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +735,13 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Confusing tokenizer with embedding model</td><td>Both "turn text into numbers"</td><td>Treats meaningless IDs as if they carried meaning</td><td>IDs index a vocabulary; embeddings encode meaning — keep them separate</td></tr>
+          <tr><td>Hardcoding embedding dimension</td><td>Tutorials say "1536"</td><td>Breaks the moment you switch models</td><td>Read <code>len(vector)</code>; dims are model-specific (768 vs 1536)</td></tr>
+          <tr><td>Mixing embedding models</td><td>Query and corpus embedded separately over time</td><td>Silent garbage retrieval, no error</td><td>Pin one model for both sides</td></tr>
+          <tr><td>Cosine vs. Euclidean confusion</td><td>"Similar = close" intuition</td><td>Wrong rankings when magnitudes differ</td><td>Cosine measures <em>angle</em>; normalize or use cosine consistently</td></tr>
+          <tr><td>Similarity vs. distance mixup</td><td>Libraries return different ones</td><td>Rankings inverted (<code>1 − cos</code>)</td><td>Check whether your tool returns similarity or distance</td></tr>
+          <tr><td>Assuming tokenizer counts are universal</td><td>One tokenizer in Project 01</td><td>Wrong cost/context estimates for other providers</td><td><code>tiktoken</code> is exact for OpenAI; an estimate elsewhere</td></tr>
+          <tr><td>Expecting analogy arithmetic to always work</td><td>The king/queen demo</td><td>Frustration when it fails</td><td>It's an approximate regularity, not a law</td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +751,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>Project 01 billed you per <strong>token</strong> — this lesson opens that black box (<code>tiktoken</code>) so token count and cost stop being mysterious. The provider-abstraction layer (LiteLLM / <code>config.py</code>) you met in Project 01 is reused here for embeddings.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p>Embeddings + cosine are the literal engine of <strong>Project 03 (semantic search)</strong> and <strong>Project 04 (RAG / PDF assistant)</strong> — both retrieve by embedding a query and ranking documents by cosine. SBERT's "encode once, compare many" property is what makes that scalable. <strong>Project 05 (memory)</strong> stores and recalls by embedding similarity.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real systems separate a <strong>bi-encoder</strong> (embed each item independently → fast retrieval) from a <strong>cross-encoder</strong> (re-encode a pair → highest accuracy, too slow at scale), and combine them: retrieve with the bi-encoder, re-rank the top-k with a cross-encoder. Vectors are stored in a vector database (Project 03).</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>Any StarcallOS feature that "finds related things" — recalling a past note, surfacing a relevant command, matching a request to a capability — is an embedding + cosine lookup underneath. The judgment built here (which model, what dimension, when similarity lies) governs whether that retrieval feels intelligent or random.</p>
       </div>
     </section>
 
@@ -708,29 +774,17 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/official-docs/hf-tokenization-algorithms.md</code> — how BPE builds a vocabulary (do the merge by hand)</li>
+          <li><code>sources/official-docs/tiktoken-bpe.md</code> — run a real tokenizer; token counting</li>
+          <li><code>sources/official-docs/scikit-learn-cosine-similarity.md</code> — the cosine formula and what it measures</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
-        </ul>
-      </div>
-
-      <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
-        <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
-        </ul>
-      </div>
-
-      <div class="source-tier">
-        <h4>Tier 4 — Educational Sources</h4>
-        <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li><code>sources/papers/word2vec.md</code> — meaning as geometry; vector arithmetic</li>
+          <li><code>sources/papers/sentence-bert.md</code> — sentence embeddings; bi- vs cross-encoder; encode-once / compare-many</li>
         </ul>
       </div>
     </section>

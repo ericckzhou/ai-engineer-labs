@@ -95,6 +95,19 @@ When a claim lacks a source: flag it with `[SOURCE NEEDED]` — do not silently 
 
 Generated from `lesson.agent.md` using `skills/documentation-synthesis/SKILL.md`.
 
+> **⚠️ Rendering is a REQUIRED step, not optional — and it is the one most often skipped.**
+> The `rendered/lesson.html` that ships in a fresh project is the **stamped skeleton**: correct
+> CSS, but every content block is a `<!-- TODO -->` / `placeholder-content` stub. A lesson is
+> **not done** until those stubs are replaced with the real content from `lesson.agent.md`.
+> Authoring `lesson.agent.md` and leaving the HTML as the skeleton is the default failure mode.
+> **Verify before claiming done** (must print `0`):
+>
+> ```bash
+> grep -cE "TODO|placeholder-content|to be written" projects/XX/rendered/lesson.html   # → 0
+> ```
+>
+> If it prints anything but `0`, the HTML was not rendered — finish it before committing.
+
 **Styling is canonical, stamped inline.** The `<style>` block is stamped from
 `skills/lesson-generator/templates/lesson.css` (kept inline so the page opens standalone with
 no server). Keep all `lesson.html` `<style>` blocks byte-identical to the template — edit the
@@ -162,7 +175,7 @@ Do not invent provider pricing for `cost_tracker.py` — fill `$/MTok` from the 
 
 - [ ] All 10 lesson sections present in `lesson.agent.md`
 - [ ] All claims sourced — no `[SOURCE NEEDED]` remaining (or explicitly deferred)
-- [ ] `lesson.html` contains everything from `lesson.agent.md`
+- [ ] **`lesson.html` actually RENDERED** from `lesson.agent.md` — every section populated, **no skeleton stubs left**. Verify: `grep -cE "TODO|placeholder-content|to be written" projects/XX/rendered/lesson.html` prints `0`. (Do not mistake the pre-stamped CSS skeleton for a rendered lesson.)
 - [ ] `catalogs/concept-map.md` updated with new concepts
 - [ ] `catalogs/source-map.md` updated with new sources
 - [ ] `source/resources.md` annotated with all sources used

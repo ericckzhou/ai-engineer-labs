@@ -131,7 +131,7 @@ When generating or updating lesson content for a concept:
 6. Generate project milestones (4–6 incremental checkpoints).
 7. Generate the assessment rubric for `source/rubric.md`.
 8. Generate `code/` starter scaffolding per the Scaffolding Boundary below — and label every file.
-9. Generate `rendered/lesson.html` from the agent version.
+9. Generate `rendered/lesson.html` from the agent version — **render every section; do not leave the pre-stamped skeleton.** Verify `grep -cE "TODO|placeholder-content" rendered/lesson.html` prints `0` before treating the lesson as done.
 10. Update `catalogs/concept-map.md` with any new concepts and sources.
 
 Do not generate lesson content from memory. Gather evidence from `sources/` first.
