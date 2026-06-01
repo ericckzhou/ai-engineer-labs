@@ -1,5 +1,6 @@
-﻿litellm
+litellm
 tiktoken
 numpy
 python-dotenv
 rich
+pytest

@@ -1,4 +1,5 @@
-﻿litellm
+litellm
 python-dotenv
 rich
 pandas
+pytest
