@@ -28,11 +28,17 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## Tokenization
 
-- Tier 1: `sources/official-docs/` — Tokenizer documentation (to be added in Project 2)
+- Tier 1: `sources/official-docs/tiktoken-bpe.md` — OpenAI's BPE tokenizer: encode/decode API, token counting, byte-level BPE, ~4 bytes/token
+- Tier 1: `sources/official-docs/hf-tokenization-algorithms.md` — BPE/WordPiece/Unigram mechanics, word vs char vs subword tradeoff, worked BPE merge example
 
 ## Embeddings
 
-- Tier 2: `sources/papers/` — word2vec, sentence-transformers papers (to be added)
+- Tier 2: `sources/papers/word2vec.md` — Mikolov et al. 2013: continuous word vectors, CBOW/Skip-gram, "king − man + woman ≈ queen" vector arithmetic
+- Tier 2: `sources/papers/sentence-bert.md` — Reimers & Gurevych 2019: sentence embeddings via siamese BERT, encode-once/compare-many, bi- vs cross-encoder
+
+## Cosine Similarity & Vector Math
+
+- Tier 1: `sources/official-docs/scikit-learn-cosine-similarity.md` — formula `x·y / (‖x‖‖y‖)`, cosine of the angle, magnitude-invariance, range [−1, 1]
 
 ## Vector Databases
 

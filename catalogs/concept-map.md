@@ -31,7 +31,12 @@ When reasoning about a concept:
 - Known issues: —
 
 **Tokenization**
-- Source: `sources/official-docs/` (provider tokenizer docs)
+- Source: `sources/official-docs/tiktoken-bpe.md`, `sources/official-docs/hf-tokenization-algorithms.md`
+- Lesson: `projects/02-token-embedding-explorer/source/lesson.agent.md`
+- Known issues: —
+
+**Byte Pair Encoding (BPE)**
+- Source: `sources/official-docs/hf-tokenization-algorithms.md` (mechanics), `sources/official-docs/tiktoken-bpe.md` (byte-level BPE)
 - Lesson: `projects/02-token-embedding-explorer/source/lesson.agent.md`
 - Known issues: —
 
@@ -70,12 +75,12 @@ When reasoning about a concept:
 ### Embeddings & Retrieval
 
 **Embeddings**
-- Source: `sources/papers/` (word2vec, sentence-transformers)
+- Source: `sources/papers/word2vec.md` (word embeddings), `sources/papers/sentence-bert.md` (sentence embeddings)
 - Lesson: `projects/02-token-embedding-explorer/source/lesson.agent.md`
 - Known issues: —
 
 **Cosine Similarity**
-- Source: `sources/papers/`
+- Source: `sources/official-docs/scikit-learn-cosine-similarity.md`
 - Lesson: `projects/02-token-embedding-explorer/source/lesson.agent.md`
 - Known issues: —
 
