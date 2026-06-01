@@ -16,11 +16,19 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## LLM APIs & Chat Completions
 
-- Tier 1: `sources/official-docs/` — Provider API docs (to be added)
+- Tier 1: `sources/official-docs/anthropic-messages-api.md` — Messages API: request/response, stateless multi-turn, stop reasons, token usage
+- Tier 1: `sources/official-docs/anthropic-streaming.md` — Streaming (SSE) event protocol
+- Tier 1: `sources/official-docs/litellm-completion.md` — Provider-agnostic `completion()` interface
+- Tier 4: `sources/videos/hf-llm-course-intro.md` — NLP vs. LLM framing
+- Tier 4: `sources/articles/mlabonne-llm-course.md` — "Running LLMs" as the foundational step
+
+## Token Cost & Pricing
+
+- Tier 1: `sources/official-docs/anthropic-pricing.md` — Per-MTok pricing, cost formula, token estimation, prompt caching
 
 ## Tokenization
 
-- Tier 1: `sources/official-docs/` — Tokenizer documentation
+- Tier 1: `sources/official-docs/` — Tokenizer documentation (to be added in Project 2)
 
 ## Embeddings
 

@@ -36,12 +36,32 @@ When reasoning about a concept:
 - Known issues: —
 
 **Temperature**
-- Source: `sources/official-docs/`
+- Source: `sources/official-docs/anthropic-messages-api.md`
 - Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
 - Known issues: —
 
 **Streaming**
-- Source: `sources/official-docs/`
+- Source: `sources/official-docs/anthropic-streaming.md`
+- Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
+- Known issues: —
+
+**Stateless Multi-Turn Conversation**
+- Source: `sources/official-docs/anthropic-messages-api.md`
+- Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
+- Known issues: —
+
+**System Prompt**
+- Source: `sources/official-docs/anthropic-messages-api.md`
+- Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
+- Known issues: —
+
+**Token Cost & Pricing**
+- Source: `sources/official-docs/anthropic-pricing.md`
+- Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
+- Known issues: —
+
+**Provider Abstraction (LiteLLM)**
+- Source: `sources/official-docs/litellm-completion.md`
 - Lesson: `projects/01-ai-chatbot/source/lesson.agent.md`
 - Known issues: —
 
