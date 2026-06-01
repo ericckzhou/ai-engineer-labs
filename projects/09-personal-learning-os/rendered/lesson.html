@@ -1,0 +1,723 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project 09: Personal Learning OS — AI Engineering Lab</title>
+  <style>
+  :root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --surface2: #f3f4f6;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-bg: #eef2ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #d97706;
+    --yellow-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  nav.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .nav-brand {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .nav-project-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  nav.sidebar ul { list-style: none; }
+
+  nav.sidebar ul li a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  nav.sidebar ul li a:hover,
+  nav.sidebar ul li a.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 16px 10px 4px;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 56px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .lesson-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .lesson-tagline {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  section { margin-bottom: 56px; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 28px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* Callout boxes */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid;
+  }
+
+  .callout-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .callout.info { background: var(--accent-bg); border-color: var(--accent); }
+  .callout.info .callout-title { color: var(--accent); }
+
+  .callout.tip { background: var(--green-bg); border-color: var(--green); }
+  .callout.tip .callout-title { color: var(--green); }
+
+  .callout.warning { background: var(--yellow-bg); border-color: var(--yellow); }
+  .callout.warning .callout-title { color: var(--yellow); }
+
+  .callout.danger { background: var(--red-bg); border-color: var(--red); }
+  .callout.danger .callout-title { color: var(--red); }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  pre code { background: none; padding: 0; color: var(--code-text); font-size: 1em; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: var(--surface2); }
+
+  /* Knowledge check */
+  .knowledge-check {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 32px 0;
+  }
+
+  .knowledge-check h4 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .knowledge-check ol { padding-left: 20px; }
+  .knowledge-check li { margin-bottom: 10px; }
+
+  /* Objectives */
+  .objectives { list-style: none; padding: 0; }
+
+  .objectives li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+
+  .objectives li:last-child { border-bottom: none; }
+
+  .obj-check {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  /* Milestone steps */
+  .milestones { counter-reset: milestone; }
+
+  .milestone {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .milestone-num {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .milestone-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .milestone-content p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  /* Sources */
+  .source-tier {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .source-tier h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .source-tier ul { list-style: none; padding: 0; }
+
+  .source-tier li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .source-tier li:last-child { border-bottom: none; }
+
+  .source-tier a { color: var(--accent); text-decoration: none; }
+  .source-tier a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav.sidebar { display: none; }
+    main { padding: 32px 24px; }
+  }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <div class="nav-brand">AI Engineering Lab</div>
+    <div class="nav-project-title">09. Personal Learning OS</div>
+    <ul>
+      <li class="nav-section-label">Lesson</li>
+      <li><a href="#motivation">1. Motivation</a></li>
+      <li><a href="#mental-model">2. Mental Model</a></li>
+      <li><a href="#technical">3. Technical</a></li>
+      <li><a href="#examples">4. Examples</a></li>
+      <li><a href="#reflection">5. Reflection</a></li>
+      <li class="nav-section-label">Project</li>
+      <li><a href="#assignment">6. Assignment</a></li>
+      <li><a href="#milestones">7. Milestones</a></li>
+      <li><a href="#self-eval">8. Self-Evaluation</a></li>
+      <li class="nav-section-label">Reference</li>
+      <li><a href="#mistakes">9. Common Mistakes</a></li>
+      <li><a href="#connections">10. Connections</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- Header -->
+    <header class="lesson-header">
+      <div class="lesson-badge">Project 09 of 9</div>
+      <h1>Personal Learning OS</h1>
+      <p class="lesson-tagline">Orchestrate everything into a system that works for you</p>
+      <div class="lesson-meta">
+        <span class="meta-chip">&#128214; Read the lesson</span>
+        <span class="meta-chip">&#9997; Fill in understanding</span>
+        <span class="meta-chip">&#128736; Build the project</span>
+        <span class="meta-chip">&#128683; Break it</span>
+        <span class="meta-chip">&#128202; Evaluate it</span>
+      </div>
+    </header>
+
+    <!-- Learning Objectives -->
+    <section id="objectives">
+      <h2>Learning Objectives</h2>
+      <p>By the end of this project, you will be able to:</p>
+      <ul class="objectives">
+        <!-- TODO: Add specific objectives from lesson.agent.md -->
+        <li><div class="obj-check"></div>Objective 1 — to be written</li>
+        <li><div class="obj-check"></div>Objective 2 — to be written</li>
+        <li><div class="obj-check"></div>Objective 3 — to be written</li>
+        <li><div class="obj-check"></div>Objective 4 — to be written</li>
+        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Motivation -->
+    <section id="motivation">
+      <h2>1. Motivation</h2>
+
+      <h3>Why This Exists</h3>
+      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+
+      <div class="callout info">
+        <div class="callout-title">The Core Problem</div>
+        <p><!-- TODO: One-sentence problem statement. --></p>
+      </div>
+
+      <h3>What Breaks Without It</h3>
+      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+
+      <h3>Real-World Stakes</h3>
+      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+
+      <div class="callout tip">
+        <div class="callout-title">Startup Lens</div>
+        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+      </div>
+    </section>
+
+    <!-- Section 2: Mental Model -->
+    <section id="mental-model">
+      <h2>2. Mental Model</h2>
+
+      <h3>Explain Like I'm 12</h3>
+      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+
+      <h3>Explain Like I'm a Software Engineer</h3>
+      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+
+      <h3>Real-World Analogy</h3>
+      <div class="callout info">
+        <div class="callout-title">Analogy</div>
+        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+      </div>
+
+      <h3>How It Works (Diagram)</h3>
+      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+
+Example structure:
+[Input] → [Process A] → [Process B] → [Output]
+                ↓
+           [Storage]
+--></pre>
+    </section>
+
+    <!-- Section 3: Technical Explanation -->
+    <section id="technical">
+      <h2>3. Technical Explanation</h2>
+
+      <h3>Formal Definition</h3>
+      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+
+      <h3>How It Works Step by Step</h3>
+      <!-- TODO: Ordered list walking through the mechanism -->
+      <ol>
+        <li>Step 1 — to be written</li>
+        <li>Step 2 — to be written</li>
+        <li>Step 3 — to be written</li>
+      </ol>
+
+      <h3>Key Concepts</h3>
+      <table>
+        <thead>
+          <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
+        </thead>
+        <tbody>
+          <!-- TODO: Fill in from lesson.agent.md -->
+          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <div class="callout-title">Common Misconception</div>
+        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+      </div>
+    </section>
+
+    <!-- Section 4: Guided Examples -->
+    <section id="examples">
+      <h2>4. Guided Examples</h2>
+
+      <h3>Example 1: Simplest Case</h3>
+      <p><!-- TODO: Setup for the example --></p>
+      <pre><code class="language-python"># TODO: Minimal working example
+# This should be runnable with just the base dependencies
+
+import litellm
+
+# Example code here
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p><!-- TODO: What should the learner notice about this output? --></p>
+      </div>
+
+      <h3>Example 2: Real-World Case</h3>
+      <p><!-- TODO: More realistic usage --></p>
+      <pre><code class="language-python"># TODO: More complete example</code></pre>
+
+      <h3>Example 3: When It Fails</h3>
+      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
+      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+      <div class="callout danger">
+        <div class="callout-title">Why This Fails</div>
+        <p><!-- TODO: Explanation of the failure mode --></p>
+      </div>
+    </section>
+
+    <!-- Section 5: Reflection Before Building -->
+    <section id="reflection">
+      <h2>5. Reflection Before Building</h2>
+
+      <div class="callout warning">
+        <div class="callout-title">Stop Here</div>
+        <p>Before writing any code, fill in <code>UNDERSTANDING.md</code> in your own words. No copy-pasting from the lesson. No AI assistance for writing — only for checking. If you can't explain it simply, go back and re-read.</p>
+      </div>
+
+      <div class="knowledge-check">
+        <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
+        <ol>
+          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
+          <li>Explain the core concept to a software engineer with no AI background.</li>
+          <li>Draw your mental model of how data flows through this system.</li>
+          <li>If you removed the key component, what would break?</li>
+          <li>What is the most likely failure mode in a production system?</li>
+          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
+          <li><!-- TODO: One question specific to this lesson --></li>
+        </ol>
+      </div>
+
+      <p>After filling in <code>UNDERSTANDING.md</code>, use the AI mentor pattern in <code>docs/meta/learning-flow.md</code> to get feedback. Record the feedback in <code>UNDERSTANDING_FEEDBACK.md</code>.</p>
+    </section>
+
+    <!-- Section 6: Project Assignment -->
+    <section id="assignment">
+      <h2>6. Project Assignment</h2>
+      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+
+      <h3>Core Requirement</h3>
+      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+
+      <div class="callout info">
+        <div class="callout-title">Definition of Done</div>
+        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+      </div>
+    </section>
+
+    <!-- Section 7: Milestones -->
+    <section id="milestones">
+      <h2>7. Project Milestones</h2>
+      <p>Work through these in order. Each milestone should produce runnable code before moving on.</p>
+
+      <div class="milestones">
+        <div class="milestone">
+          <div class="milestone-num">1</div>
+          <div class="milestone-content">
+            <h4>Milestone 1 — to be written</h4>
+            <p>What you build and how to validate it.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">2</div>
+          <div class="milestone-content">
+            <h4>Milestone 2 — to be written</h4>
+            <p>What you build and how to validate it.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">3</div>
+          <div class="milestone-content">
+            <h4>Milestone 3 — to be written</h4>
+            <p>What you build and how to validate it.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">4</div>
+          <div class="milestone-content">
+            <h4>Milestone 4 — to be written</h4>
+            <p>What you build and how to validate it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Self-Evaluation -->
+    <section id="self-eval">
+      <h2>8. Self-Evaluation</h2>
+      <p>After building, honestly evaluate your implementation against these criteria. Record your answers in <code>EVALUATION.md</code>.</p>
+
+      <table>
+        <thead>
+          <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
+        </thead>
+        <tbody>
+          <!-- TODO: Specific criteria from lesson.agent.md -->
+          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
+          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
+          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
+          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
+          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout danger">
+        <div class="callout-title">Red Flags</div>
+        <p>Your implementation may have problems if:</p>
+        <ul>
+          <li><!-- TODO: Red flag 1 --></li>
+          <li><!-- TODO: Red flag 2 --></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 9: Common Mistakes -->
+    <section id="mistakes">
+      <h2>9. Common Mistakes</h2>
+
+      <table>
+        <thead>
+          <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
+        </thead>
+        <tbody>
+          <!-- TODO: Fill in from lesson.agent.md -->
+          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 10: Connections -->
+    <section id="connections">
+      <h2>10. Connections</h2>
+
+      <h3>Builds On</h3>
+      <p><!-- TODO: Prior project knowledge this relies on --></p>
+
+      <h3>Enables</h3>
+      <p><!-- TODO: Future projects this makes possible --></p>
+
+      <h3>Production Patterns</h3>
+      <p><!-- TODO: How real production systems implement this --></p>
+
+      <h3>StarcallOS Relevance</h3>
+      <div class="callout info">
+        <div class="callout-title">StarcallOS Connection</div>
+        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+      </div>
+    </section>
+
+    <!-- Sources -->
+    <section id="sources">
+      <h2>Sources</h2>
+      <p>See <code>source/resources.md</code> for the complete annotated source list.</p>
+
+      <div class="source-tier">
+        <h4>Tier 1 — Official Documentation</h4>
+        <ul>
+          <!-- TODO: Fill in from resources.md -->
+          <li><a href="#">Documentation source 1</a></li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 2 — Foundational Papers</h4>
+        <ul>
+          <li><!-- TODO: Papers --></li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 3 — Engineering Blogs</h4>
+        <ul>
+          <li><!-- TODO: Engineering blog posts --></li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 4 — Educational Sources</h4>
+        <ul>
+          <li><!-- TODO: Educational resources --></li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>
