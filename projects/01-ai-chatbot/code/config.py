@@ -15,28 +15,56 @@ from dotenv import load_dotenv
 load_dotenv()  # reads code/.env into the environment (API keys + optional overrides)
 
 # ---- CANONICAL: provider resolution (do not edit per project) ----------------
-# Provider preference order → (env key, default model via LiteLLM).
-# Groq is first: it offers a free tier. The first provider whose key is present wins.
+# Cloud provider preference order → (env key, default model via LiteLLM).
+# Groq is the preferred cloud provider: it has a free tier. First key present wins.
 PROVIDER_DEFAULTS: list[tuple[str, str]] = [
     ("GROQ_API_KEY", "groq/llama-3.3-70b-versatile"),
     ("ANTHROPIC_API_KEY", "claude-sonnet-4-6"),
     ("OPENAI_API_KEY", "gpt-4o-mini"),
 ]
 
+# Local Ollama defaults (no API key, $0). Opt in with USE_OLLAMA=1. Requires a running
+# Ollama server (localhost:11434) with these models pulled. LiteLLM routes "ollama/..."
+# (use "ollama_chat/<model>" for higher-quality chat output if you prefer).
+OLLAMA_CHAT_DEFAULT = "ollama/qwen3.5:4b"
+OLLAMA_EMBED_DEFAULT = "ollama/nomic-embed-text"  # 768-dim
+
+
+def _use_ollama() -> bool:
+    return os.getenv("USE_OLLAMA", "").strip().lower() in {"1", "true", "yes", "on"}
+
 
 def default_model() -> str:
-    """Pick a default model from whichever provider key is present (Groq preferred).
+    """Pick a default chat model. Explicit LLM_MODEL/CHATBOT_MODEL always wins.
 
-    An explicit CHATBOT_MODEL always wins. If no known key is set, fall back to the Groq
-    default so the resulting error clearly points at the intended provider.
+    Then: local Ollama if USE_OLLAMA is set; else the first cloud provider whose key is
+    present (Groq preferred). If nothing is configured, fall back to the Groq default so
+    the resulting error clearly points at the intended provider.
     """
-    explicit = os.getenv("CHATBOT_MODEL")
+    explicit = os.getenv("LLM_MODEL") or os.getenv("CHATBOT_MODEL")
     if explicit:
         return explicit
+    if _use_ollama():
+        return os.getenv("OLLAMA_MODEL", OLLAMA_CHAT_DEFAULT)
     for env_key, model in PROVIDER_DEFAULTS:
         if os.getenv(env_key):
             return model
     return PROVIDER_DEFAULTS[0][1]
+
+
+def default_embedding_model() -> str:
+    """Pick a default embedding model. Explicit EMBEDDING_MODEL always wins.
+
+    Groq/Anthropic have no embedding endpoint, so local Ollama is the natural keyless
+    default: used when USE_OLLAMA is set or when no OPENAI_API_KEY is present. With an
+    OpenAI key (and no USE_OLLAMA), default to OpenAI's small embedding model.
+    """
+    explicit = os.getenv("EMBEDDING_MODEL")
+    if explicit:
+        return explicit
+    if _use_ollama() or not os.getenv("OPENAI_API_KEY"):
+        return os.getenv("OLLAMA_EMBEDDING_MODEL", OLLAMA_EMBED_DEFAULT)
+    return "text-embedding-3-small"
 # ---- end canonical block -----------------------------------------------------
 
 
