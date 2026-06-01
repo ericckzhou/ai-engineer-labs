@@ -1,6 +1,7 @@
 litellm
 chromadb
 sentence-transformers
+numpy
 python-dotenv
 rich
 pytest

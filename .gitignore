@@ -51,6 +51,7 @@ Thumbs.db
 cache/
 .cache/
 chroma_db/
+.chroma/
 faiss_index/
 *.faiss
 *.pkl
