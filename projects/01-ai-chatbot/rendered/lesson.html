@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project 01: AI Chatbot — AI Engineering Lab</title>
   <style>
+  /* ============================================================================
+     CANONICAL LESSON CSS - source of truth: skills/lesson-generator/templates/lesson.css
+     Stamped inline into each rendered/lesson.html by the lesson-generator skill
+     (kept inline so the page opens standalone, with no server). Edit the template
+     and re-stamp; do NOT hand-edit this <style> block per project.
+     RENDER RULE: never place raw text + inline <code> as direct children of a
+     display:flex element (e.g. .objectives li) - wrap prose in a <span>, or the
+     text collapses to one word per line.
+     ============================================================================ */
   :root {
     --bg: #f9fafb;
     --surface: #ffffff;
@@ -227,6 +236,16 @@
 
   pre code { background: none; padding: 0; color: var(--code-text); font-size: 1em; }
 
+  .src {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
   /* Tables */
   table {
     width: 100%;
@@ -280,10 +299,8 @@
   .objectives { list-style: none; padding: 0; }
 
   .objectives li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px 0;
+    position: relative;
+    padding: 8px 0 8px 32px;
     border-bottom: 1px solid var(--border);
     font-size: 15px;
   }
@@ -291,12 +308,13 @@
   .objectives li:last-child { border-bottom: none; }
 
   .obj-check {
+    position: absolute;
+    left: 0;
+    top: 10px;
     width: 20px;
     height: 20px;
-    min-width: 20px;
     border-radius: 50%;
     border: 2px solid var(--border);
-    margin-top: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -418,12 +436,14 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div>Call a chat completion API and explain every field in the request and response (<code>model</code>, <code>messages</code>, <code>system</code>, <code>max_tokens</code>, <code>temperature</code>, <code>stop_reason</code>, <code>usage</code>).</li>
+        <li><div class="obj-check"></div>Implement multi-turn conversation by correctly maintaining and resending the <code>messages</code> array, given that the API is stateless.</li>
+        <li><div class="obj-check"></div>Explain why context windows exist and predict what happens when a conversation exceeds one.</li>
+        <li><div class="obj-check"></div>Stream tokens to the UI using server-sent events instead of waiting for the full response.</li>
+        <li><div class="obj-check"></div>Calculate the exact cost of any API call from <code>usage</code> and per-MTok pricing, and project costs at scale.</li>
+        <li><div class="obj-check"></div>Design a system prompt that reliably changes model behavior, and distinguish it from a user message.</li>
+        <li><div class="obj-check"></div>Switch LLM providers without changing application logic, using LiteLLM's unified <code>completion()</code> interface.</li>
+        <li><div class="obj-check"></div>Identify when a chatbot is the right architecture — and when a single-shot call or a different pattern is better.</li>
       </ul>
     </section>
 
@@ -432,22 +452,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>A raw language model is a function: text in, next-token-probabilities out. It has no concept of "a conversation," no memory, and no notion of who is speaking. The <strong>messages array</strong> standardized dialogue into a structured, role-tagged format that every major provider now speaks — so you stop hand-formatting prompt strings and re-parsing output every turn.</p>
 
-      <div class="callout info">
+      <div class="callout danger">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p><strong>LLMs are stateless. Every API call starts fresh.</strong> Ask "What's the capital of France?" → "Paris," then "What's its population?" and the model has no idea what "its" means — the second call knows nothing about the first.</p>
       </div>
 
-      <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <h3>The Solution (and Its Consequences)</h3>
+      <p>The fix is counterintuitive: <strong>you give the model memory by resending the entire conversation every single time.</strong> The model re-reads the whole history on every turn. This one fact explains why long chats get slow, why they get expensive, and why context windows matter.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>Every RAG system, coding copilot, and agent is a chatbot underneath. Cursor, Claude.ai, ChatGPT, support bots — all manage a messages array, a system prompt, and a context budget. A team that doesn't track tokens ships a product that quietly costs 10× what it should.</p>
 
       <div class="callout tip">
-        <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <div class="callout-title">Startup Lens — Would Users Pay For This?</div>
+        <p>On its own, no — a bare chatbot competes with free ChatGPT. The value is what you wrap around the loop: a system prompt encoding domain expertise, private data the public model can't see, context management, and cost control. The chatbot is the <em>infrastructure</em>; the product is the customization.</p>
       </div>
     </section>
 
@@ -456,25 +476,28 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine a brilliant friend with total amnesia. Every time you talk, they forget everything the instant the conversation ends. To have a real conversation, you hand them a notebook with <em>the entire chat so far</em> written down. They read the whole notebook, say one new thing, and forget again. To continue, you write their new sentence into the notebook and hand the whole thing back. The notebook is the <code>messages</code> array. The friend is the model.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <p>The chat API is a <strong>pure function</strong> over conversation state: <code>f(messages, system, params) → next_message</code>. No session, no cookie, no server-side state. You maintain the state client-side as an append-only list of <code>{role, content}</code> dicts. Each request sends the full list; the response is one <code>assistant</code> message you append before the next user turn.</p>
+      <p>This is the same shape as a reducer: <code>state = reduce(state, action)</code> where actions alternate <code>user</code>/<code>assistant</code>. The model is trained on strictly alternating roles. The <code>system</code> prompt is <em>not</em> a message in the array — it's a separate top-level field that conditions every turn.</p>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
-        <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <div class="callout-title">A Courtroom Transcript</div>
+        <p>The stenographer records every exchange in order. Before ruling on a new objection, the judge has the entire transcript available — nothing assumed from memory, it's all in the record. Add a line, and the next ruling is made against the whole updated record. The transcript grows, and reading it takes longer each time — exactly like <code>input_tokens</code> growing every turn.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre>Turn 1 request:                      Turn 2 request (resends everything):
+  system: "You are helpful."           system: "You are helpful."
+  messages:                            messages:
+    [user] "Capital of France?"          [user] "Capital of France?"
+                                         [assistant] "Paris."     &larr; appended from turn 1
+  &rarr;  [assistant] "Paris."                [user] "Its population?"  &larr; new
+                                       &rarr;  [assistant] "About 2.1M."
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+Each turn re-sends all prior turns. input_tokens grows monotonically.</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -482,15 +505,21 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p>A <strong>chat completion</strong> is a request to <code>POST /v1/messages</code> containing a <code>model</code>, a <code>max_tokens</code> cap, and a <code>messages</code> array of <code>{role: "user"|"assistant", content}</code> objects — optionally a top-level <code>system</code> string and sampling params (<code>temperature</code>, <code>top_p</code>, <code>stop_sequences</code>). The response is a <code>Message</code> with <code>content</code>, a <code>stop_reason</code>, and a <code>usage</code> object reporting <code>input_tokens</code> and <code>output_tokens</code>. <span class="src">[anthropic-messages-api]</span></p>
 
-      <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
+      <h3>How It Works, Step by Step</h3>
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li>You assemble <code>messages</code> (full history) + <code>system</code> + params.</li>
+        <li>The provider tokenizes the entire input. The token count = <code>input_tokens</code>.</li>
+        <li>The model generates output tokens one at a time until a natural stop, <code>max_tokens</code>, or a <code>stop_sequence</code> — recorded in <code>stop_reason</code>.</li>
+        <li>Non-streaming: the whole <code>Message</code> at once. Streaming: tokens arrive as SSE events (<code>message_start</code> &rarr; <code>content_block_delta</code>* &rarr; <code>message_stop</code>).</li>
+        <li>You read <code>usage</code> to compute cost, append the <code>assistant</code> message to history, and wait for the next user turn.</li>
       </ol>
+
+      <h3>The Math — Why Long Chats Get Expensive</h3>
+      <pre>cost = input_tokens/1e6 * input_price_per_MTok
+     + output_tokens/1e6 * output_price_per_MTok</pre>
+      <p>Across an <code>N</code>-turn conversation where each turn adds ~<code>t</code> tokens, turn <code>k</code> resends ~<code>k·t</code> tokens, so total input ≈ <code>t·N(N+1)/2</code> — <strong>quadratic-ish</strong>. This is <em>why</em> long conversations get disproportionately expensive and why context management exists.</p>
 
       <h3>Key Concepts</h3>
       <table>
@@ -498,14 +527,19 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Messages array</td><td>The ordered list of <code>{role, content}</code> turns sent on every request.</td><td>It <em>is</em> the conversation — there is no server-side memory.</td></tr>
+          <tr><td>Stateless</td><td>The model retains nothing between requests; each call starts fresh.</td><td>Forces you to resend history, which drives cost and context limits.</td></tr>
+          <tr><td>System prompt</td><td>Top-level persistent instructions that shape behavior across all turns.</td><td>The cheapest, highest-leverage way to control the model.</td></tr>
+          <tr><td>Context window</td><td>Max tokens the model can "see" (input + output) in one call.</td><td>When history exceeds it, the call fails or must be trimmed.</td></tr>
+          <tr><td>Token</td><td>The unit of text a model processes; ~4 chars / ~0.75 words in English.</td><td>Tokens — not words — are what you pay for and what fills the window.</td></tr>
+          <tr><td>Temperature</td><td>A 0.0–1.0 dial for randomness.</td><td>Controls reproducibility vs. variety.</td></tr>
+          <tr><td>Provider abstraction</td><td>A library (LiteLLM) giving all providers one interface.</td><td>Avoids vendor lock-in; swap models by changing a string.</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>"The API remembers my conversation." It does not — memory is <strong>client-side resending</strong>. And "tokens are words" is wrong too: ~4 characters per token. Both misconceptions lead to broken memory handling and badly wrong cost estimates.</p>
       </div>
     </section>
 
@@ -513,30 +547,65 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <h3>Example 1: Simplest Case — one stateless call</h3>
+      <p>A single call carries no memory. The <code>usage</code> fields are your cost ground-truth.</p>
+      <pre><code class="language-python">import litellm
 
-import litellm
-
-# Example code here
-</code></pre>
+response = litellm.completion(
+    model="claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "What is the capital of France?"}],
+    max_tokens=100,
+)
+print(response.choices[0].message.content)        # "The capital of France is Paris."
+print(response.usage.prompt_tokens,                # input_tokens
+      response.usage.completion_tokens)            # output_tokens</code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>Note how small <code>prompt_tokens</code> is here versus later turns — that growth is the whole cost story.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — multi-turn loop with system prompt</h3>
+      <p>The second question only works because the assistant's prior answer was appended to <code>history</code>.</p>
+      <pre><code class="language-python">import litellm
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+SYSTEM = "You are a concise assistant. Answer in one sentence."
+history = [{"role": "system", "content": SYSTEM}]   # LiteLLM puts system in messages
+
+def ask(user_text: str) -> str:
+    history.append({"role": "user", "content": user_text})
+    resp = litellm.completion(
+        model="claude-sonnet-4-6", messages=history, max_tokens=200, temperature=0.7,
+    )
+    answer = resp.choices[0].message.content
+    history.append({"role": "assistant", "content": answer})   # CRITICAL: persist the turn
+    return answer
+
+print(ask("What is the capital of France?"))   # "Paris."
+print(ask("What is its population?"))          # resolves "its" -> Paris, because history was resent</code></pre>
+      <div class="callout warning">
+        <div class="callout-title">What to Observe</div>
+        <p>Forget the assistant append and the model loses the thread. Watch <code>prompt_tokens</code> climb each turn.</p>
+      </div>
+
+      <h3>Example 3: Edge Case — streaming + cost tracking</h3>
+      <p>Text appears incrementally — that's the SSE <code>content_block_delta</code> stream.</p>
+      <pre><code class="language-python">import litellm
+
+PRICES = {"claude-sonnet-4-6": (3.0, 15.0)}   # ($/MTok in, out) — src: anthropic-pricing
+
+def stream_ask(history, model="claude-sonnet-4-6"):
+    stream = litellm.completion(model=model, messages=history, max_tokens=500, stream=True)
+    parts = []
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            print(delta, end="", flush=True)     # token-by-token to the terminal
+            parts.append(delta)
+    print()
+    return "".join(parts)</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">The Trap</div>
+        <p>Streamed chunks don't reliably carry final <code>usage</code>, so you must count tokens yourself (or do a non-streaming usage call) to bill accurately. This is the single hardest part of the project.</p>
       </div>
     </section>
 
@@ -552,13 +621,13 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>Explain "the API is stateless" in your own words (ELI12, then ELI-Engineer). What concretely gives a chatbot memory?</li>
+          <li>Draw your mental model of how <code>messages</code> flows from turn to turn. Where does the assistant's reply go?</li>
+          <li>Predict: if you forget to append the assistant's response to history, what exactly breaks — and on which turn?</li>
+          <li>Predict: what is the most likely failure mode once a conversation runs for 100 turns? Tie it to a specific field (<code>input_tokens</code>, context window, or cost).</li>
+          <li>The system prompt vs. a first user message: why prefer the system prompt for persistent instructions?</li>
+          <li>Where have you seen the "resend full state each time" pattern before, inside or outside AI?</li>
+          <li>What is the one thing about streaming or token cost you still don't fully understand?</li>
         </ol>
       </div>
 
@@ -568,14 +637,36 @@ import litellm
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> for the overview and <code>source/project.md</code> for the full engineering spec.</p>
+
+      <h3>Starter Code &amp; Workflow</h3>
+      <p>Setup is solved for you; the core logic is not. <code>code/</code> ships labeled starter files:</p>
+      <table>
+        <thead>
+          <tr><th>Files</th><th>Role</th><th>You...</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>config.py</code>, <code>.env.example</code>, <code>tests/</code></td><td>provided</td><td>copy <code>.env.example</code> → <code>.env</code>; make the tests pass</td></tr>
+          <tr><td><code>cost_tracker.py</code>, <code>context.py</code></td><td>partial</td><td>implement the <code>TODO(learner)</code> bodies</td></tr>
+          <tr><td><code>chatbot.py</code></td><td>learner</td><td>build the conversation loop — the heart of the project</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip">
+        <div class="callout-title">One-Command Workflow</div>
+        <p><strong>Run:</strong> <code>python chatbot.py</code> &nbsp;·&nbsp; <strong>Test:</strong> <code>python -m pytest</code>. Make the provided tests pass first (no network needed), then build the loop. The finished core is intentionally <em>not</em> provided — search the starter files for <code>TODO(learner)</code>.</p>
+      </div>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>A CLI chatbot that: (a) holds a multi-turn conversation with correct history management, (b) applies a configurable system prompt, (c) streams responses token-by-token, and (d) reports per-turn and cumulative token cost. You must be able to explain every line — no copied magic.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p>Multi-turn memory is correct (BOTH roles appended every turn); a system prompt visibly changes behavior; responses stream incrementally; and per-turn cost is derived from real <code>usage</code> and matches a hand calculation for one known turn.</p>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">Extended Requirements</div>
+        <p>Context-window guard (estimate &amp; warn/trim before exceeding budget); provider switch (change one config value to run a different model); <code>/cost</code> and <code>/reset</code> commands; persist a transcript to disk.</p>
       </div>
     </section>
 
@@ -588,29 +679,36 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>One-shot call</h4>
+            <p>Send a single message, print the reply and raw <code>usage</code>. <strong>Validate:</strong> you can name every field in the response.</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>Multi-turn loop</h4>
+            <p>Append user+assistant turns to a list; resend each turn. <strong>Validate:</strong> "What is its population?" correctly resolves a pronoun from the prior turn.</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>System prompt</h4>
+            <p>Inject a configurable system prompt; observe behavior change. <strong>Validate:</strong> same question, two system prompts &rarr; visibly different style.</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>Streaming</h4>
+            <p>Switch to <code>stream=True</code>; print tokens as they arrive. <strong>Validate:</strong> text appears incrementally, not all at once.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>Cost tracking</h4>
+            <p>Compute per-turn and cumulative cost from <code>usage</code> + prices. <strong>Validate:</strong> printed cost matches a hand calculation for a known turn.</p>
           </div>
         </div>
       </div>
@@ -626,12 +724,13 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>History correctness</td><td>append BOTH user and assistant messages every turn?</td><td>☐</td></tr>
+          <tr><td>Statelessness understood</td><td>resend the full history (not just the latest message)?</td><td>☐</td></tr>
+          <tr><td>System prompt</td><td>apply persistent instructions separately from user turns?</td><td>☐</td></tr>
+          <tr><td>Streaming</td><td>render tokens incrementally via the stream?</td><td>☐</td></tr>
+          <tr><td>Cost accuracy</td><td>compute cost from real <code>usage</code>, matching a manual check?</td><td>☐</td></tr>
+          <tr><td>Context awareness</td><td>detect/handle approaching the context window?</td><td>☐</td></tr>
+          <tr><td>Provider abstraction</td><td>swap models without rewriting the loop?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -639,8 +738,10 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>You only send the latest user message (no history) — the bot will seem to have amnesia.</li>
+          <li>Your cost is hardcoded or guessed rather than derived from <code>usage</code>.</li>
+          <li>You can't explain why <code>input_tokens</code> grows each turn.</li>
+          <li>Streaming "works" but you never capture final token counts.</li>
         </ul>
       </div>
     </section>
@@ -654,10 +755,13 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Sending only the latest message</td><td>Assuming the server remembers</td><td>Bot has no memory; pronouns/context break</td><td>Resend the full <code>messages</code> array every call</td></tr>
+          <tr><td>Forgetting to append the assistant reply</td><td>Only appending user turns</td><td>Model loses its own prior answers</td><td>Append BOTH roles each turn</td></tr>
+          <tr><td>Putting instructions in a user message</td><td>Not knowing about <code>system</code></td><td>Instructions get diluted as chat grows</td><td>Use the <code>system</code> field/message</td></tr>
+          <tr><td>Ignoring <code>stop_reason</code></td><td>Only reading <code>content</code></td><td>Silent truncation when <code>max_tokens</code> hit</td><td>Check <code>stop_reason == "max_tokens"</code></td></tr>
+          <tr><td>Guessing cost</td><td><code>usage</code> not inspected</td><td>Off-by-orders-of-magnitude budgeting</td><td>Compute from <code>usage</code> + per-MTok price</td></tr>
+          <tr><td>Assuming words ≈ tokens</td><td>Intuitive but wrong</td><td>Bad window/cost estimates</td><td>Use ~4 chars/token; verify with <code>usage</code></td></tr>
+          <tr><td>Letting history grow unbounded</td><td>No trimming</td><td>Eventually exceeds context window &rarr; error</td><td>Cap/trim/summarize history</td></tr>
         </tbody>
       </table>
     </section>
@@ -667,18 +771,23 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>This is Project 1 — the foundation. Everything downstream builds on the messages/cost/context mental model established here.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <ul>
+        <li><strong>P2 (Tokens &amp; Embeddings):</strong> deepens the "what is a token" idea introduced here.</li>
+        <li><strong>P4 (RAG):</strong> retrieved documents get injected into <code>messages</code> — the same array, now with stuffed context.</li>
+        <li><strong>P5 (Memory):</strong> an explicit answer to "history grows unbounded" — summarize/store instead of resend.</li>
+        <li><strong>P8 (Agent):</strong> the loop becomes a tool-use loop; <code>stop_reason == "tool_use"</code> replaces <code>end_turn</code>.</li>
+      </ul>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real products manage the array with a <strong>sliding window</strong> (drop oldest turns), <strong>summarization</strong> (compress old turns into a synthetic note), and <strong>prompt caching</strong> (cache the stable prefix so repeated history costs ~0.1× input). Model selection (Haiku&rarr;Sonnet&rarr;Opus) is a first-order cost lever.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>The conversation loop + system prompt + cost tracking is the substrate for any StarcallOS assistant surface. The "resend full state" cost dynamic is exactly why StarcallOS needs a memory layer: you cannot resend a user's entire history forever, so you need persistent, retrievable memory (P5) rather than an ever-growing array.</p>
       </div>
     </section>
 
@@ -690,29 +799,32 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><a href="https://platform.claude.com/docs/en/api/messages">Anthropic Messages API</a> — request/response contract, stateless multi-turn, <code>stop_reason</code>, <code>usage</code>.</li>
+          <li><a href="https://platform.claude.com/docs/en/docs/build-with-claude/streaming">Anthropic Streaming</a> — the SSE event protocol.</li>
+          <li><a href="https://platform.claude.com/docs/en/docs/about-claude/pricing">Anthropic Pricing &amp; Token Cost</a> — per-MTok pricing, cost formula, token estimation.</li>
+          <li><a href="https://docs.litellm.ai/docs/completion/input">LiteLLM completion()</a> — the provider-agnostic unified interface.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li>None required for Project 1 — the Transformer paper is deferred to P2, where it becomes load-bearing.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 3 — Engineering Blogs</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li>None gathered for P1 — production patterns are covered by the Tier 1 pricing/Messages docs above.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li><a href="https://huggingface.co/learn/llm-course/chapter1/1">Hugging Face LLM Course — Introduction</a> — NLP vs. LLM framing.</li>
+          <li><a href="https://github.com/mlabonne/llm-course">mlabonne/llm-course</a> — "Running LLMs" as the foundational first step.</li>
         </ul>
       </div>
     </section>
