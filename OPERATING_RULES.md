@@ -114,6 +114,34 @@ When a conflict between layers is detected:
 
 ---
 
+## Scaffolding Rules
+
+These rules govern what Claude provides versus what the learner must build. The repository removes accidental friction and preserves essential struggle. They apply to every project under `projects/`.
+
+16. **Solve setup; leave the learning target incomplete.**
+    - Setup should be solved (dependencies, environment, run/test commands, project skeleton).
+    - Interfaces should be clear (function signatures, contracts, types).
+    - The learning target should be incomplete — the learner implements the core logic.
+
+17. **Always provide; never provide.**
+    *Always provide:* clear project brief, starter files, dependency setup, `.env.example` when environment variables are needed, a one-command run workflow, a one-command test workflow, tests or checks that guide the learner, rubric, reflection prompts, optional hints, extension tasks.
+    *Never provide:* a complete working solution for the learner-owned core component, copy-paste final answers, hidden "magic" code that bypasses the intended learning, or excessive scaffolding that removes the main design decision.
+
+18. **Label every project file or section with exactly one role.**
+    - `provided` — complete scaffolding or support code (setup, plumbing, fixtures).
+    - `partial` — starter code with TODOs marking learner-owned gaps.
+    - `learner` — the core implementation the learner must write.
+    - `reference` — explanatory material, rubric, hints, or docs.
+    Mark learner-owned work concretely: TODOs, `NotImplementedError`, failing tests, or empty functions/classes.
+
+19. **Choose the incomplete component from the learning objective.**
+    - API wiring → leave message construction and model-call logic incomplete.
+    - Prompt design → provide model-call plumbing; leave prompt construction incomplete.
+    - Conversation memory → provide model-call plumbing; leave history management incomplete.
+    - Evaluation → provide chatbot behavior; leave eval design/instrumentation incomplete.
+
+---
+
 ## When Rules Conflict With Each Other
 
 Apply the most specific rule. If equally specific, apply the rule that preserves truth.

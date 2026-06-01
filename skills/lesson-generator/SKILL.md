@@ -40,6 +40,9 @@ Do not generate lesson content from memory alone. Sources first.
 | `project.md` | `projects/XX/source/` | Detailed project spec with milestones |
 | `resources.md` | `projects/XX/source/` | Annotated source list for this lesson |
 | `rubric.md` | `projects/XX/source/` | Project-specific assessment criteria |
+| `.env.example` | `projects/XX/code/` | `provided` — env var template when keys are needed |
+| starter modules | `projects/XX/code/` | `partial`/`learner` — setup & interfaces solved, core left incomplete |
+| guiding tests | `projects/XX/code/tests/` | `provided` — failing/guiding checks the learner makes pass |
 
 ### Files This Skill Does NOT Touch
 
@@ -92,6 +95,13 @@ When a claim lacks a source: flag it with `[SOURCE NEEDED]` — do not silently 
 
 Generated from `lesson.agent.md` using `skills/documentation-synthesis/SKILL.md`.
 
+**Styling is canonical, stamped inline.** The `<style>` block is stamped from
+`skills/lesson-generator/templates/lesson.css` (kept inline so the page opens standalone with
+no server). Keep all `lesson.html` `<style>` blocks byte-identical to the template — edit the
+template and re-stamp; do not hand-edit per project. **Render rule:** never place raw text +
+inline `<code>` as direct children of a `display:flex` element (e.g. `.objectives li`) — wrap
+prose in a `<span>`, or the text collapses to one word per line.
+
 Must include:
 - Sidebar navigation
 - All 10 lesson sections
@@ -120,6 +130,34 @@ Must include:
 - Known difficulty spikes
 - Suggested debugging approach
 
+## Code Scaffolding Requirements (`code/`)
+
+Governed by `OPERATING_RULES.md` §Scaffolding Rules (16–19). The boundary: **setup solved, interfaces clear, learning target incomplete.**
+
+**Provider & canonical templates.** Projects are self-contained (OPERATING_RULES §15), so shared `provided` plumbing is **stamped from a canonical template, not imported**. Stamp these into each project's `code/`:
+
+- `skills/lesson-generator/templates/config.py` — the **provider-resolution block is canonical** (keep it byte-identical across projects); the `Config` dataclass is per-project (add the fields this project needs). It makes the LLM provider **swappable by key**, defaulting to **Groq (free tier)** and falling back Groq → Anthropic → OpenAI based on which `*_API_KEY` is set. An explicit `CHATBOT_MODEL` always wins.
+- `skills/lesson-generator/templates/.env.example` — lists `GROQ_API_KEY` first; other providers are optional commented entries.
+
+Do not invent provider pricing for `cost_tracker.py` — fill `$/MTok` from the provider's official pricing page or leave it to raise on unknown models. (See memory: default-api-groq.)
+
+**Always generate:**
+- A clear brief (already in `PROJECT.md` / `source/project.md`).
+- Starter files with clear interfaces — function/class signatures, type hints, docstrings stating the contract.
+- Dependency setup (`requirements.txt`) and `.env.example` when environment variables are needed.
+- A one-command run workflow and a one-command test workflow (document both in `code/README.md`).
+- Guiding tests or checks the learner makes pass (place in `code/tests/`). Pure-logic checks (e.g. cost math) should be runnable with no network.
+- Optional hints and extension tasks (extension tasks live in `source/project.md` "Extended Requirements").
+
+**Never generate:**
+- A complete working solution for the learner-owned core component.
+- Copy-paste final answers or hidden "magic" that bypasses the intended learning.
+- Excessive scaffolding that removes the main design decision.
+
+**Label every file** in the `source/project.md` File Specification as `provided`, `partial`, `learner`, or `reference`. Mark learner-owned gaps with `TODO`, `raise NotImplementedError`, failing tests, or empty functions/classes.
+
+**Pick the incomplete component from the objective** (OPERATING_RULES §19): API wiring → message construction & model call; prompt design → prompt construction; conversation memory → history management; evaluation → eval design/instrumentation.
+
 ## Post-Generation Checklist
 
 - [ ] All 10 lesson sections present in `lesson.agent.md`
@@ -128,3 +166,8 @@ Must include:
 - [ ] `catalogs/concept-map.md` updated with new concepts
 - [ ] `catalogs/source-map.md` updated with new sources
 - [ ] `source/resources.md` annotated with all sources used
+- [ ] `code/` scaffolding follows the boundary: setup solved, interfaces clear, **core left incomplete**
+- [ ] Every `code/` file labeled `provided`/`partial`/`learner`/`reference` in `source/project.md`
+- [ ] `.env.example` present if env vars are needed; one-command run AND test workflows documented
+- [ ] At least one guiding test exists that the learner must make pass
+- [ ] No complete solution for the learner-owned core component is committed

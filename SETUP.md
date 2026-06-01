@@ -51,20 +51,24 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-# Primary — Anthropic Claude
-ANTHROPIC_API_KEY=sk-ant-...
+# Primary — Groq (has a FREE TIER; the lab's default provider)
+GROQ_API_KEY=...
 
-# Optional alternatives (LiteLLM supports all)
+# Optional alternatives — set any of these and the default model swaps automatically
+ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 TOGETHER_API_KEY=...
-GROQ_API_KEY=...
 
 # For vector search (Project 3+)
 # PINECONE_API_KEY=...
 # QDRANT_URL=...
 ```
 
-LiteLLM reads these automatically. You can switch providers by changing the model string — no other code changes needed.
+LiteLLM reads these automatically. Each project's `config.py` picks the default model from
+whichever key is present (preference order **Groq → Anthropic → OpenAI**); an explicit
+`CHATBOT_MODEL` always wins. You can also switch providers by changing the model string — no
+other code changes needed. (The provider-resolution block is the canonical template at
+`skills/lesson-generator/templates/config.py`.)
 
 ## 6. Verify Setup
 
@@ -72,7 +76,7 @@ LiteLLM reads these automatically. You can switch providers by changing the mode
 python -c "
 import litellm
 response = litellm.completion(
-    model='claude-sonnet-4-6',
+    model='groq/llama-3.3-70b-versatile',  # free-tier default; or your provider's model string
     messages=[{'role': 'user', 'content': 'Say hello in one word.'}]
 )
 print(response.choices[0].message.content)
@@ -83,9 +87,9 @@ print(response.choices[0].message.content)
 
 | Provider | Model String | Env Var |
 |----------|-------------|---------|
+| **Groq (default, free tier)** | `groq/llama-3.3-70b-versatile` | `GROQ_API_KEY` |
 | Anthropic | `claude-sonnet-4-6` | `ANTHROPIC_API_KEY` |
 | OpenAI | `gpt-4o` | `OPENAI_API_KEY` |
-| Groq | `groq/llama3-70b-8192` | `GROQ_API_KEY` |
 | Together | `together_ai/mistralai/Mixtral-8x7B` | `TOGETHER_API_KEY` |
 | Ollama (local) | `ollama/llama3` | — |
 

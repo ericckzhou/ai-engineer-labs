@@ -130,10 +130,19 @@ When generating or updating lesson content for a concept:
 5. Generate the project assignment for `source/project.md`.
 6. Generate project milestones (4–6 incremental checkpoints).
 7. Generate the assessment rubric for `source/rubric.md`.
-8. Generate `rendered/lesson.html` from the agent version.
-9. Update `catalogs/concept-map.md` with any new concepts and sources.
+8. Generate `code/` starter scaffolding per the Scaffolding Boundary below — and label every file.
+9. Generate `rendered/lesson.html` from the agent version.
+10. Update `catalogs/concept-map.md` with any new concepts and sources.
 
 Do not generate lesson content from memory. Gather evidence from `sources/` first.
+
+#### Scaffolding Boundary (see `OPERATING_RULES.md` §Scaffolding Rules)
+
+Remove accidental friction; preserve essential struggle.
+
+- **Setup is solved; the learning target is incomplete.** Provide deps, `.env.example` (when env vars are needed), one-command run + test workflows, starter files with clear interfaces, and guiding tests. Do **not** provide the finished core component, copy-paste answers, hidden "magic," or so much scaffolding that the main design decision disappears.
+- **Label every file or section** as `provided`, `partial`, `learner`, or `reference`. Mark learner-owned work with `TODO`, `raise NotImplementedError`, failing tests, or empty functions/classes.
+- **Pick the incomplete component from the objective:** API wiring → model-call/message construction; prompt design → prompt construction; conversation memory → history management; evaluation → eval design/instrumentation.
 
 ### Workflow B: Learning Support (Claude as mentor/guide)
 
