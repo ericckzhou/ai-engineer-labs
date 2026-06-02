@@ -27,26 +27,61 @@ def get_encoder() -> tiktoken.Encoding:
 def encode(text: str) -> list[int]:
     """[learner] Return the list of integer token IDs for `text`.
 
-    Hint: get_encoder().encode(text)
+    Steps:
+      1. return get_encoder().encode(text)   (one line — the encoder does the work).
+
+    Example (mirrors tests/test_tokenizer.py::test_encode_returns_ints — exact IDs are
+    model-specific, so the test asserts the SHAPE, not the values):
+        ids = encode("hello world")
+        isinstance(ids, list) and all(isinstance(i, int) for i in ids)   # -> True
+        # e.g. ids might be [24912, 2375] for the o200k_base encoding
     """
     raise NotImplementedError("M1: implement encode() - text to list[int] token IDs")
 
 
 def decode(ids: list[int]) -> str:
-    """[learner] Inverse of encode: token IDs back to the exact original text (lossless)."""
+    """[learner] Inverse of encode: token IDs back to the exact original text (lossless).
+
+    Steps:
+      1. return get_encoder().decode(ids).
+
+    Example (mirrors tests/test_tokenizer.py::test_round_trip_is_lossless — the round-trip is
+    the property that proves tokenization is a reversible codec):
+        decode(encode("Tokenization is not magic."))  -> "Tokenization is not magic."
+        decode(encode("emoji 🚀 and ünïcöde"))         -> "emoji 🚀 and ünïcöde"
+        decode(encode(""))                             -> ""
+    """
     raise NotImplementedError("M1: implement decode() - list[int] back to str")
 
 
 def token_pieces(ids: list[int]) -> list[str]:
     """[learner] The decoded text chunk for EACH id individually, so boundaries are visible.
 
-    Hint: decode one id at a time. Notice spaces attach to the *front* of words.
+    Steps:
+      1. decode ONE id at a time: [get_encoder().decode([i]) for i in ids].
+      2. notice spaces attach to the *front* of words (" is", " not") — that's the tokenizer,
+         not a bug. The pieces must rejoin to the original text exactly.
+
+    Example (mirrors tests/test_tokenizer.py::test_token_pieces_align_with_ids):
+        ids = encode("Tokenization is not magic.")
+        pieces = token_pieces(ids)
+        len(pieces) == len(ids)                      # -> True (one piece per id)
+        "".join(pieces) == "Tokenization is not magic."   # -> True (lossless concatenation)
+        # e.g. pieces ≈ ['Token', 'ization', ' is', ' not', ' magic', '.']
     """
     raise NotImplementedError("M1: implement token_pieces() - per-id decoded chunks")
 
 
 def count(text: str) -> int:
-    """[learner] Token count. Must equal len(encode(text)) — this is what you are billed on."""
+    """[learner] Token count. Must equal len(encode(text)) — this is what you are billed on.
+
+    Steps:
+      1. return len(encode(text))   (count the IDs — don't estimate from characters).
+
+    Example (mirrors tests/test_tokenizer.py::test_count_equals_number_of_ids):
+        count("Tokenization is not magic.") == len(encode("Tokenization is not magic."))  # -> True
+        count("") == 0
+    """
     raise NotImplementedError("M1: implement count() - number of tokens in text")
 
 

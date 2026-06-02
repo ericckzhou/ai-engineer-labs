@@ -29,6 +29,13 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
       2. na = ‖a‖, nb = ‖b‖           (np.linalg.norm)
       3. return float(dot / (na * nb))
     Result must lie in [-1, 1]. If you get values outside that range, you forgot to divide by a norm.
+
+    Example (mirrors tests/test_similarity.py — all offline, no network):
+        cosine_similarity(np.array([1., 2., 3.]), np.array([1., 2., 3.]))  -> 1.0    # identical
+        cosine_similarity(np.array([1., 0.]),     np.array([0., 1.]))      -> 0.0    # orthogonal
+        cosine_similarity(np.array([1., 0.]),     np.array([3., 4.]))      -> 0.6    # 3/(1*5)
+        cosine_similarity(v, -v)                                           -> -1.0   # opposite
+        cosine_similarity(np.array([1., 1.]),     np.array([10., 10.]))    -> 1.0    # magnitude ignored
     """
     raise NotImplementedError("M4: implement cosine_similarity() from scratch - no library shortcut")
 

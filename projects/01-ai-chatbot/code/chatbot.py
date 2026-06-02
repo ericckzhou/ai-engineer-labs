@@ -1,10 +1,14 @@
 """chatbot.py — [learner] The conversation loop. THIS is the project.
 
-Provided for you: command dispatch (/cost, /reset, /system, /quit), and the wiring to
-config / cost_tracker / context. Left for you: actually talking to the model and managing
-history so the bot remembers the conversation. Search for `TODO(learner)`.
+Actually talking to the model and managing history so the bot remembers the conversation is the
+work. There is no offline test here (it needs a provider) — the [learner] docstrings carry a
+behavioral Example showing the expected shape.
 
-Run:  python chatbot.py
+PROVIDED: command dispatch (/cost, /reset, /system, /quit) and the wiring to config / cost_tracker
+/ context.
+LEARNER: stream_completion() and the one-turn block inside run_repl() (both marked [learner]).
+
+Run:  python chatbot.py     (needs a provider — USE_OLLAMA=1 or a cloud key)
 """
 from __future__ import annotations
 
@@ -16,13 +20,24 @@ from cost_tracker import CostTracker
 
 
 def stream_completion(history: list[dict], cfg: Config) -> tuple[str, dict]:
-    """Call the model with streaming; print tokens as they arrive; return (full_text, usage).
+    """[learner] Call the model with streaming; print tokens as they arrive; return (full_text, usage).
 
-    LEARNER TODO:
-      - call litellm.completion(model=..., messages=history, ..., stream=True)
-      - print each content delta as it arrives (end="", flush=True)
-      - accumulate the full text AND capture final token usage
-        (streamed chunks may not carry usage — see lesson §3 Implementation Details)
+    Steps:
+      1. call litellm.completion(model=cfg.model, messages=history, stream=True, ...) — pass
+         temperature/max_tokens from cfg.
+      2. iterate the stream; for each chunk print the content delta (end="", flush=True) AND
+         append it to a running string.
+      3. capture the final token usage. Streamed chunks may not carry usage — request it
+         (stream_options={"include_usage": True}) or fall back to estimate_tokens(). See lesson
+         §3 Implementation Details.
+      4. return (full_text, usage).
+
+    Example (behavioral — needs a provider, so there is no offline test; shape, not exact text):
+        history = [{"role": "system", "content": "..."}, {"role": "user", "content": "hi"}]
+        text, usage = stream_completion(history, cfg)
+        # tokens print to stdout as they arrive, then:
+        isinstance(text, str)                              # the full assembled reply
+        usage["input_tokens"], usage["output_tokens"]      # ints → feed CostTracker.record()
     """
     raise NotImplementedError("Implement stream_completion() — see lesson §4 Example 3")
 
@@ -55,11 +70,16 @@ def run_repl(cfg: Config) -> None:
             print("(system prompt updated)")
             continue
 
-        # --- one conversation turn (LEARNER TODO) ---
-        # TODO(learner): append the user turn; guard the budget with trim_to_budget();
-        # call stream_completion(); append the assistant turn (BOTH roles!); then
-        # record + print the cost for the turn. Forgetting the assistant append is the
-        # #1 bug — the bot will act amnesiac. (lesson §9 Common Mistakes)
+        # --- one conversation turn ([learner]) ---
+        # Steps:
+        #   1. append the user turn: history.append({"role": "user", "content": user}).
+        #   2. guard the budget: history = trim_to_budget(history, cfg.context_budget, ...).
+        #   3. text, usage = stream_completion(history, cfg).
+        #   4. append the assistant turn: history.append({"role": "assistant", "content": text}).
+        #      Appending BOTH roles is what gives the bot memory — forgetting the assistant
+        #      append is the #1 bug (the bot acts amnesiac). (lesson §9 Common Mistakes)
+        #   5. cost = tracker.record(cfg.model, usage["input_tokens"], usage["output_tokens"]);
+        #      print the per-turn cost.
         raise NotImplementedError("Implement the conversation turn in run_repl()")
 
 

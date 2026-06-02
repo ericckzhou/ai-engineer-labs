@@ -171,6 +171,32 @@ Do not invent provider pricing for `cost_tracker.py` — fill `$/MTok` from the 
 
 **Pick the incomplete component from the objective** (OPERATING_RULES §19): API wiring → message construction & model call; prompt design → prompt construction; conversation memory → history management; evaluation → eval design/instrumentation.
 
+### Learner-Facing Docstring Contract (the P03 standard)
+
+**Reference implementation: `projects/03-semantic-search/code/`. Copy its shape.** Every `learner`/`partial` module and every learner-owned function follows the same template so the scaffolding teaches without solving.
+
+**Module docstring** — one line `filename — [label] Milestone — purpose.`, a short conceptual paragraph (the *why* / the trap), then:
+
+```
+PROVIDED: <what is solved — plumbing, harness, fixtures, main()>.
+LEARNER: <the function(s) that ARE the work>.
+
+Run:  <one-command run or test invocation>
+```
+
+**Each learner function docstring** has three parts, in this order:
+
+1. **`[learner]` label + one-line contract** — what it returns, in one sentence.
+2. **`Steps:`** — a numbered, *descriptive* decomposition (the design decisions and the gotchas), **not** the finished code. Name the trap where one exists (silent distance/similarity inversion, forgetting the assistant append, hardcoding the embedding dimension).
+3. **`Example (mirrors tests/test_X.py::test_name):`** — concrete **input → output** drawn from the guiding test. This is the non-negotiable addition:
+   - Pull values straight from the test so the example and the test never drift.
+   - When exact values are model-specific (token IDs, real embeddings), assert the **shape/property** the test asserts and mark illustrative values with `# e.g.` — never fabricate exact IDs or vectors.
+   - For functions with no offline test (network/streaming), write a **behavioral** example showing the return *shape*, and say so (`Example (behavioral — needs a provider …)`).
+
+Close the function body with `raise NotImplementedError("Mx: <what to implement>")` (or `# TODO(learner)` for inline blocks).
+
+**Config-aligned guiding tests.** Every pure-logic learner function gets an **offline** guiding test (no network) in `code/tests/`, with a `tests/conftest.py` that puts `code/` on `sys.path`. Tests must use only models/dimensions that the project's `config.py` actually resolves to (e.g. a model present in `PRICES`, the default embedding dimension) — never a stale hardcoded model or `1536`-dim assumption. **Stamp `tests/test_config_models.py`** into every project: it pins the canonical provider resolution (Ollama `qwen3.5:4b` chat + `nomic-embed-text` 768-dim; Groq preferred cloud) and is the drift guard — it has no `NotImplementedError` and **passes today** because `config.py` is `provided`, so it fails loudly only if the canonical models change without the test. Assert **properties** for design-decision functions (system message kept, within budget, ranked descending) rather than one rigid output, so the learner's strategy has room. The docstring `Example` block mirrors these tests exactly.
+
 ## Post-Generation Checklist
 
 - [ ] All 10 lesson sections present in `lesson.agent.md`
@@ -183,4 +209,7 @@ Do not invent provider pricing for `cost_tracker.py` — fill `$/MTok` from the 
 - [ ] Every `code/` file labeled `provided`/`partial`/`learner`/`reference` in `source/project.md`
 - [ ] `.env.example` present if env vars are needed; one-command run AND test workflows documented
 - [ ] At least one guiding test exists that the learner must make pass
+- [ ] **Every learner function follows the P03 docstring contract**: `[learner]` label + `Steps:` + an `Example (mirrors tests/…)` I/O block (or a labeled behavioral example when no offline test is possible)
+- [ ] Each pure-logic learner function has an **offline, config-aligned** guiding test; `tests/conftest.py` puts `code/` on `sys.path`; docstring Examples mirror the tests
+- [ ] `python -m pytest --collect-only` succeeds for `code/` (tests collect; they fail only via `NotImplementedError`)
 - [ ] No complete solution for the learner-owned core component is committed

@@ -34,6 +34,13 @@ def search(query: str, corpus: list[str], k: int = 3) -> list[tuple[str, float]]
       2. for each item in corpus: embed it, score cosine_similarity(query_vec, item_vec).
       3. sort by score descending, return the first k as (text, score) tuples.
     Edge case: an empty corpus returns []. Return at most len(corpus) results.
+
+    Example (mirrors tests/test_corpus_search.py::test_ranks_by_meaning, which uses a fake embed
+    where the query points almost exactly at "near", less at "mid", away from "far"):
+        search("query", ["far", "near", "mid"], k=3)
+        -> [("near", 0.99), ("mid", 0.71), ("far", 0.0)]   # ranked by cosine DESCENDING
+        search("query", ["far", "near", "mid"], k=1)        -> [("near", 0.99)]   # respects k
+        search("query", [], k=3)                            -> []                 # empty corpus
     """
     raise NotImplementedError("M5: implement search() - embed corpus, rank by cosine, return top-k")
 

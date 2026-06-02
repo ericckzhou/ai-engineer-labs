@@ -20,11 +20,18 @@ from config import default_embedding_model
 def embed(text: str) -> np.ndarray:
     """[learner] Embed `text` and return the vector as a 1-D numpy array.
 
-    Contract:
-      - use litellm.embedding(model=default_embedding_model(), input=[text])
-      - the vector is at  response["data"][0]["embedding"]
-      - return np.array(...) of that vector
+    Steps:
+      1. resp = litellm.embedding(model=default_embedding_model(), input=[text])
+      2. the vector is at  resp["data"][0]["embedding"]
+      3. return np.array(that vector)
     Do NOT hardcode the length — different models give different dimensions (768 vs 1536).
+
+    Example (provider-dependent — needs USE_OLLAMA=1 or a cloud key, so there is no offline test;
+    shape shown for the default ollama/nomic-embed-text model):
+        v = embed("the cat sat on the mat")
+        type(v)     # -> numpy.ndarray (1-D)
+        v.shape     # -> (768,)   for nomic-embed-text  (READ from the vector, never hardcode)
+        embed("the cat sat on the mat")  # same text → same vector (deterministic)
     """
     raise NotImplementedError("M3: implement embed() - text to numpy vector via litellm")
 

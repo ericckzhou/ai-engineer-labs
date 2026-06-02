@@ -117,7 +117,7 @@ class CostTracker:
 
 ### context.py — `partial`
 
-**Purpose:** Keep the `messages` array from exceeding the context window. Estimate size *before* sending; trim or warn when over budget. [src: anthropic-messages-api] Starter has the three signatures; you implement the bodies — `trim_to_budget()` is the real design decision.
+**Purpose:** Keep the `messages` array from exceeding the context window. Estimate size *before* sending; trim or warn when over budget. [src: anthropic-messages-api] Starter has the three signatures; you implement the bodies — `trim_to_budget()` is the real design decision. Offline guiding tests in `code/tests/test_context.py` (no network) must pass; they assert `trim_to_budget` by property (system message kept, result within budget, newest turns survive, caller's list not mutated), so your dropping strategy has room.
 
 **Key functions / contract:**
 
