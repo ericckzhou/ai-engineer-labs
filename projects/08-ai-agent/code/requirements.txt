@@ -1,5 +1,3 @@
 litellm
 python-dotenv
-rich
-tavily-python
 pytest

@@ -206,6 +206,31 @@ When reasoning about a concept:
 - Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`
 - Known issues: —
 
+**Workflow vs. Agent**
+- Source: `sources/articles/building-effective-agents.md` (workflow = LLMs/tools on "predefined code paths"; agent = the LLM "dynamically direct[s] [its] own processes and tool usage")
+- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: the agent is the highest-capability *and* highest-blast-radius pattern — reach for it last; "add complexity only when it demonstrably improves outcomes"
+
+**Loop / Stuck Detection**
+- Source: `sources/papers/react-paper.md` (a reasoning step lets the loop decide it's done instead of thrashing; the no-progress failure)
+- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: compare the *whole* action (tool **and** arguments), not just the tool name — else a productive multi-file read is wrongly killed as "stuck"
+
+**Agent Budget / Resource Management (steps + tokens + cost)**
+- Source: `sources/official-docs/anthropic-tool-use.md` (the loop must be bounded), `sources/official-docs/anthropic-pricing.md` (per-MTok cost)
+- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: a `max_steps` cap misses a few huge steps — track tokens too; don't invent token prices for the cost ceiling
+
+**Tool-Error Recovery**
+- Source: `sources/papers/react-paper.md` ("reasoning traces help the model … handle exceptions" — feed the error back as an observation)
+- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: `except: pass` is worse than crashing — the model never sees the error and repeats it (→ stuck); the error must become an observation
+
+**Agent Evaluation (run-level: completion + efficiency + cost)**
+- Source: `sources/papers/mt-bench.md` (score with numbers — applied to a *run*, not a single answer)
+- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: a bare "did it answer?" bool hides a low-efficiency (wandering) run; key completion off the `stop_reason` AND the expected outcome
+
 ---
 
 ### Evaluation

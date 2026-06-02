@@ -73,10 +73,16 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT: the agent's model + its reliability budget knobs.
     model: str = field(default_factory=default_model)
-    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
+    # Low temperature: an autonomous agent should behave deterministically, not creatively.
+    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.2")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
+    # The repository the agent acts on (its tools are sandboxed under this root).
+    repo_root: str = field(default_factory=lambda: os.getenv("AGENT_REPO_ROOT", "."))
+    # Budget: the structural step cap and the token ceiling enforced live by BudgetTracker.
+    max_steps: int = field(default_factory=lambda: int(os.getenv("AGENT_MAX_STEPS", "10")))
+    token_budget: int = field(default_factory=lambda: int(os.getenv("AGENT_TOKEN_BUDGET", "20000")))
 
 
 def load_config() -> Config:

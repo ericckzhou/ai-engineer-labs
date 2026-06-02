@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -421,7 +421,7 @@
     <header class="lesson-header">
       <div class="lesson-badge">Project 08 of 9</div>
       <h1>AI Agent</h1>
-      <p class="lesson-tagline">Autonomous systems that act, check, and recover</p>
+      <p class="lesson-tagline">Project 06's loop, made safe to leave running — budgets, stuck detection, recovery, and the judgment to know when not to use an agent at all</p>
       <div class="lesson-meta">
         <span class="meta-chip">&#128214; Read the lesson</span>
         <span class="meta-chip">&#9997; Fill in understanding</span>
@@ -436,12 +436,14 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>State the <strong>workflow vs. agent</strong> distinction — predefined code paths vs. the LLM directing its own process — and decide which a task needs.</span></li>
+        <li><div class="obj-check"></div><span>Explain why an autonomous, multi-step loop is <strong>fundamentally riskier</strong> than P06's single-question copilot: the model now controls how many steps, which tools, and when to stop.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>loop/stuck detection</strong>, and explain why a <code>max_steps</code> cap alone misses an agent that oscillates with no progress.</span></li>
+        <li><div class="obj-check"></div><span>Implement a <strong>budget</strong> over steps <em>and</em> tokens, and explain why an autonomous agent without one is a runaway-cost incident waiting to happen.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>tool-error recovery</strong> — catch a failing tool, feed the error back as an observation, let the model adapt — and why crashing wastes every prior step.</span></li>
+        <li><div class="obj-check"></div><span><strong>Evaluate an agent run</strong> quantitatively — completion, steps, tool calls, efficiency — instead of eyeballing "it seemed to work."</span></li>
+        <li><div class="obj-check"></div><span>Apply <strong>"add complexity only when it demonstrably improves outcomes"</strong> — name tasks where a single call or a fixed workflow beats an agent.</span></li>
+        <li><div class="obj-check"></div><span>Name the major <strong>failure modes</strong> of an autonomous agent (runaway cost, productive-looking oscillation, one tool error killing the run, agent-as-overkill) and which decision prevents each.</span></li>
       </ul>
     </section>
 
@@ -450,22 +452,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>Project 06's copilot answers <em>one</em> question: it reads a few files and replies. But "refactor this module and make the tests pass," "research this topic and write a summary," or "triage this bug" are not one question — they are <em>open-ended</em> tasks where you "can't predict the required number of steps." That is exactly what an <strong>agent</strong> is for: the model plans, acts, observes, and decides for itself when it's done. But the moment you hand the model control over the loop, you hand it control over your bill, your correctness, and whether the program ever terminates.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>A bare autonomous loop has three ways to ruin your day the happy-path demo never shows: it gets <strong>stuck</strong> (calling the same tool with the same arguments forever); it <strong>runs away</strong> (80 steps and $4 of tokens on a 4-step task); and it <strong>dies on one bad tool call</strong> (a single tool raises and the whole multi-step run is lost). A reliable agent detects the stuck state, enforces a budget, and recovers from tool errors. The fourth problem is the meta one: engineers reach for an agent when a single function call would have been faster, cheaper, and more reliable.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>The single hardest thing in AI engineering is not making an agent that works on the happy path — it's making one that <em>fails safely</em> on every other path. "Users forgive bad suggestions, but not autonomous actions that cause damage." A copilot that suggests a wrong line costs you nothing; an agent that loops 200 times overnight costs real money, and one that acts without a guard is an incident.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>This is the product category everyone is racing to ship: autonomous coding agents, research agents, computer-use agents, customer-ops agents. Every production agent has the machinery you build here — step/token budgets, loop detection, retries with recovery, and an evaluation harness — because without it the agent is a liability, not a feature. "The most successful implementations use simple, composable patterns."</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>"A coding agent that saves 2 hours per day at $100/hour is worth $500/month to a developer." But the value is gated entirely on <strong>reliability</strong>: an agent that occasionally burns $20 and produces nothing destroys the trust the $500/month depends on. The reliability layer isn't polish on the product — it <em>is</em> the product. The model is a commodity; the discipline around the loop is the moat.</p>
       </div>
     </section>
 
@@ -474,25 +476,39 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>In Project 06 you gave a friend who can't see your computer some buttons to press ("show me a file," "search"), and they pressed buttons until they answered one question. Great for <em>one question</em>. Now give that friend a whole chore — "clean up my messy folder" — and leave the room. Three bad things can happen. One: they get <strong>stuck</strong>, opening the same drawer over and over, forever. Two: they <strong>never stop</strong> — they work for ten hours and you get a giant bill. Three: one drawer is <strong>jammed</strong>, and instead of skipping it they give up on the whole chore. A good helper notices "I keep opening this same drawer — let me stop," has a rule like "you get 20 minutes," and when a drawer jams says "okay, skip it, I'll do the rest." This project teaches your friend those three habits — and teaches <em>you</em> the wisdom to not send a friend to do a chore you could've done yourself in one move.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li>An <strong>agent</strong> is P06's loop — call model → dispatch tools → feed results back → repeat — but for <em>open-ended</em> tasks. The loop, tools, parsing, and sandbox are <strong>provided</strong> (you built them in P06). The learning target is the control layer.</li>
+        <li><strong>Stuck detection</strong> (<code>detect_stuck(history)</code>): keep a history of <code>(tool, arguments)</code> actions; if the last <em>N</em> are identical, stop now — don't wait for <code>max_steps</code>.</li>
+        <li><strong>Budget</strong> (<code>BudgetTracker</code>): a hard ceiling on <strong>steps and tokens</strong>, <code>tick()</code>'d each step and checked with <code>over_budget()</code>. It's what makes "autonomous" not mean "unbounded."</li>
+        <li><strong>Recovery</strong>: dispatch each tool inside <code>try/except</code>; on failure, feed <code>f"Error: {e}"</code> back as the observation. "Reasoning traces help the model handle exceptions" — it reads the error and adapts.</li>
+        <li><strong>Evaluation</strong> (<code>evaluate_run</code>): a run produces a <code>RunResult</code> (answer, history, steps, tokens, <code>stop_reason</code>). Score it: did it complete? how many steps vs. optimal? at what cost?</li>
+        <li><strong>Judgment</strong>: before any of this, ask whether the task needs an agent at all. "Find the user's email" is a function call. "Summarize this PDF" is one retrieval-augmented call (P04). The loop is for tasks whose step count you genuinely can't predict.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>An agent is a <strong>self-driving delivery vehicle</strong>, where P06's copilot was <strong>cruise control</strong>. Cruise control does one bounded thing on demand and hands back control. A self-driving vehicle is given a <em>destination</em> and decides the whole way — enormously more useful and more dangerous. So you don't ship it without a <strong>fuel gauge that forces a stop</strong> (the budget), a <strong>"you've circled this block 5 times, pull over" detector</strong> (stuck detection), <strong>the sense to route around a closed road instead of parking forever</strong> (recovery), and a <strong>trip log you can audit</strong> (evaluation). And the wisest dispatcher knows that to move a box across the room, you carry it — you don't summon the vehicle (the single call).</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre> TASK: "What model does this repo default to, and where is it set?"  (multi-step)
+   │
+   ▼  run_agent(budget = steps&le;10, tokens&le;20k)
+   step 1: model ─► search_code("default_model")     ── budget.tick ── history=[search]
+   step 2: model ─► read_file("config.py")            ── budget.tick ── history=[search, read]
+           (tool raises? → caught → "Error: ..." fed back → model adapts)   ← RECOVERY
+   step 3: model ─► (no tool call) "Defaults to groq/llama-3.3-70b; config.py:24." ─► RETURN answered
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+ vs. a BROKEN run on a confusing task:
+   step 1..3: model ─► search_code("x") x3            ← detect_stuck → STOP (stuck)
+   ... or 50 productive-looking steps with no end     ─► budget.over_budget() → STOP (budget)
+
+ evaluate_run(result, expected={answer_contains:"groq", optimal_steps:3})
+   ─► {completed: True, steps: 3, tool_calls: 2, efficiency: 1.0, stop_reason: "answered"}</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,14 +516,15 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p>A <strong>workflow</strong> orchestrates LLMs and tools "through predefined code paths." An <strong>agent</strong> is a system where "LLMs dynamically direct their own processes and tool usage." An <strong>agent run</strong> is a sequence of steps; each step is one model call that yields a final answer or one-or-more tool calls. The run has a <strong>stop reason</strong> ∈ {<code>answered</code>, <code>stuck</code>, <code>budget</code>, <code>max_steps</code>}. A run is <strong>stuck</strong> when the last <em>N</em> actions are identical <code>(tool, arguments)</code>. A run is <strong>over budget</strong> when cumulative steps or tokens cross a pre-set ceiling. <strong>Recovery</strong> converts a raising tool into an error observation fed back into the conversation.</p>
 
       <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li><strong>Decide if you even need a loop.</strong> Known, fixed shape (one lookup, one summary, classify-then-route)? Use a single call or a workflow. Reach for the agent only when "it's difficult or impossible to predict the required number of steps."</li>
+        <li><strong>Set a budget.</strong> Construct a <code>BudgetTracker(max_steps, max_tokens)</code> before the run — the contract for what the agent may spend.</li>
+        <li><strong>Run the loop.</strong> Each iteration: call the model, <code>tick</code> the budget with the step's tokens, <code>parse_tool_calls</code> (provided). No calls → answered. Otherwise append the assistant turn, then for each call: record the action, <code>dispatch_tool</code> it <strong>inside try/except</strong> (recovery), append the result/error as a <code>tool</code> message.</li>
+        <li><strong>Guard after each step.</strong> <code>detect_stuck(history)</code> → stop (<code>stuck</code>). <code>budget.over_budget()</code> → stop (<code>budget</code>). Loop exhausts its structural bound → <code>max_steps</code>.</li>
+        <li><strong>Evaluate the run.</strong> Pass the <code>RunResult</code> + an <code>expected</code> spec to <code>evaluate_run</code>: completion, steps, tool calls, efficiency. Now a prompt or model change can be <em>scored</em>, not guessed at.</li>
       </ol>
 
       <h3>Key Concepts</h3>
@@ -516,14 +533,19 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Workflow vs. agent</td><td>Predefined code paths vs. the LLM directing its own process and tool usage</td><td>The first design decision: an agent is more capable <em>and</em> more failure-prone</td></tr>
+          <tr><td>Multi-step autonomy</td><td>The model decides how many steps, which tools, and when it's done</td><td>Every one of those decisions is a thing it can get wrong — the source of all the failure modes</td></tr>
+          <tr><td>Loop / stuck detection</td><td>Detecting the agent is repeating the same action with no new information</td><td>A <code>max_steps</code> cap stops a runaway eventually; stuck detection stops a no-progress agent immediately</td></tr>
+          <tr><td>Budget (steps + tokens)</td><td>A hard ceiling, checked every step, that ends the run when crossed</td><td>The model controls the loop, so an unbounded autonomous agent is an open-ended bill</td></tr>
+          <tr><td>Tool-error recovery</td><td>Catch a failing tool, feed the error back as an observation, let the model try again</td><td>One bad tool call shouldn't discard every step before it</td></tr>
+          <tr><td>Agent evaluation</td><td>Scoring a run: completion, steps/tool-calls, efficiency, cost</td><td>"It worked once in the demo" is not evaluation — you need numbers to detect a regression</td></tr>
+          <tr><td>"Simplest thing that works"</td><td>Add agentic complexity only when it demonstrably beats a single call or a workflow</td><td>The most valuable agent skill is knowing when <strong>not</strong> to build one</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p><code>max_steps</code> is a <strong>backstop, not the primary guard</strong>. It bounds the absolute worst case. The primary guards are <code>detect_stuck</code> (catches no-progress immediately) and the <em>token</em> budget (catches expensive-but-progressing runs). An agent that hits <code>max_steps</code> every time is one you haven't tuned. And recovery means feeding the error <em>back</em>, not swallowing it: a bare <code>except: pass</code> is worse than crashing — the model never learns the tool failed and may repeat it.</p>
       </div>
     </section>
 
@@ -531,30 +553,71 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: <code>litellm</code> (chat + tools via <code>config.py</code>), the <strong>provided</strong> P06 tool layer (<code>safe_resolve</code>, <code>parse_tool_calls</code>, <code>dispatch_tool</code>, file tools), and a pure-Python loop. Examples mirror the guiding tests.</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — detect a stuck agent</h3>
+      <pre><code class="language-python">from safety import Action, detect_stuck
 
-# Example code here
+# An agent making progress: three DIFFERENT actions → not stuck.
+progress = [Action("search_code", {"query": "x"}),
+            Action("read_file", {"path": "a.py"}),
+            Action("read_file", {"path": "b.py"})]
+detect_stuck(progress, window=3)   # -> False
+
+# An agent spinning: the last three actions are IDENTICAL → stuck.
+spinning = [Action("read_file", {"path": "a.py"}),
+            Action("search_code", {"query": "foo"}),
+            Action("search_code", {"query": "foo"}),
+            Action("search_code", {"query": "foo"})]
+detect_stuck(spinning, window=3)   # -> True
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>Stuck detection compares <em>whole actions</em> (tool <strong>and</strong> arguments), not just the tool name — an agent reading ten different files is working, not stuck. This catches the no-progress case immediately, long before a <code>max_steps</code> cap would.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — enforce a budget</h3>
+      <pre><code class="language-python">from safety import BudgetTracker
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+b = BudgetTracker(max_steps=5, max_tokens=10_000)
+b.tick(2_000)          # step 1
+b.tick(2_000)          # step 2
+b.over_budget()        # -> None        (2 steps, 4k tokens — within budget)
+
+b.tick(7_000)          # step 3, now 11k tokens
+b.over_budget()        # -> "token budget exhausted (11000/10000)"   (a reason string — truthy)
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>The budget is checked, not assumed. <code>over_budget()</code> returns <code>None</code> while there's room and a <em>reason string</em> once a ceiling is crossed — the loop uses that truthiness to stop and records <em>why</em>. An autonomous loop without this is an open-ended invoice.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — one tool error must not kill the run</h3>
+      <pre><code class="language-python">from types import SimpleNamespace
+from safety import BudgetTracker
+from agent import run_agent
+import agent
+
+# Force the (provided) dispatch to RAISE on the first call, as a flaky real tool would:
+calls = {"n": 0}
+def exploding_dispatch(name, args, repo_root):
+    calls["n"] += 1
+    if calls["n"] == 1:
+        raise RuntimeError("network down")
+    return "ok"
+agent.dispatch_tool = exploding_dispatch   # monkeypatch for the demo
+
+turns = iter([
+    SimpleNamespace(content=None, tool_calls=[_tc("c1", "read_file", '{"path": "a.py"}')]),  # raises
+    SimpleNamespace(content="Recovered and answered.", tool_calls=None),                      # adapts
+])
+result = run_agent([{"role": "user", "content": "go"}], ".", lambda m, t: next(turns),
+                   BudgetTracker(max_steps=5, max_tokens=10_000))
+print(result.stop_reason)   # 'answered'  — the raise became an observation, the model adapted
+</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">Why This "Fails"</div>
+        <p>The tool raised, but <code>run_agent</code> caught it, fed <code>"Error: network down"</code> back as the observation, and the model recovered on the next step. Without the <code>try/except</code>, that single exception would have discarded the whole run. This is the failure you reproduce in M6 by <em>removing</em> the recovery.</p>
       </div>
     </section>
 
@@ -570,13 +633,13 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>In your own words, what is the difference between a <em>workflow</em> and an <em>agent</em>, and what specifically does an agent gain control of that makes it both more powerful and more dangerous?</li>
+          <li>Project 06 already bounded its loop with <code>max_steps</code>. So why isn't that enough for Project 08 — what failure does <code>detect_stuck</code> catch that a step cap doesn't, and what failure does a <em>token</em> budget catch that a step cap doesn't?</li>
+          <li>Walk the recovery path: a tool raises an exception mid-run. What exact steps does <code>run_agent</code> take so the run survives, and why is <code>try/except: pass</code> <em>worse</em> than letting it crash?</li>
+          <li>Predict the three failure modes of removing, respectively: (a) the budget, (b) <code>detect_stuck</code>, (c) tool-error recovery. Which design decision prevents each?</li>
+          <li>Give one concrete task you would solve with a single LLM call, one with a fixed workflow, and one that genuinely needs the agent loop. Justify each — why is the loop <em>overkill</em> for the first two?</li>
+          <li><code>evaluate_run</code> reports <code>efficiency = optimal_steps / steps</code>. Why is a bare "did it answer?" boolean insufficient for deciding whether a prompt change made your agent better or worse?</li>
+          <li>The one thing you still don't fully understand about making an autonomous loop safe.</li>
         </ol>
       </div>
 
@@ -586,14 +649,22 @@ import litellm
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build the <strong>reliability layer</strong> that turns P06's tool loop into a trustworthy autonomous agent, in <code>code/</code>:</p>
+      <ul>
+        <li><code>safety.py</code> — <code>detect_stuck</code> (M1) and <code>BudgetTracker</code> (M2) are the <em>learner core</em>: the no-progress detector and the step/token ceiling.</li>
+        <li><code>agent.py</code> — <code>run_agent</code> (M3) is the <em>learner core</em> — the generalized loop with <strong>tool-error recovery</strong> and the stuck/budget guards. <code>RunResult</code>, <code>parse_tool_calls</code>, and the token estimator are <em>provided</em>.</li>
+        <li><code>evaluate.py</code> — <code>evaluate_run</code> (M4) is the <em>learner core</em>: score a run on completion, steps, tool calls, and efficiency.</li>
+        <li><code>tools.py</code> — the entire P06 tool layer. <em>(Provided — you built this in Project 06.)</em></li>
+        <li><code>agent_app.py</code> — the orchestrator: a real LiteLLM <code>complete</code>, a budget, run the agent on a multi-step task, print the trace + answer + eval. <em>(Provided.)</em></li>
+      </ul>
+      <p><strong>Extended:</strong> explicit planning (decompose before acting); a reflection loop (evaluator-optimizer); structured final output via a forced <code>emit_answer</code> tool; a real <code>max_usd</code> cost budget; retry-with-backoff on transient tool errors.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p><code>detect_stuck</code> flags identical repeated actions and not different productive ones; <code>BudgetTracker</code> enforces steps <strong>and</strong> tokens and reports <em>why</em> it stopped; <code>run_agent</code> catches a raising tool and feeds the error back (recovery), appends the assistant turn <strong>before</strong> the tool results, and returns a distinct <code>stop_reason</code>; <code>evaluate_run</code> reports completion/steps/tool-calls/efficiency; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments (incl. the "agent where a call would do" ablation); <code>EVALUATION.md</code> is concrete; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +677,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Stuck detection</h4>
+            <p><code>safety.detect_stuck(history, window)</code> — True iff the last <code>window</code> actions are identical. <strong>Validation:</strong> three different actions → False; three identical → True (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — Budget</h4>
+            <p><code>safety.BudgetTracker.tick()</code> + <code>.over_budget()</code> — count steps/tokens, return a reason when a ceiling is crossed. <strong>Validation:</strong> within budget → <code>None</code>; over steps or tokens → a reason string (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Reliable loop</h4>
+            <p><code>agent.run_agent(messages, repo_root, complete, budget)</code> — call → dispatch <strong>(recover)</strong> → feed back → guard → repeat. <strong>Validation:</strong> tool-then-answer → <code>answered</code>; a raising dispatch → still <code>answered</code> (recovered); an always-same-call model → <code>stuck</code>; an always-tool model → <code>budget</code>/<code>max_steps</code> (offline tests).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — Evaluate a run</h4>
+            <p><code>evaluate.evaluate_run(result, expected)</code> — completion, steps, tool calls, efficiency. <strong>Validation:</strong> an answered run with the expected substring → <code>completed=True</code>, <code>efficiency≤1.0</code>; a stuck run → <code>completed=False</code> (offline test).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — Agent end-to-end</h4>
+            <p><code>agent_app.py</code> runs the agent on a real multi-step task against a repo. <strong>Validation:</strong> give it a task; it acts over several steps, answers, and prints the trace + the eval summary.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break / Evaluate</h4>
+            <p>Remove the budget, remove <code>detect_stuck</code>, remove recovery, <strong>and</strong> run the agent on a task a single call would solve. <strong>Validation:</strong> runaway cost / infinite oscillation / one error kills the run / agent is slower-and-costlier-for-nothing — each recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +729,13 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Stuck detection</td><td>flag <em>identical</em> repeated actions (tool <strong>and</strong> args), and <strong>not</strong> flag many different productive steps?</td><td>☐</td></tr>
+          <tr><td>Budget enforced</td><td>check a steps <strong>and</strong> tokens ceiling every step, and return <em>why</em> it stopped?</td><td>☐</td></tr>
+          <tr><td>Recovery</td><td>catch a raising tool, feed the error back as an observation, and keep looping (not crash, not swallow)?</td><td>☐</td></tr>
+          <tr><td>Distinct stop reasons</td><td>return <code>answered</code> / <code>stuck</code> / <code>budget</code> / <code>max_steps</code> — never collapse a failure into "done"?</td><td>☐</td></tr>
+          <tr><td>Message order</td><td>append the assistant turn <em>before</em> the tool results (carried from P06)?</td><td>☐</td></tr>
+          <tr><td>Quantitative eval</td><td>report completion, steps, tool calls, and efficiency — numbers, not "it seemed to work"?</td><td>☐</td></tr>
+          <tr><td>Right tool for the job</td><td>can you name a task where you deliberately did <strong>not</strong> use the agent loop, and why?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +743,11 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>Your loop has no budget and relies on <code>max_steps</code> alone — one expensive step pattern blows your bill.</li>
+          <li><code>detect_stuck</code> compares only the tool name, so a productive multi-file read gets killed as "stuck."</li>
+          <li>A single tool exception ends the whole run (no recovery), or you <code>except: pass</code> and the model spins.</li>
+          <li>Your run returns a bare <code>True/False</code> — you can't tell a stuck run from a budget stop from a real answer.</li>
+          <li>You used the agent loop for a task that was one lookup or one summary, and it's slower and costlier with no benefit.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +761,14 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>No budget, only <code>max_steps</code></td><td>"P06 capped steps and that was fine"</td><td>An agent taking few but huge steps blows the token bill</td><td>Track tokens <em>and</em> steps; check <code>over_budget()</code> every step</td></tr>
+          <tr><td><code>detect_stuck</code> compares tool name only</td><td>"Same tool = stuck"</td><td>Kills a productive agent reading many different files</td><td>Compare the whole action — tool <strong>and</strong> arguments</td></tr>
+          <tr><td><code>try/except: pass</code> on tool errors</td><td>"Swallow it so it doesn't crash"</td><td>Model never sees the failure, repeats it → stuck</td><td>Feed <code>f"Error: {e}"</code> back as the observation</td></tr>
+          <tr><td>One tool raise kills the run</td><td>No <code>try/except</code> around dispatch</td><td>Every prior step's tokens wasted on one bad call</td><td>Wrap dispatch; convert the exception into an observation</td></tr>
+          <tr><td>Collapsing stop reasons to a bool</td><td>"Did it finish? yes/no"</td><td>Can't distinguish answered from stuck from budget</td><td>Return an explicit <code>stop_reason</code>; evaluate keys off it</td></tr>
+          <tr><td>Using an agent where a call would do</td><td>"Agents are the cool pattern"</td><td>Slower, costlier, less reliable than one call</td><td>"Add complexity only when it demonstrably improves outcomes"</td></tr>
+          <tr><td>Evaluating by eyeballing one demo</td><td>"It worked when I ran it"</td><td>A prompt change silently regresses the agent</td><td><code>evaluate_run</code> over a fixed task set — numbers, per run</td></tr>
+          <tr><td>Inventing a token price for the cost budget</td><td>"Roughly a few dollars per million?"</td><td>Wrong cost numbers, wrong budget decisions</td><td>Use the provider's official per-MTok price or disable cost</td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +778,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>This is <strong>Project 06's loop, made reliable.</strong> The tool layer (sandbox, schemas, dispatch), the parsing, and the basic call→dispatch→feed-back cycle are all carried over <em>provided</em> — which is the whole point: you already learned them, so here you spend your effort on the control layer. The <strong>budget</strong> is Project 01's token-cost arithmetic, enforced live. The <strong>evaluation</strong> is Project 07's discipline (score, don't eyeball) applied to a <em>run</em>. The optional <strong>reflection</strong> loop is Project 05's reflection. The agent is where the whole course converges.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p><strong>Project 09 (Personal Learning OS)</strong> orchestrates memory (P05), retrieval (P03/P04), this agent (P08), and evaluation (P07) into one system. The reliability layer you build here is what makes it safe for P09 to let an agent act over a user's personal data: a bounded, stuck-aware, recoverable agent with an auditable run log. Everything P09 routes <em>to</em> an agent inherits these guards.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real agents are this loop plus production engineering: hard budgets on steps/tokens/cost/wall-clock; loop and stuck detection; retries with backoff and graceful recovery; structured, validated final output; a full run trace for observability; and an evaluation harness gating every change. Anthropic's own guidance is to bias toward the <em>simplest</em> pattern that works — single call, then workflow, then agent — and to "invest in the agent-computer interface." The named patterns (prompt chaining, routing, orchestrator-workers, evaluator-optimizer) are the composable pieces; the autonomous loop you build here is the most general and the one to reach for last.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>StarcallOS doing anything <em>autonomous on the user's behalf</em> — multi-step research, organizing files, executing a chore across several tools — is this loop. The reliability layer is the difference between a feature and an incident: a <strong>budget</strong> so it never burns the user's money; <strong>stuck detection</strong> so it bails out of a no-progress spiral; <strong>recovery</strong> so one flaky integration doesn't abort a long task; <strong>evaluation</strong> so a change can be measured, not hoped at; and the <strong>judgment</strong> to route a simple request to a single call instead of spinning up a loop. P08 is the smallest complete instance of "StarcallOS can be trusted to act."</p>
       </div>
     </section>
 
@@ -708,29 +801,33 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/articles/building-effective-agents.md</code> — workflows vs. agents, "the most successful implementations use simple, composable patterns," "add complexity only when it demonstrably improves outcomes," and the named patterns. The source for <em>whether</em> and <em>when</em> to build an agent.</li>
+          <li><code>sources/official-docs/anthropic-tool-use.md</code> — the tool-use protocol and the agentic loop; <code>tool_choice</code>; why the loop must be bounded (carried from P06, here generalized to a budget).</li>
+          <li><code>sources/official-docs/anthropic-pricing.md</code> — per-MTok pricing for a real cost budget (don't invent prices).</li>
+          <li><code>sources/official-docs/litellm-completion.md</code> — the <code>tools</code>/<code>tool_calls</code> shape and <code>usage</code> for live token accounting.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li><code>sources/papers/react-paper.md</code> — Yao et al. 2022: "reasoning traces help the model handle exceptions" (the basis for recovery) and why a reasoning step makes the loop terminate.</li>
+          <li><code>sources/papers/mt-bench.md</code> — Zheng et al. 2023: evaluating with numbers, applied here to <em>runs</em> (completion + efficiency).</li>
+          <li><code>sources/papers/generative-agents.md</code> — Park et al. 2023: reflection — synthesizing a higher-level judgment from raw steps — for the optional reflection loop.</li>
         </ul>
       </div>
 
       <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
+        <h4>Tier 3 — Engineering Guides</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li>None specific to this lesson beyond the Anthropic engineering guidance in Tier 1 ("Building Effective Agents" is itself the primary engineering source for agent reliability patterns).</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li>None specific to this lesson — the ReAct paper and the Anthropic agent guidance are the primary teaching sources; Project 06 is the conceptual prerequisite for the loop itself.</li>
         </ul>
       </div>
     </section>

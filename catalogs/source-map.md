@@ -68,7 +68,16 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 - Tier 1: `sources/official-docs/anthropic-tool-use.md` — Anthropic tool use: tool = name + description + JSON-schema input; model returns `stop_reason:"tool_use"` with `tool_use` blocks → execute → return `tool_result`; the agentic loop; `tool_choice` (auto/any/tool/none); tools as structured output
 - Tier 1: `sources/articles/building-effective-agents.md` — Anthropic engineering: agent = "LLMs using tools based on environmental feedback in a loop"; workflows vs. agents; the augmented LLM (retrieval + tools + memory); the agent-computer interface (ACI)
-- Tier 2: `sources/papers/react-paper.md` — Yao et al. 2022: ReAct — interleave reasoning traces and actions (Thought→Action→Observation); acting overcomes chain-of-thought hallucination; more interpretable trajectories
+- Tier 2: `sources/papers/react-paper.md` — Yao et al. 2022: ReAct — interleave reasoning traces and actions (Thought→Action→Observation); acting overcomes chain-of-thought hallucination; more interpretable trajectories; "reasoning traces help the model … handle exceptions" (the basis for tool-error recovery in P08)
+
+## Agent Reliability (Project 08)
+
+> Making an autonomous loop safe to leave running. Same agent sources as above, emphasis shifted to *when* to use an agent and *how* to bound it. No new sources — these carry over.
+
+- Tier 1: `sources/articles/building-effective-agents.md` — workflows vs. agents; "the most successful implementations use simple, composable patterns"; "add complexity only when it demonstrably improves outcomes" (when *not* to use an agent); orchestrator-workers, evaluator-optimizer patterns
+- Tier 1: `sources/official-docs/anthropic-pricing.md` — per-MTok pricing for a real cost budget (don't invent token prices)
+- Tier 2: `sources/papers/mt-bench.md` — evaluating with numbers, applied to *runs* (completion + efficiency), not single answers
+- Tier 2: `sources/papers/generative-agents.md` — reflection (synthesize a higher-level judgment from raw steps) for the optional reflection/evaluator-optimizer loop
 
 ## Evaluation
 
