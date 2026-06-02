@@ -51,7 +51,19 @@ def build_judge_prompt(question: str, answer: str, *, reference: str | None = No
         # -> [{"role":"system", "content": "...scale 1..5...reasoning...then...score..."},
         #     {"role":"user",   "content": "...What is 2+2?...Answer: 4...Reference: 4..."}]
     """
-    raise NotImplementedError("M1: build a bias-mitigated judge prompt (scale, reasoning-first, reference)")
+    system = (
+        f"You are an impartial judge. Score the answer on an integer scale from 1 to {scale}. "
+        "Give your REASONING first, then the score last. "
+        f'Reply in parseable JSON: {{"reasoning": "...", "score": N}} where N is 1..{scale}.'
+    )
+    parts = [f"Question: {question}", f"Answer: {answer}"]
+    if reference is not None:
+        parts.append(f"Reference (expected answer): {reference}")
+    user = "\n\n".join(parts)
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
 
 
 def parse_judge_score(text: str, *, scale: int = 5) -> tuple[int, str]:
@@ -78,7 +90,37 @@ def parse_judge_score(text: str, *, scale: int = 5) -> tuple[int, str]:
         parse_judge_score("Score: 9", scale=5)                           -> (5, ...)   # clamped
         parse_judge_score("no number here", scale=5)                     -> raises ValueError
     """
-    raise NotImplementedError("M2: parse JSON/text into a clamped int score; raise on no-score")
+    def _clamp(n: int) -> int:
+        return max(1, min(scale, n))
+
+    # 1. Try strict JSON first.
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict) and "score" in data:
+            score = int(data["score"])
+            reasoning = str(data.get("reasoning", text))
+            return _clamp(score), reasoning
+    except (json.JSONDecodeError, ValueError, TypeError):
+        pass
+
+    # 2. 'score: N' (allow the model to report out-of-range; we clamp after).
+    m = re.search(r"score\s*[:=]\s*(\d+)", text, re.IGNORECASE)
+    if m:
+        return _clamp(int(m.group(1))), text
+
+    # 3. 'N/scale' form, e.g. "3/5".
+    m = re.search(r"(\d+)\s*/\s*\d+", text)
+    if m:
+        return _clamp(int(m.group(1))), text
+
+    # 4. First integer that already falls in [1, scale].
+    for token in re.findall(r"\d+", text):
+        n = int(token)
+        if 1 <= n <= scale:
+            return n, text
+
+    # 5. No score at all — fail loud (a silent 0 poisons the mean).
+    raise ValueError(f"no parseable score in judge reply: {text!r}")
 
 
 # ---- PROVIDED orchestrator — wires your two functions to a real model call -------------------

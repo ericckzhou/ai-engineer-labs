@@ -54,4 +54,9 @@ def summarize(results: list[JudgeResult], *, pass_threshold: int = 4) -> Summary
         summarize(rs, pass_threshold=4)  -> Summary(n=4, mean_score=3.5, pass_rate=0.5)
         summarize([], pass_threshold=4)  -> Summary(n=0, mean_score=0.0, pass_rate=0.0)
     """
-    raise NotImplementedError("M3: aggregate into n, mean_score, pass_rate (guard empty)")
+    n = len(results)
+    if n == 0:
+        return Summary(0, 0.0, 0.0)
+    mean_score = sum(r.score for r in results) / n
+    pass_rate = sum(1 for r in results if r.score >= pass_threshold) / n
+    return Summary(n, mean_score, pass_rate)

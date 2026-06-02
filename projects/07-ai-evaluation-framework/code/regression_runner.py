@@ -57,7 +57,32 @@ def compare_runs(baseline: list[JudgeResult], candidate: list[JudgeResult], *,
         r.improvements  -> ["c"]      # 3 -> 5
         round(r.baseline_mean,2), round(r.candidate_mean,2) -> (4.0, 3.67)
     """
-    raise NotImplementedError("M4: match by case_id, flag drops/rises beyond tolerance, compute means")
+    base_by_id = {r.case_id: r.score for r in baseline}
+    cand_by_id = {r.case_id: r.score for r in candidate}
+    common = [cid for cid in base_by_id if cid in cand_by_id]
+
+    regressions: list[str] = []
+    improvements: list[str] = []
+    for cid in common:
+        delta = cand_by_id[cid] - base_by_id[cid]
+        if delta < -tolerance:
+            regressions.append(cid)
+        elif delta > tolerance:
+            improvements.append(cid)
+
+    if common:
+        baseline_mean = sum(base_by_id[cid] for cid in common) / len(common)
+        candidate_mean = sum(cand_by_id[cid] for cid in common) / len(common)
+    else:
+        baseline_mean = candidate_mean = 0.0
+
+    return RegressionReport(
+        regressions=regressions,
+        improvements=improvements,
+        baseline_mean=baseline_mean,
+        candidate_mean=candidate_mean,
+        mean_delta=candidate_mean - baseline_mean,
+    )
 
 
 # ---- PROVIDED harness — run a dataset through a system-under-test, then judge -----------------
