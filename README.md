@@ -1,99 +1,213 @@
 # AI Engineering Lab
 
-A project-based learning lab for building AI systems — not AI researchers, but **AI Systems Engineers** capable of shipping products, agents, RAG pipelines, memory systems, and personal AI operating systems.
+A source-grounded, test-driven AI systems engineering lab for learning how to build, evaluate, break, and reason about real AI systems.
 
-> **Start here if you're new:** [SETUP.md](SETUP.md) → [docs/curriculum/overview.md](docs/curriculum/overview.md) → Project 1
+This is not a collection of AI demos. It is a structured learning system: every project combines source reading, implementation, tests, failure analysis, evaluation, and reflection.
 
----
-
-## Repository Architecture
-
-```
-PHILOSOPHY.md       ← What we believe
-OPERATING_RULES.md  ← How Claude reasons in this repo
-ARCHITECTURE.md     ← Repo structure and why
-```
-
-**Layer hierarchy (higher overrides lower):**
-```
-sources/ → docs/+projects/ → evaluations/ → memory/learner/
-```
-
-- **`sources/`** — Ground truth. Primary papers, official docs, engineering blogs.
-- **`catalogs/`** — Navigation maps. How to find anything quickly.
-- **`skills/`** — Reusable reasoning methods (how to do things).
-- **`agents/`** — Named reasoning roles (who does what).
-- **`docs/`** — Teaching materials derived from sources.
-- **`projects/`** — The 9 learning projects.
-- **`evaluations/`** — Rubrics, grader prompts, project criteria.
-- **`memory/project/`** — Decisions, retrospectives, cross-project insights.
-- **`memory/learner/`** — Misconceptions, reflections, skill map.
+> **Start here:** [SETUP.md](SETUP.md) -> [Project Catalog](projects/index.html) -> [Project 1](projects/01-ai-chatbot/)
 
 ---
 
-## What You'll Build
+## Why This Repository Exists
 
-| # | Project | Core Skills |
-|---|---------|-------------|
-| 1 | [AI Chatbot](projects/01-ai-chatbot/) | LLM APIs, context windows, prompt design, streaming |
-| 2 | [Token & Embedding Explorer](projects/02-token-embedding-explorer/) | Tokenization, embeddings, vector math, similarity |
-| 3 | [Semantic Search](projects/03-semantic-search/) | Vector databases, retrieval, relevance, ranking |
-| 4 | [PDF Research Assistant](projects/04-pdf-research-assistant/) | RAG architecture, chunking, retrieval pipelines |
-| 5 | [Personal Memory System](projects/05-personal-memory-system/) | Memory types, storage, retrieval, decay |
-| 6 | [AI Coding Copilot](projects/06-ai-coding-copilot/) | Tool use, context injection, code understanding |
-| 7 | [AI Evaluation Framework](projects/07-ai-evaluation-framework/) | LLM-as-judge, evals, reliability metrics |
-| 8 | [AI Agent](projects/08-ai-agent/) | Agents, planning, tool loops, failure modes |
-| 9 | [Personal Learning OS](projects/09-personal-learning-os/) | System design, orchestration, AI product architecture |
+Most AI tutorials stop at implementation.
 
-## Learning Philosophy
+This repository treats AI engineering as a learning system. Every project requires:
 
-Every concept is introduced because it **solves a real engineering problem**.
+- reading primary sources
+- explaining the concept in your own words
+- implementing the core system
+- running tests
+- breaking the system intentionally
+- evaluating results
+- recording decisions, failures, prompts, and reflections
 
-For every concept, ask:
-- Why does this exist?
-- What breaks without it?
-- Would users pay for this?
-- How would a startup use this?
+The goal is not to finish tutorials. The goal is to produce evidence of understanding.
 
-## How To Use This Lab
+## Progress Snapshot
 
+| Metric | Status |
+|---|---:|
+| Core projects | 9 |
+| Electives | 1 |
+| Source notes | 38 |
+| Rendered lessons | 10 |
+| Rendered source pages | 38 |
+| Test files | 41 |
+| Completed implementations | TBD |
+| Evaluation reports | TBD |
+| Failure analyses | TBD |
+
+## What You Build
+
+The curriculum moves from individual AI primitives to a composed AI operating system:
+
+```txt
+Chatbot
+  -> Tokens & Embeddings
+  -> Semantic Search
+  -> PDF RAG Assistant
+  -> Personal Memory System
+  -> AI Coding Copilot
+  -> AI Evaluation Framework
+  -> AI Agent
+  -> Personal Learning OS
 ```
-Read the lesson → Write your understanding → Implement → Break it → Evaluate → Reflect
+
+Optional elective:
+
+```txt
+MCP Interface Layer
 ```
 
-Each project folder contains:
+## Project Map
+
+| # | Project | What You Build | Core Skill |
+|---|---|---|---|
+| 1 | [AI Chatbot](projects/01-ai-chatbot/) | Multi-turn CLI chatbot with streaming and cost tracking | LLM APIs |
+| 2 | [Token & Embedding Explorer](projects/02-token-embedding-explorer/) | Tokenization and embedding similarity explorer | Tokens, embeddings |
+| 3 | [Semantic Search](projects/03-semantic-search/) | Vector search engine over a corpus | Retrieval |
+| 4 | [PDF Research Assistant](projects/04-pdf-research-assistant/) | RAG system with citations and faithfulness checks | RAG |
+| 5 | [Personal Memory System](projects/05-personal-memory-system/) | Persistent memory with relevance, recency, and importance scoring | Memory |
+| 6 | [AI Coding Copilot](projects/06-ai-coding-copilot/) | Tool-using code assistant grounded in repo files | Tool use |
+| 7 | [AI Evaluation Framework](projects/07-ai-evaluation-framework/) | LLM-as-judge and regression evaluation harness | Evals |
+| 8 | [AI Agent](projects/08-ai-agent/) | Bounded tool-using agent with failure recovery | Agents |
+| 9 | [Personal Learning OS](projects/09-personal-learning-os/) | Orchestration layer combining memory, retrieval, agents, and evals | System design |
+
+## Electives
+
+Electives are optional off-spine deep dives. They are not required to complete the core curriculum.
+
+| Elective | What You Build | Why It Matters |
+|---|---|---|
+| [MCP Interface Layer](projects/electives/01-mcp-interface-layer/) | Wrap the memory system as an MCP server | Teaches provider/consumer protocol design |
+
+## What Makes This Different
+
+Most AI projects demonstrate output. This repo demonstrates learning.
+
+It includes:
+
+- source-grounded lessons from papers, official docs, and engineering guides
+- runnable starter code and guiding tests
+- rubrics and evaluation criteria
+- failure-analysis workflows
+- reflection and understanding artifacts
+- generated HTML lessons and rendered source-map pages
+- Claude-oriented agents, skills, catalogs, and operating rules
+- a capstone that composes prior systems into a Personal Learning OS
+
+## Browse The Lab
+
+- [Project Catalog](projects/index.html)
+- [Curriculum Overview](docs/curriculum/overview.md)
+- [Rendered Source Map](catalogs/rendered/source-map.html)
+- [Setup Guide](SETUP.md)
+
+## How Each Project Works
+
+```txt
+Read the lesson
+  -> explain it in your own words
+  -> implement the core system
+  -> run tests
+  -> break it intentionally
+  -> evaluate results
+  -> reflect
+```
+
+Each project includes:
 
 | File | Purpose |
-|------|---------|
-| `PROJECT.md` | What you're building and why |
-| `LESSON.md` | The full lesson with intuition → implementation |
-| `UNDERSTANDING.md` | You write this — prove you understand |
-| `IMPLEMENTATION.md` | You document your implementation process |
-| `FAILURE_ANALYSIS.md` | You document what you broke and learned |
-| `EVALUATION.md` | You evaluate if the system works |
-| `DECISIONS.md` | Engineering decisions you made |
-| `PROJECT_JOURNAL.md` | Running notes as you build |
+|---|---|
+| `PROJECT.md` | High-level brief |
+| `source/lesson.agent.md` | Canonical lesson |
+| `rendered/lesson.html` | Human-readable lesson |
+| `source/project.md` | Detailed project spec |
+| `source/resources.md` | Source-backed reading list |
+| `source/rubric.md` | Assessment criteria |
+| `source/reflection.template.md` | Reflection prompts |
+| `UNDERSTANDING.md` | Learner explains the concept |
+| `UNDERSTANDING_FEEDBACK.md` | Mentor feedback on the learner's understanding |
+| `IMPLEMENTATION.md` | Implementation notes |
+| `FAILURE_ANALYSIS.md` | What broke and why |
+| `EVALUATION.md` | Measured results |
+| `DECISIONS.md` | Engineering decisions |
+| `PROJECT_JOURNAL.md` | Build log |
 | `STARCALLOS_REFLECTION.md` | Patterns applicable to StarcallOS |
-| `PROMPTS.md` | Prompts you designed and why |
-| `SOURCES.md` | Sources used — documentation, papers, blogs |
-| `UNDERSTANDING_FEEDBACK.md` | Mentor feedback on your understanding |
-| `code/` | Your working implementation |
+| `PROMPTS.md` | Prompt experiments and reasoning |
+| `code/` | Starter code, tests, and implementation |
+
+## Repository Intelligence Layer
+
+This repo has a knowledge hierarchy:
+
+```txt
+PHILOSOPHY.md
+  -> OPERATING_RULES.md
+  -> ARCHITECTURE.md
+  -> sources/
+  -> docs/ + projects/
+  -> evaluations/
+  -> memory/
+```
+
+Sources provide truth. Catalogs route humans and agents to the right materials. Memory records learning outcomes. Agents and skills define workflows for reviewing, teaching, grading, and synthesizing documentation.
+
+Key directories:
+
+- `sources/` - Ground truth: papers, official docs, engineering blogs, and educational references.
+- `catalogs/` - Navigation maps for sources, concepts, agents, skills, and learning objectives.
+- `skills/` - Reusable reasoning methods.
+- `agents/` - Named reasoning roles and responsibilities.
+- `docs/` - Teaching materials derived from sources.
+- `projects/` - The core labs and electives.
+- `evaluations/` - Rubrics, grader prompts, and evaluation criteria.
+- `memory/project/` - Decisions, retrospectives, and lessons learned.
+- `memory/learner/` - Misconceptions, reflections, and skill maps.
 
 ## Stack
 
-- **Language:** Python 3.11+
-- **Package Manager:** uv
-- **LLM Abstraction:** LiteLLM (provider-agnostic)
-- **Default Provider:** Anthropic Claude (swap freely)
+- Python 3.11+
+- uv
+- LiteLLM
+- pytest
+- Chroma / vector databases where needed
+- Model Context Protocol for the elective
+- Generated standalone HTML for lessons and sources
 
 ## Setup
 
-See [SETUP.md](SETUP.md) for step-by-step environment setup.
+See [SETUP.md](SETUP.md) for full setup.
 
-## Primary Inspiration
+Quick start:
 
-Every project reflects on [StarcallOS](../StarcallOS/) — a personal AI operating system. The goal is not to build StarcallOS directly, but to discover reusable patterns, architectures, and ideas through independent projects.
+```bash
+uv venv
+.venv\Scripts\activate
+uv pip install -r requirements.txt
+python scripts/validate_curriculum.py
+```
+
+Each project has its own `code/README.md` with project-specific setup, run, and test commands.
+
+## For Resume Reviewers
+
+This repo is designed to show:
+
+- applied AI systems engineering
+- source-backed technical learning
+- test-driven implementation
+- evaluation and failure analysis
+- AI agent and tool workflow design
+- curriculum and developer education infrastructure
+
+The capstone, [Personal Learning OS](projects/09-personal-learning-os/), composes prompting, embeddings, search, RAG, memory, tools, evaluation, and agents into one orchestration layer.
+
+## Inspiration
+
+Each project includes a `STARCALLOS_REFLECTION.md` to capture patterns that could apply to StarcallOS, a personal AI operating system. This lab does not build StarcallOS directly; it builds the understanding and reusable patterns that could inform it.
 
 ---
 
-> "Build intuition first. Terminology second. Implementation third. Optimization fourth."
+> Build intuition first. Terminology second. Implementation third. Optimization fourth.
