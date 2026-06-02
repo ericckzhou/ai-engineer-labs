@@ -47,7 +47,13 @@ def cosine_collection():
         "Photosynthesis converts sunlight into chemical energy in plants.",
     ]
     ids = ["d0", "d1", "d2"]
-    client = chromadb.Client()  # in-memory, offline
+    client = chromadb.Client()  # in-memory, offline (shared within the process)
+    # chromadb.Client() shares collection state across tests in one run, so drop any
+    # leftover "test" collection from a prior test before recreating it.
+    try:
+        client.delete_collection("test")
+    except Exception:
+        pass
     col = client.create_collection("test", metadata={"hnsw:space": "cosine"})
     col.add(ids=ids, embeddings=fake_embed_many(docs), documents=docs,
             metadatas=[{"topic": "finance"}, {"topic": "fiction"}, {"topic": "biology"}])

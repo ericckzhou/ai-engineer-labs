@@ -24,13 +24,13 @@ def in_memory_indexer(monkeypatch):
 def test_build_index_count(in_memory_indexer):
     docs = ["The central bank raised interest rates this quarter.",
             "A young wizard discovers he has magical powers and attends a school of magic."]
-    col = in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="t1")
+    col = in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="idx_count")
     assert col.count() == 2
 
 
 def test_build_index_is_idempotent(in_memory_indexer):
     docs = ["The central bank raised interest rates this quarter.",
             "A young wizard discovers he has magical powers and attends a school of magic."]
-    in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="t2")
-    col = in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="t2")  # re-run
+    in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="idx_idem")
+    col = in_memory_indexer.build_index(docs, ["d0", "d1"], collection_name="idx_idem")  # re-run
     assert col.count() == 2  # not 4 — no duplicates
