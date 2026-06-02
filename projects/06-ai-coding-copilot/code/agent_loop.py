@@ -51,7 +51,15 @@ def parse_tool_calls(message) -> list[ToolCall]:
         parse_tool_calls(msg) -> [ToolCall("c1", "read_file", {"path": "a.py"})]
         parse_tool_calls(ns(content="done", tool_calls=None)) -> []
     """
-    raise NotImplementedError("M2: extract (id, name, args) and json.loads the arguments string")
+    calls = getattr(message, "tool_calls", None)
+    if not calls:
+        return []
+    parsed: list[ToolCall] = []
+    for tc in calls:
+        raw_args = tc.function.arguments
+        arguments = json.loads(raw_args) if raw_args else {}
+        parsed.append(ToolCall(id=tc.id, name=tc.function.name, arguments=arguments))
+    return parsed
 
 
 def run_agent(messages: list, repo_root, complete: Callable, *,
@@ -83,4 +91,13 @@ def run_agent(messages: list, repo_root, complete: Callable, *,
         run_agent(msgs, repo, scripted_complete, max_steps=5) -> "...the final answer..."
         # a `complete` that ALWAYS asks for a tool stops at the cap and returns the sentinel.
     """
-    raise NotImplementedError("M4: drive call -> dispatch -> feed back -> repeat, bounded by max_steps")
+    for _ in range(max_steps):
+        msg = complete(messages, tools)
+        calls = parse_tool_calls(msg)
+        if not calls:
+            return msg.content or ""  # the model is done — final answer
+        messages.append(msg)  # assistant turn must precede its tool results (no orphans)
+        for call in calls:
+            result = dispatch_tool(call.name, call.arguments, repo_root)
+            messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+    return f"[stopped: hit max_steps={max_steps} without a final answer]"

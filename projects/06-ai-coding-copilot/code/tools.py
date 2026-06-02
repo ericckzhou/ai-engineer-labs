@@ -72,7 +72,11 @@ def safe_resolve(repo_root, rel_path) -> Path:
         safe_resolve("/work/repo", "src/config.py")    -> Path("/work/repo/src/config.py")
         safe_resolve("/work/repo", "../../etc/passwd")  -> raises ValueError
     """
-    raise NotImplementedError("M1: resolve under repo_root and reject escapes")
+    base = Path(repo_root).resolve()
+    target = (base / rel_path).resolve()
+    if base != target and base not in target.parents:
+        raise ValueError(f"path escapes repo root: {rel_path!r}")
+    return target
 
 
 # ---- PROVIDED file ops — each path-taking op routes through safe_resolve (your M1) ------------
@@ -134,4 +138,10 @@ def dispatch_tool(name: str, arguments: dict, repo_root) -> str:
         dispatch_tool("read_file", {"path": "config.py"}, repo)  -> "<contents of config.py>"
         dispatch_tool("frobnicate", {}, repo)                    -> "Error: unknown tool 'frobnicate'"
     """
-    raise NotImplementedError("M3: route name + arguments to the right tool")
+    if name == "read_file":
+        return read_file(repo_root, arguments["path"])
+    if name == "list_directory":
+        return list_directory(repo_root, arguments.get("path", "."))
+    if name == "search_code":
+        return search_code(repo_root, arguments["query"])
+    return f"Error: unknown tool {name!r}"
