@@ -51,7 +51,12 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## RAG (Retrieval-Augmented Generation)
 
-- Tier 2: `sources/papers/rag-paper.md` — Original RAG paper (to be added)
+- Tier 2: `sources/papers/rag-paper.md` — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token
+- Tier 1: `sources/official-docs/anthropic-citations.md` — claim → source location (`char_location`/`page_location`/`content_block_location`), `cited_text`, sentence-level citation chunking, verifiable pointers
+
+## Chunking
+
+- Tier 3: `sources/articles/chunking-strategies.md` — Pinecone: chunk-size = precision vs context tradeoff, overlap, fixed-size (default) vs recursive vs semantic chunking, chunk expansion
 
 ## Memory Systems
 
@@ -64,7 +69,8 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## Evaluation
 
-- Tier 2: `sources/papers/` — RAGAS, MT-Bench (to be added)
+- Tier 2: `sources/papers/ragas.md` — Es et al. 2023: reference-free RAG eval; faithfulness `F = |V|/|S|` (hallucination metric), answer relevance, context relevance
+- Tier 2: `sources/papers/` — MT-Bench (to be added)
 
 ---
 
