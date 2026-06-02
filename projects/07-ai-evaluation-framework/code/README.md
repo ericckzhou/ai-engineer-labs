@@ -1,9 +1,9 @@
 # Project 07: AI Evaluation Framework — Code
 
-> Workflow is standardized across all lab projects. `config.py` (swappable provider) and
-> `.env.example` are stamped from the canonical template
-> (`skills/lesson-generator/templates/`). Lesson-specific starter code and guiding tests are
-> added when this lesson is authored — see `../source/project.md`.
+A reusable evaluation harness: score open-ended answers with an **LLM-as-a-judge**, aggregate into a
+pass-rate, and **regression-test** a prompt/model change. The learning target is the judge (prompt +
+parse) and turning scores into decisions (aggregate + regression). `config.py`, the dataset, the
+judge call, and reporting are provided.
 
 ## Setup
 
@@ -15,47 +15,72 @@ source .venv/bin/activate  # Linux/macOS
 
 uv pip install -r requirements.txt
 
-cp .env.example .env       # then put your API key(s) in .env
+cp .env.example .env       # then put your API key(s) in .env (or set USE_OLLAMA=1)
 ```
 
 ## Run (one command)
 
 ```bash
-python regression_runner.py
+python regression_runner.py     # live demo: judge a sample dataset, print a summary
 ```
+
+Until the four learner functions are implemented, this raises `NotImplementedError`.
 
 ## Test (one command)
 
 ```bash
-python -m pytest
+python -m pytest          # all guiding tests are OFFLINE (no network, no provider)
 ```
 
-Guiding tests live in `tests/` (added with the lesson). They should fail until you
-implement the core and run without a network where possible.
+Build in milestone order and re-run after each:
+
+```bash
+python -m pytest tests/test_llm_judge.py    # M1 build_judge_prompt, M2 parse_judge_score
+python -m pytest tests/test_metrics.py      # M3 summarize
+python -m pytest tests/test_regression.py   # M4 compare_runs
+```
 
 ## Provider (swappable by key)
 
-`config.py` picks the model from whichever API key is in `.env` — **Groq (free tier)** is
-preferred, then Anthropic, then OpenAI. Override with `CHATBOT_MODEL`. No code change is
-needed to switch providers (LiteLLM routes by the model string).
+`config.py` picks the model from whichever API key is in `.env` — **Groq (free tier)** preferred, then
+Anthropic, then OpenAI; or `USE_OLLAMA=1` for free local models. The **judge** model is `JUDGE_MODEL`
+(defaults to the same resolution) — ideally set it to a *different* model than the one under test to
+avoid self-enhancement bias. The judge always runs at `temperature=0` for repeatability.
+
+## Build Milestones (the learner core)
+
+| Milestone | File · function | What it does |
+|-----------|-----------------|--------------|
+| M1 | `llm_judge.py` · `build_judge_prompt` | Construct a bias-mitigated judge prompt (scale, reasoning-before-score, reference) |
+| M2 | `llm_judge.py` · `parse_judge_score` | Robustly parse the judge's prose into a clamped int score |
+| M3 | `metrics.py` · `summarize` | Aggregate JudgeResults into mean + pass-rate |
+| M4 | `regression_runner.py` · `compare_runs` | Per-case baseline vs candidate → flag regressions |
+| M5 | `regression_runner.py` (provided) | End-to-end: dataset → system → judge → summary report |
+| M6 | — | Break it: reproduce a judge bias + a regression hidden in a flat mean |
 
 ## File Roles
 
-Labeled per `OPERATING_RULES.md` §Scaffolding — `provided` (complete) · `partial` (starter
-+ `TODO(learner)`) · `learner` (you write the core) · `reference` (docs):
+`provided` (complete) · `partial` (starter + `NotImplementedError`) · `learner` (you write the core) ·
+`reference` (docs):
 
 | File | Role | You... |
 |------|------|--------|
-| `.env.example` | `provided` | copy to `.env`, add a key |
+| `.env.example` | `provided` | copy to `.env`, add a key (or `USE_OLLAMA=1`) |
 | `config.py` | `provided` | tune `Config`; do not edit the canonical provider block |
 | `requirements.txt` | `provided` | install once |
-| `regression_runner.py` | `learner` | build the core — full labeled spec in `../source/project.md` |
+| `dataset.py` | `provided` | the frozen test cases + loaders |
+| `report.py` | `provided` | formats the summary / regression report |
+| `llm_judge.py` | `partial` | implement `build_judge_prompt` (M1) and `parse_judge_score` (M2); `judge` is provided |
+| `metrics.py` | `partial` | implement `summarize` (M3); `exact_match`/`contains` provided |
+| `regression_runner.py` | `partial` | implement `compare_runs` (M4); `run_eval`/`main` provided |
+| `tests/` | `provided` | make these pass (offline) |
 
-Search starter files for `TODO(learner)` and `NotImplementedError` to find your work.
+Search `llm_judge.py`, `metrics.py`, `regression_runner.py` for `NotImplementedError` to find your work.
 
 ## Notes
 
 - Fill in `../UNDERSTANDING.md` before writing any code here.
-- Build in milestone order (see the lesson) — don't write everything at once.
-- Document your process in `../IMPLEMENTATION.md` as you go.
-- Commit working milestones before adding complexity.
+- Build in milestone order — judge prompt → parse → aggregate → regression.
+- Tests are deterministic and offline: parsing, aggregation, and regression are pure functions; the
+  live judge call (`judge`) is only exercised by the demo, not the tests.
+- Record your M6 bias/regression experiments in `../FAILURE_ANALYSIS.md`.

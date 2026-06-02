@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -421,7 +421,7 @@
     <header class="lesson-header">
       <div class="lesson-badge">Project 07 of 9</div>
       <h1>AI Evaluation Framework</h1>
-      <p class="lesson-tagline">Measure it — or you can't improve it</p>
+      <p class="lesson-tagline">Measure before you ship — LLM-as-a-judge, its biases, and catching regressions with numbers</p>
       <div class="lesson-meta">
         <span class="meta-chip">&#128214; Read the lesson</span>
         <span class="meta-chip">&#9997; Fill in understanding</span>
@@ -436,12 +436,14 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>Explain why "it seemed to work" is not an evaluation, and why text outputs with <strong>no single right answer</strong> can't be checked with <code>assert ==</code>.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>LLM-as-a-judge</strong>: build a prompt that scores an answer on a scale, and justify why a strong judge is usable (~80% human agreement).</span></li>
+        <li><div class="obj-check"></div><span>Name and reproduce the <strong>biases of an LLM judge</strong> — position, verbosity, self-enhancement, weak math grading — and say which one caused a bad score.</span></li>
+        <li><div class="obj-check"></div><span>Apply the standard <strong>mitigations</strong>: reasoning-before-score (chain-of-thought), reference-guided judging, and position-swapping.</span></li>
+        <li><div class="obj-check"></div><span><strong>Parse a judge's free-text reply robustly</strong> into a numeric score (JSON, "Score: 4", "4/5"), clamping out-of-range values.</span></li>
+        <li><div class="obj-check"></div><span><strong>Aggregate</strong> per-case scores into a decision: a mean score and a <strong>pass-rate</strong> against a threshold.</span></li>
+        <li><div class="obj-check"></div><span>Build a <strong>regression test</strong>: freeze a dataset, score a baseline, re-score after a change, and flag the cases that got worse.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish <strong>reference-free</strong> metrics (faithfulness/relevance) from reference-based and judge-based scoring.</span></li>
       </ul>
     </section>
 
@@ -450,22 +452,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>You changed your system prompt. Is the assistant better or worse? With code you'd run the tests — but there is no <code>assert summary == expected</code>, because a good summary, a good answer, a good explanation has no single correct string. "Most AI developers ship based on vibes and demo impressions. Production failures happen because no one built evals." The breakthrough is <strong>LLM-as-a-judge</strong>: a strong model can grade open-ended answers and "match both controlled and crowdsourced human preferences well, achieving over 80% agreement — the same level of agreement between humans." That makes quality <em>measurable</em>, and measurable means improvable.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>Two problems. First, <strong>scoring</strong>: turn "is this answer good?" into a number, at scale, without a human for every example. Second, <strong>regression</strong>: once you can score, freeze a dataset and detect when a change makes things <em>worse</em> — the silent failure that ships when no one was measuring. The catch: the judge is not a neutral oracle — it has <strong>biases</strong> (position, verbosity, self-enhancement) that quietly corrupt your numbers if you don't design around them.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>Without an eval harness, every change is a gamble — you ship and hope, and regressions slip through because no one was watching a number. And if you build a judge but ignore its biases, your metric lies to you: a prompt change that only makes answers <em>longer</em> looks like an improvement (verbosity bias).</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>Every serious AI product has an eval harness behind it; the ones that don't ship regressions they can't see. "Evaluation infrastructure is the invisible moat… Braintrust, LangSmith, and others are built on selling evaluation infrastructure." The judgment that separates a pro from an amateur: do you trust a single demo, or do you have a dataset, a judge you've validated, and a pass-rate you watch on every change?</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>Eval infrastructure is a standalone product category precisely because it lets a team ship fast <em>without</em> breaking quality. Internally it's the moat; externally it's a business. Either way the unit of value is: a number you trust, attached to a change, before it reaches users.</p>
       </div>
     </section>
 
@@ -474,25 +476,37 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine grading 500 essays. There's no answer key — a good essay can be written a thousand ways — so you hire a really sharp teaching assistant to read each one and give it a 1–5. That TA (the <strong>judge</strong>) is fast and mostly agrees with you. But the TA has quirks: they give higher marks to <em>longer</em> essays, and to whichever essay they read <em>first</em>. So you make two rules: "write down your reasons <strong>before</strong> you give the number," and "if you're comparing two, read them in both orders." Now their grades are trustworthy enough that when you change how you teach, you can re-grade the same 500 essays and see whether scores went <strong>up or down</strong>. That up-or-down check is a regression test; the TA-with-rules is LLM-as-a-judge.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li>A <strong>judge</strong> is an LLM call whose output is a <em>score</em>, not an answer. <code>build_judge_prompt(question, answer, reference?)</code> → <code>litellm.completion</code> → free text → <code>parse_judge_score</code> → an int in <code>[1, scale]</code>.</li>
+        <li>The judge prompt encodes the mitigations: a fixed <strong>scale</strong> (1–5), <strong>reasoning before the score</strong> (chain-of-thought — improves agreement and is auditable), and the <strong>reference</strong> when you have one (reference-guided).</li>
+        <li>The model returns prose, so you must <strong>parse robustly</strong>: JSON <code>{"score": 4}</code>, "Score: 4", or "I'd give this 4/5." Extract the integer, clamp to range, fail loud only when truly unparseable.</li>
+        <li>A run produces <code>list[JudgeResult]</code>. <strong><code>summarize</code></strong> → <code>(mean, pass_rate@threshold)</code>. <strong><code>compare_runs(baseline, candidate)</code></strong> → which <code>case_id</code>s dropped beyond a tolerance = <strong>regressions</strong>.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>A judge is a <strong>restaurant health inspector with a known soft spot</strong>. They're trained, consistent, and mostly right — you can run a whole city's restaurants past them. But suppose they unconsciously score bigger kitchens higher. If you don't know that, you'll conclude "big kitchens are cleaner" when you've just measured the inspector's bias. The fix isn't to fire the inspector (they're 80% reliable) — it's to standardize the rubric, make them write findings before the grade, and audit for the soft spot. Same with an LLM judge.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre> ONE CASE:
+   question: "Summarize the refund policy."
+   answer:   "&lt;the system-under-test's output&gt;"
+   reference?: "&lt;gold summary, if you have one&gt;"
+        │
+        ▼  build_judge_prompt  (scale 1–5, "reason FIRST, then score", include reference)
+   judge LLM ──► "The answer covers X and Y but misses the 30-day window. Score: 3"
+        │
+        ▼  parse_judge_score  → 3   (robust to JSON / '3/5' / 'Score: 3'; clamp to [1,5])
+   JudgeResult(case_id, score=3, reasoning="...misses the 30-day window")
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+ MANY CASES:
+   summarize([...]) → mean=3.8, pass_rate@4 = 0.62
+   compare_runs(baseline, candidate, tolerance=0) → regressions=[case_7, case_12]</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,14 +514,16 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p>An <strong>LLM judge</strong> is a function <code>(question, answer[, reference]) → score ∈ {1..N}</code> realized by an LLM call. <strong>Single-answer grading</strong> scores one answer; <strong>pairwise</strong> compares two. <strong>Agreement</strong> is how often the judge matches a human; GPT-4 reaches "&gt;80% agreement, the same level of agreement between humans." <strong>Pass-rate</strong> <code>= |{c : score(c) ≥ t}| / |C|</code>; a <strong>regression</strong> (tolerance <code>τ</code>) is <code>candidate.score &lt; baseline.score − τ</code>.</p>
 
       <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li><strong>Design the dataset.</strong> A case is <code>(id, question[, reference])</code>. Good cases are representative, include edge inputs, and are <em>frozen</em> — the dataset must not change between baseline and candidate.</li>
+        <li><strong>Build the judge prompt.</strong> A system message with the role and scale; a user message with the question, the answer, and the reference if present. Bake in the mitigations: <strong>reasoning, then the score</strong>, in a parseable format.</li>
+        <li><strong>Call the judge.</strong> One <code>litellm.completion</code> at <code>temperature=0</code> for repeatability. The judge can (and often should) differ from the model under test — avoid self-enhancement bias.</li>
+        <li><strong>Parse the score.</strong> The reply is prose. Try JSON; else regex "score: N" or "N/scale"; else first in-range integer. <strong>Clamp</strong> to <code>[1, scale]</code>. Raise only when there is no number at all — silent <code>0</code>s poison your mean.</li>
+        <li><strong>Aggregate.</strong> <code>summarize</code> → mean + pass-rate. One number you trust beats 200 you scroll past.</li>
+        <li><strong>Regression-test.</strong> Score the baseline once and store it; after a change, score the candidate on the <em>same</em> dataset and <code>compare_runs</code> per <code>case_id</code>.</li>
       </ol>
 
       <h3>Key Concepts</h3>
@@ -516,14 +532,20 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>LLM-as-a-judge</td><td>Using a strong LLM to score/compare answers in place of a human or fixed metric</td><td>The only scalable way to grade open-ended text; ~80% human agreement</td></tr>
+          <tr><td>Position bias</td><td>The judge favors an answer by its order, not its quality</td><td>A named failure; cancel via position-swap</td></tr>
+          <tr><td>Verbosity bias</td><td>The judge prefers longer answers regardless of correctness</td><td>A wordier prompt can fake an "improvement"; watch length</td></tr>
+          <tr><td>Self-enhancement bias</td><td>The judge favors its own model family / style</td><td>Don't judge a model with itself by default</td></tr>
+          <tr><td>Reasoning-before-score</td><td>Make the judge explain, then score (chain-of-thought)</td><td>Cheapest, highest-leverage mitigation; also auditable</td></tr>
+          <tr><td>Pass-rate</td><td>Fraction of cases scoring ≥ a threshold</td><td>Turns a list of scores into a ship/no-ship decision</td></tr>
+          <tr><td>Regression test</td><td>Re-score a frozen dataset after a change; flag drops</td><td>"Did my prompt change help or hurt?" answered with numbers</td></tr>
+          <tr><td>Reference-free metric</td><td>Score without a gold answer (faithfulness, relevance)</td><td>Grade when no human reference exists</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>An LLM judge is <strong>not ground truth</strong>. ~80% agreement means about 1 in 5 verdicts may differ from a human — a strong signal, not an oracle. And a higher mean does <strong>not</strong> automatically mean "better": verbosity bias and a hidden per-case regression both break that inference. Treat scores as evidence, watch length, and compare per case.</p>
       </div>
     </section>
 
@@ -531,30 +553,52 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: <code>litellm</code> (the judge call via <code>config.py</code>), pure-Python parsing/aggregation, and a small frozen dataset. Examples mirror the guiding tests.</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — parse a judge's reply into a score</h3>
+      <pre><code class="language-python">from llm_judge import parse_judge_score
 
-# Example code here
+parse_judge_score('{"reasoning": "covers it well", "score": 4}', scale=5)  # (4, "covers it well")
+parse_judge_score("Reasoning: solid but terse.\nScore: 5", scale=5)        # (5, "Reasoning: solid but terse.")
+parse_judge_score("I'd rate this 3/5.", scale=5)                            # (3, "I'd rate this 3/5.")
+parse_judge_score("Score: 9", scale=5)                                      # (5, ...)  ← clamped to scale
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>The judge replies in prose, and the format varies. <code>parse_judge_score</code> extracts the integer (JSON or text), <strong>clamps</strong> it into <code>[1, scale]</code>, and keeps the reasoning. The harness is only as reliable as this step — a model that says "9/5" must not become a <code>9</code> in your mean.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — aggregate scores into a decision</h3>
+      <pre><code class="language-python">from llm_judge import JudgeResult
+from metrics import summarize
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+results = [
+    JudgeResult("c1", 5, "..."), JudgeResult("c2", 4, "..."),
+    JudgeResult("c3", 3, "..."), JudgeResult("c4", 2, "..."),
+]
+s = summarize(results, pass_threshold=4)
+print(s.n, s.mean_score, s.pass_rate)   # 4  3.5  0.5   (two of four scored >= 4)
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>Four scores become a <strong>mean</strong> (3.5) and a <strong>pass-rate</strong> (50% at threshold 4). The pass-rate is the ship/no-ship number — "half my answers are good enough" is a decision; a list of four integers is not.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — a regression hides inside a flat average</h3>
+      <pre><code class="language-python">from llm_judge import JudgeResult
+from regression_runner import compare_runs
+
+baseline  = [JudgeResult("a", 4, ""), JudgeResult("b", 5, ""), JudgeResult("c", 3, "")]
+candidate = [JudgeResult("a", 4, ""), JudgeResult("b", 2, ""), JudgeResult("c", 5, "")]
+
+report = compare_runs(baseline, candidate, tolerance=0)
+print(report.regressions)    # ['b']   — dropped 5 → 2
+print(report.improvements)   # ['c']   — rose 3 → 5
+print(round(report.baseline_mean, 2), round(report.candidate_mean, 2))  # 4.0 3.67
+</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">Why This "Fails"</div>
+        <p>The mean barely moved (4.0 → 3.67), but case <code>b</code> <strong>regressed hard</strong> (5 → 2) while <code>c</code> improved — they nearly cancel in the average. A flat mean can hide a real regression; <code>compare_runs</code> surfaces it <strong>per case</strong>. This is why a regression test is not just "did the average drop?"</p>
       </div>
     </section>
 
@@ -570,13 +614,14 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>In your own words, why can't you evaluate an open-ended answer with <code>assert output == expected</code>? What does LLM-as-a-judge do instead?</li>
+          <li>The judge agrees with humans ~80% of the time. Why is that "good enough to use" but "not safe to fully trust"? What do you do about the other 20%?</li>
+          <li>Pick two judge biases (position, verbosity, self-enhancement). For each, describe a concrete scenario where it gives the wrong score, and the mitigation.</li>
+          <li>Why ask the judge for reasoning <em>before</em> the score? Why <code>temperature=0</code>?</li>
+          <li>Predict what breaks if <code>parse_judge_score</code> silently returns <code>0</code> on an unparseable reply instead of raising. What happens to your mean and your pass-rate?</li>
+          <li>Why must the eval dataset be <em>frozen</em> between baseline and candidate? What does a regression test measure if the cases change?</li>
+          <li>Why can a regression be invisible in the mean but obvious in <code>compare_runs</code>? (Use the Example 3 numbers.)</li>
+          <li>The one thing you still don't fully understand about evaluating AI systems.</li>
         </ol>
       </div>
 
@@ -586,14 +631,21 @@ import litellm
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build a reusable evaluation harness in <code>code/</code>:</p>
+      <ul>
+        <li><code>llm_judge.py</code> — <code>build_judge_prompt</code> (bias-mitigated prompt) and <code>parse_judge_score</code> (robust extraction) are the <em>learner core</em>; <code>judge</code> and <code>JudgeResult</code> are <em>provided</em>.</li>
+        <li><code>metrics.py</code> — <code>summarize</code> (mean + pass-rate) is the <em>learner core</em>; <code>exact_match</code>/<code>contains</code> are <em>provided</em>.</li>
+        <li><code>regression_runner.py</code> — <code>compare_runs</code> (baseline vs candidate → regressions) is the <em>learner core</em>; the run-a-dataset harness is <em>provided</em>.</li>
+        <li><code>dataset.py</code> / <code>report.py</code> — frozen test cases + formatting. <em>(Provided.)</em></li>
+      </ul>
+      <p><strong>Extended:</strong> pairwise judging with position-swap; reference-guided agreement lift; a faithfulness metric (reuse Project 04); cost/latency tracking; a verbosity audit.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p>The judge prompt asks for <strong>reasoning before the score</strong>, uses a fixed scale, and is reference-guided when a reference exists; <code>parse_judge_score</code> is robust, clamps range, and fails loud on no-score; reporting includes a pass-rate and a <strong>per-case</strong> regression comparison; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> reproduces a bias and a hidden regression; <code>EVALUATION.md</code> is quantitative; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +658,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Judge prompt</h4>
+            <p><code>llm_judge.build_judge_prompt</code> — scale, reasoning-before-score, optional reference. <strong>Validation:</strong> prompt contains the answer, the scale, asks for reasoning then score; includes the reference when given (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — Parse score</h4>
+            <p><code>llm_judge.parse_judge_score</code> — JSON / "Score: N" / "N/scale", clamp to range. <strong>Validation:</strong> parses each format; "9" with scale 5 → 5; garbage → <code>ValueError</code> (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Aggregate</h4>
+            <p><code>metrics.summarize</code> — mean score + pass-rate at a threshold. <strong>Validation:</strong> <code>[5,4,3,2]</code>@4 → mean 3.5, pass_rate 0.5 (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — Regression</h4>
+            <p><code>regression_runner.compare_runs</code> — per-case drops beyond tolerance. <strong>Validation:</strong> baseline vs candidate flags the regressed and improved cases; means computed (offline test).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — End-to-end eval</h4>
+            <p>Wire dataset → system-under-test → judge → summarize → report. <strong>Validation:</strong> run the harness on a prior project's outputs; get a mean + pass-rate report.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break / Evaluate</h4>
+            <p>Reproduce a judge bias (verbosity/position) and a hidden regression. <strong>Validation:</strong> a wordier-but-not-better answer scores higher; a regression hidden in a flat mean; recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +710,14 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Judge prompt</td><td>define a fixed scale and ask for <strong>reasoning before the score</strong>?</td><td>☐</td></tr>
+          <tr><td>Reference-guided</td><td>include the reference in the prompt when one is provided?</td><td>☐</td></tr>
+          <tr><td>Robust parse</td><td>handle JSON and plain-text replies, and <strong>clamp</strong> out-of-range scores?</td><td>☐</td></tr>
+          <tr><td>Fail loud</td><td>raise (not silently <code>0</code>) when the reply has no score?</td><td>☐</td></tr>
+          <tr><td>Aggregate</td><td>report a mean <strong>and</strong> a pass-rate against a threshold?</td><td>☐</td></tr>
+          <tr><td>Regression</td><td>flag per-case drops, not just a change in the average?</td><td>☐</td></tr>
+          <tr><td>Frozen dataset</td><td>compare baseline and candidate over the <strong>same</strong> cases?</td><td>☐</td></tr>
+          <tr><td>Judge ≠ subject</td><td>use a judge model that isn't the model under test (or note the bias)?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +725,12 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>Your judge emits a score with no reasoning (or scores before reasoning).</li>
+          <li><code>parse_judge_score</code> returns <code>0</code> on an unparseable reply — your mean is now a lie.</li>
+          <li>You report only a mean and miss a per-case regression (Example 3).</li>
+          <li>You judge a model with itself and call the inflated score a win (self-enhancement).</li>
+          <li>A prompt change "improved" scores but only made answers longer (verbosity bias).</li>
+          <li>Your baseline and candidate were scored on different cases.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +744,14 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Trusting the judge as ground truth</td><td>"GPT-4 agrees 80% of the time"</td><td>The other ~20% silently corrupts decisions</td><td>Treat scores as a strong signal; spot-check</td></tr>
+          <tr><td>Score before reasoning</td><td>Asking for a number first</td><td>Worse, less consistent scores</td><td>Reasoning first, then score (CoT)</td></tr>
+          <tr><td>Silent parse fallback to 0</td><td>"Handle the error quietly"</td><td>A few <code>0</code>s tank the mean; false regression</td><td>Clamp valid scores; raise on no-score</td></tr>
+          <tr><td>Mean-only reporting</td><td>A single number feels clean</td><td>A real regression hides in a flat average</td><td>Add per-case <code>compare_runs</code></td></tr>
+          <tr><td>Judging a model with itself</td><td>Convenient, one model</td><td>Self-enhancement bias inflates the score</td><td>Use a different/stronger judge</td></tr>
+          <tr><td>Ignoring verbosity</td><td>Longer looks more thorough</td><td>A wordier prompt fakes an "improvement"</td><td>Log length next to score; audit it</td></tr>
+          <tr><td>Changing the dataset between runs</td><td>Adding cases as you go</td><td>Baseline vs candidate no longer comparable</td><td>Freeze and version the dataset</td></tr>
+          <tr><td><code>temperature</code> &gt; 0 on the judge</td><td>Default sampling</td><td>Same answer gets different scores; flaky regression</td><td>Judge at <code>temperature=0</code></td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +761,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>The judge <strong>is</strong> Project 01's <code>litellm.completion</code> — same call, but its job is to output a <em>score</em>. The <strong>faithfulness</strong> metric you build as an extension is Project 04's RAGAS work generalized (<code>F = |V|/|S|</code>), and <strong>reference-guided</strong> judging is the same instinct as grounding an answer in retrieved context (Projects 03/04). Any prior project is a <em>system under test</em> you can now measure instead of eyeball.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p><strong>Project 08 (agent)</strong> needs evaluation badly — agents fail in long multi-step trajectories, and "did the agent succeed?" is itself a judge call over a transcript. <strong>Project 09 (personal learning OS)</strong> uses evaluation to know whether the system is actually helping. The LLM-rated <strong>importance</strong> from Project 05 was a special case of LLM-as-a-judge; this project is the general tool.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real eval stacks (Braintrust, LangSmith, OpenAI Evals) are this plus scale: versioned datasets, LLM-as-judge with validated prompts, pairwise + position-swap, reference-guided scoring, per-case dashboards, regression gates in CI, and cost/latency tracking per run. The frontier adds human-in-the-loop spot-checks to calibrate the judge and catch the ~20% it gets wrong.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>StarcallOS will change prompts, swap models, and add features constantly. Without this harness, every change is a gamble — you ship and hope. With it, every change is gated by a number: a frozen eval dataset of real StarcallOS tasks, an LLM judge you've validated and de-biased, a pass-rate you watch, and a regression report that blocks a merge when quality drops. The disciplines here are what make StarcallOS improvable instead of merely changeable.</p>
       </div>
     </section>
 
@@ -708,29 +784,30 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/official-docs/litellm-completion.md</code> — the judge is one <code>litellm.completion</code> call; <code>temperature=0</code> for repeatability (carried from Project 01)</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li><code>sources/papers/mt-bench.md</code> — Zheng et al. 2023: LLM-as-a-judge, ~80% human agreement, the biases (position/verbosity/self-enhancement) and mitigations (reasoning-before-score, reference-guided, position-swap)</li>
+          <li><code>sources/papers/ragas.md</code> — Es et al. 2023: reference-free metrics — faithfulness (<code>F = |V|/|S|</code>), answer/context relevance (carried from Project 04)</li>
+          <li><code>sources/papers/sentence-bert.md</code> — embeddings behind answer-relevance similarity (carried from Projects 02/04)</li>
         </ul>
       </div>
 
       <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
+        <h4>Tier 3 — Engineering Guides</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li>None specific to this lesson — MT-Bench is itself the engineering reference; regression testing is the engineering application of the harness.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li>None specific to this lesson — production eval platforms (Braintrust, LangSmith, OpenAI Evals) are the real-world instantiations worth browsing once the core is built.</li>
         </ul>
       </div>
     </section>

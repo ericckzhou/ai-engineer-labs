@@ -73,8 +73,14 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT: the eval harness needs a judge model, a scoring scale, a pass threshold,
+    # and a regression tolerance. `model` is the system-under-test default; `judge_model` is the
+    # grader (ideally NOT the same model — avoid self-enhancement bias). Judge runs at temp 0.
     model: str = field(default_factory=default_model)
+    judge_model: str = field(default_factory=lambda: os.getenv("JUDGE_MODEL") or default_model())
+    judge_scale: int = field(default_factory=lambda: int(os.getenv("JUDGE_SCALE", "5")))
+    pass_threshold: int = field(default_factory=lambda: int(os.getenv("EVAL_PASS_THRESHOLD", "4")))
+    regression_tolerance: int = field(default_factory=lambda: int(os.getenv("EVAL_REGRESSION_TOLERANCE", "0")))
     temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
 

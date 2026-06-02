@@ -211,19 +211,29 @@ When reasoning about a concept:
 ### Evaluation
 
 **LLM-as-Judge**
-- Source: `sources/papers/` (MT-Bench, Chatbot Arena)
+- Source: `sources/papers/mt-bench.md` (Zheng et al. 2023: strong LLM judge ~80% human agreement; single-answer grading vs pairwise; reasoning-before-score / reference-guided mitigations)
 - Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`
-- Known issues: —
+- Known issues: judge biases — position, verbosity, self-enhancement, weak math grading; judge is not ground truth (spot-check the ~20%)
+
+**Judge Biases (position / verbosity / self-enhancement)**
+- Source: `sources/papers/mt-bench.md` (named failure modes of an LLM judge + mitigations: position-swap, watch length, different judge model)
+- Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`
+- Known issues: verbosity bias makes a wordier-but-not-better answer score higher — a metric trap
 
 **Faithfulness Metric**
-- Source: `sources/papers/` (RAGAS)
-- Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`
+- Source: `sources/papers/ragas.md` (reference-free; `F = |V|/|S|` — supported claims / total claims; the hallucination metric)
+- Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`, `projects/04-pdf-research-assistant/source/lesson.agent.md`
 - Known issues: —
 
-**Regression Testing for LLMs**
-- Source: `sources/articles/`
+**Score Aggregation & Pass-Rate**
+- Source: `sources/papers/mt-bench.md` (turning per-case scores into a ship/no-ship decision)
 - Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`
-- Known issues: —
+- Known issues: a flat mean can hide a per-case regression — compare per case
+
+**Regression Testing for LLMs**
+- Source: `sources/papers/mt-bench.md` (engineering application: freeze a dataset, score baseline vs candidate, flag per-case drops)
+- Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`
+- Known issues: dataset must be frozen between runs; `temperature=0` judge or the gate is flaky
 
 ---
 

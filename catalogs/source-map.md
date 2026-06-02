@@ -73,7 +73,7 @@ Tier 4 (Educational): sources/videos/... or books/...
 ## Evaluation
 
 - Tier 2: `sources/papers/ragas.md` — Es et al. 2023: reference-free RAG eval; faithfulness `F = |V|/|S|` (hallucination metric), answer relevance, context relevance
-- Tier 2: `sources/papers/` — MT-Bench (to be added)
+- Tier 2: `sources/papers/mt-bench.md` — Zheng et al. 2023: LLM-as-a-judge — ~80% human agreement; biases (position/verbosity/self-enhancement); mitigations (reasoning-before-score, reference-guided, position-swap); MT-Bench + Chatbot Arena
 
 ---
 
