@@ -355,6 +355,11 @@ See source/resources.md for the full annotated source list.
 - `sources/official-docs/litellm-completion.md` — the judge is one `litellm.completion` call; `temperature=0` for repeatability (carried from Project 01)
 - `sources/papers/sentence-bert.md` — embeddings behind answer-relevance similarity (carried from Projects 02/04)
 
+**Optional — going deeper (after the harness works):**
+> Two directions beyond a single judge score: making the eval *observable* (so a regression is a traced event, not a print line) and making the *generator* self-correct using the same critique discipline.
+- `sources/official-docs/opentelemetry-genai-semconv.md` *(optional — depth)* — standard GenAI telemetry vocabulary (spans/attributes for model calls). The production form of your eval traces: turn ad-hoc judge logs into structured, queryable telemetry.
+- `sources/papers/self-refine.md` *(optional — depth)* — iterative generate → self-feedback → revise. The judge here scores; Self-Refine feeds critique *back* to improve the next draft — the evaluator-optimizer loop your judge could drive.
+
 ---
 
 ## Instructor Notes

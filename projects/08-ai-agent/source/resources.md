@@ -75,6 +75,35 @@
 
 ---
 
+## Optional — Going Deeper
+
+> Read **after** the reliable loop works. Your agent runs a single linear ReAct trajectory and stops;
+> these four are the principled versions of the extensions a learner reaches for next — self-improvement
+> and alternative control architectures. Treat them as *design options*, not requirements, and keep
+> "use the simplest thing that works" as the default.
+
+- **Reflexion** — `sources/papers/reflexion.md` *(optional — depth)*
+  - URL: https://arxiv.org/abs/2303.11366
+  - Why it matters: verbal self-feedback stored across attempts — the agent writes a lesson from a failed run and conditions the next on it, no weight updates. The principled version of "retry, but smarter."
+  - Where you'll see this: agents that learn within a session from their own failed runs (self-correcting coding/task agents).
+
+- **Self-Refine** — `sources/papers/self-refine.md` *(optional — depth)*
+  - URL: https://arxiv.org/abs/2303.17651
+  - Why it matters: generate → self-critique → revise *within* a single run — the evaluator-optimizer pattern applied to one answer (and the bridge from Project 07's judge).
+  - Where you'll see this: pipelines that loop "draft → critique → revise" before returning a result.
+
+- **Tree of Thoughts** — `sources/papers/tree-of-thoughts.md` *(optional — depth)*
+  - URL: https://arxiv.org/abs/2305.10601
+  - Why it matters: search and backtracking over multiple reasoning paths instead of one linear trajectory — what to reach for when a single ReAct chain gets stuck.
+  - Where you'll see this: planning/search agents on problems where one greedy path is brittle (puzzles, multi-constraint tasks).
+
+- **ReWOO** — `sources/papers/rewoo.md` *(optional — depth)*
+  - URL: https://arxiv.org/abs/2305.18323
+  - Why it matters: plan-execute — plan all tool calls up front, then execute, decoupling reasoning from observation. The architectural contrast to ReAct's per-step interleaving: fewer model calls, different failure modes.
+  - Where you'll see this: efficiency-oriented agent frameworks that batch planning to cut token cost and latency.
+
+---
+
 ## Recommended Reading Order
 
 For a learner new to this topic:

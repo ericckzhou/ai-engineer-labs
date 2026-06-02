@@ -819,6 +819,16 @@ print(answer)   # a "max steps reached" sentinel — NOT an infinite loop
           <li>None specific to this lesson — the Anthropic tool-use docs and the ReAct paper are themselves the primary teaching sources.</li>
         </ul>
       </div>
+
+      <div class="source-tier">
+        <h4>Optional — Going Deeper (MCP)</h4>
+        <p class="callout tip">Read these <em>after</em> the lab works and you can explain your own tool loop. The Model Context Protocol is what that hand-wired loop becomes when many hosts must reuse the same tools over a wire protocol — it reframes the project, it isn't required to finish it. The <strong>MCP Interface Layer</strong> elective builds on them directly.</p>
+        <ul>
+          <li><code>sources/official-docs/mcp-architecture.md</code> <em>(optional — depth)</em> — the client-host-server split: a host coordinates clients, each client talks to one focused server. Your monolithic copilot loop, decomposed into a reusable protocol surface.</li>
+          <li><code>sources/official-docs/mcp-tools.md</code> <em>(optional — depth)</em> — tool schema and <code>tool_result</code> as a standardized wire format: the same <code>name</code> + <code>description</code> + <code>input_schema</code> you wrote, but provider- and host-agnostic.</li>
+          <li><code>sources/official-docs/mcp-security-best-practices.md</code> <em>(optional — depth)</em> — trust boundaries, least privilege, local-server risk: your <code>safe_resolve</code> containment check, generalized into protocol-level guidance.</li>
+        </ul>
+      </div>
     </section>
 
   </main>

@@ -838,6 +838,17 @@ print(result.stop_reason)   # 'answered'  — the raise became an observation, t
           <li>None specific to this lesson — the ReAct paper and the Anthropic agent guidance are the primary teaching sources; Project 06 is the conceptual prerequisite for the loop itself.</li>
         </ul>
       </div>
+
+      <div class="source-tier">
+        <h4>Optional — Going Deeper</h4>
+        <p class="callout tip">Read these <em>after</em> the reliable loop works. Your agent runs a single linear ReAct trajectory and stops; these four are the principled versions of the extensions you reach for next — self-improvement and alternative control architectures. Treat them as <em>design options</em>, not requirements, and keep "use the simplest thing that works" as the default.</p>
+        <ul>
+          <li><code>sources/papers/reflexion.md</code> <em>(optional — depth)</em> — Shinn et al. 2023: verbal self-feedback stored across attempts — the agent writes a lesson from a failed run and conditions the next on it, no weight updates. The principled version of "retry, but smarter."</li>
+          <li><code>sources/papers/self-refine.md</code> <em>(optional — depth)</em> — Madaan et al. 2023: generate → self-critique → revise <em>within</em> a single run — the evaluator-optimizer pattern applied to one answer (bridge from Project 07's judge).</li>
+          <li><code>sources/papers/tree-of-thoughts.md</code> <em>(optional — depth)</em> — Yao et al. 2023: search and backtracking over multiple reasoning paths instead of one linear trajectory — what to reach for when a single ReAct chain gets stuck.</li>
+          <li><code>sources/papers/rewoo.md</code> <em>(optional — depth)</em> — Xu et al. 2023: plan-execute — plan all tool calls up front, then execute, decoupling reasoning from observation. The architectural contrast to ReAct's per-step interleaving: fewer model calls, different failure modes.</li>
+        </ul>
+      </div>
     </section>
 
   </main>

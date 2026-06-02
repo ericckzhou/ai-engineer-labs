@@ -818,6 +818,15 @@ print(round(report.baseline_mean, 2), round(report.candidate_mean, 2))  # 4.0 3.
           <li>None specific to this lesson — production eval platforms (Braintrust, LangSmith, OpenAI Evals) are the real-world instantiations worth browsing once the core is built.</li>
         </ul>
       </div>
+
+      <div class="source-tier">
+        <h4>Optional — Going Deeper</h4>
+        <p class="callout tip">Read these <em>after</em> the harness works. Two directions beyond a single judge score: make the eval <em>observable</em> (a regression becomes a traced event, not a print line), and make the <em>generator</em> self-correct using the same critique discipline. Neither is required to finish the project.</p>
+        <ul>
+          <li><code>sources/official-docs/opentelemetry-genai-semconv.md</code> <em>(optional — depth)</em> — a standard vocabulary (spans, attributes) for model calls: the production form of your eval traces. Turns ad-hoc judge logs into structured, queryable telemetry you can alert and regress on.</li>
+          <li><code>sources/papers/self-refine.md</code> <em>(optional — depth)</em> — Madaan et al. 2023: iterative generate → self-feedback → revise. Your judge <em>scores</em>; Self-Refine feeds the critique back to improve the next draft — the evaluator-optimizer loop your judge could drive (carries into Project 08).</li>
+        </ul>
+      </div>
     </section>
 
   </main>

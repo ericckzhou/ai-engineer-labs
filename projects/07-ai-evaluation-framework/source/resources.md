@@ -58,6 +58,24 @@
 
 ---
 
+## Optional — Going Deeper
+
+> Read **after** the harness works. Two directions beyond a single judge score: make the eval
+> *observable* (a regression becomes a traced event, not a print line), and make the *generator*
+> self-correct using the same critique discipline. Neither is required to complete the project.
+
+- **OpenTelemetry — GenAI Semantic Conventions** — `sources/official-docs/opentelemetry-genai-semconv.md` *(optional — depth)*
+  - URL: https://opentelemetry.io/docs/specs/semconv/gen-ai/
+  - Why it matters: a standard vocabulary (spans, attributes) for model calls — the production form of your eval traces. Turns ad-hoc judge logs into structured, queryable telemetry you can alert and regress on.
+  - Where you'll see this: any eval platform or observability stack (Braintrust, LangSmith, Phoenix, OTel collectors) that records model calls as traces.
+
+- **Self-Refine** — `sources/papers/self-refine.md` *(optional — depth)*
+  - URL: https://arxiv.org/abs/2303.17651
+  - Why it matters: iterative generate → self-feedback → revise. Your judge *scores*; Self-Refine feeds the critique back to improve the next draft — the evaluator-optimizer loop your judge could drive (carries into Project 08).
+  - Where you'll see this: agent and content pipelines that loop "draft → critique → revise" before returning a final answer.
+
+---
+
 ## Recommended Reading Order
 
 For a learner new to this topic:

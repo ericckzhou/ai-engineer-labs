@@ -352,6 +352,12 @@ See source/resources.md for the full annotated source list.
 - `sources/papers/rag-paper.md` — retrieval for the context-injection half (carried from Project 04)
 - `sources/articles/chunking-strategies.md` — chunking source files for the embeddings index (carried from Project 03/04)
 
+**Optional — going deeper (after the lab works):**
+> You hand-wire one Python tool loop here. The Model Context Protocol (MCP) is what that loop becomes when many hosts must reuse the same tools over a wire protocol. Read these *after* you can explain your own loop — they reframe it, they don't replace it. (See also the **MCP Interface Layer** elective.)
+- `sources/official-docs/mcp-architecture.md` *(optional — depth)* — the client-host-server split: a host coordinates clients, each client talks to one focused server. Your monolithic loop, decomposed into a reusable protocol surface.
+- `sources/official-docs/mcp-tools.md` *(optional — depth)* — tool schema / `tool_result` as a standardized wire format. Mirror of your `name` + `description` + `input_schema`, but provider- and host-agnostic.
+- `sources/official-docs/mcp-security-best-practices.md` *(optional — depth)* — trust boundaries, least privilege, local-server risk. Your `safe_resolve` containment check, generalized into protocol-level guidance.
+
 ---
 
 ## Instructor Notes

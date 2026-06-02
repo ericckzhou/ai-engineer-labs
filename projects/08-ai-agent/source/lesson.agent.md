@@ -370,6 +370,13 @@ See source/resources.md for the full annotated source list.
 - `sources/official-docs/anthropic-pricing.md` — per-MTok pricing for a real cost budget (don't invent prices).
 - `sources/official-docs/litellm-completion.md` — the `tools` / `tool_calls` shape and `usage` for live token accounting (carried from P06).
 
+**Optional — going deeper (after the reliable loop works):**
+> Your agent runs a single linear ReAct trajectory and stops. These four papers are the principled versions of the extensions a learner reaches for next — self-improvement and alternative control architectures. Read them as *design options*, and keep "use the simplest thing that works" as the default.
+- `sources/papers/reflexion.md` *(optional — depth)* — verbal self-feedback stored across attempts: the agent writes a lesson from a failed run and conditions the next one on it. The principled version of "retry, but smarter."
+- `sources/papers/self-refine.md` *(optional — depth)* — generate → self-critique → revise *within* a run (no extra training). The evaluator-optimizer pattern applied to a single answer.
+- `sources/papers/tree-of-thoughts.md` *(optional — depth)* — search and backtracking over multiple reasoning paths instead of one linear trajectory. When a single ReAct chain gets stuck, ToT explores alternatives.
+- `sources/papers/rewoo.md` *(optional — depth)* — plan-execute: decouple reasoning from observation by planning all tool calls up front, then executing. The architectural contrast to ReAct's per-step interleaving — fewer model calls, different failure modes.
+
 ---
 
 ## Instructor Notes

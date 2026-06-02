@@ -60,6 +60,30 @@
 
 ---
 
+## Optional — Going Deeper (MCP)
+
+> Read **after** the lab works and you can explain your own tool loop. The Model Context Protocol is
+> what that hand-wired loop becomes when many hosts must reuse the same tools over a wire protocol.
+> These reframe the project; they are not required to complete it. The **MCP Interface Layer**
+> elective builds on them directly.
+
+- **MCP — Architecture** — `sources/official-docs/mcp-architecture.md` *(optional — depth)*
+  - URL: https://modelcontextprotocol.io/specification/2025-06-18/architecture
+  - Why it matters: the client-host-server split — a host coordinates clients, each client talks to one focused server. Your monolithic copilot loop, decomposed into a reusable protocol surface.
+  - Where you'll see this: any editor/IDE or chat host (Claude Desktop, Cursor) that loads tools from external servers instead of hard-coding them.
+
+- **MCP — Tools** — `sources/official-docs/mcp-tools.md` *(optional — depth)*
+  - URL: https://modelcontextprotocol.io/specification/2025-06-18/server/tools
+  - Why it matters: tool schema and `tool_result` as a standardized wire format — the same `name` + `description` + `input_schema` you wrote, but provider- and host-agnostic.
+  - Where you'll see this: every MCP server that exposes a tool catalog a host can discover and call without bespoke glue code.
+
+- **MCP — Security Best Practices** — `sources/official-docs/mcp-security-best-practices.md` *(optional — depth)*
+  - URL: https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices
+  - Why it matters: trust boundaries, least privilege, and local-server risk — your `safe_resolve` containment check generalized into protocol-level guidance.
+  - Where you'll see this: hardening any tool server that touches the filesystem, shell, or network on a user's machine.
+
+---
+
 ## Recommended Reading Order
 
 For a learner new to this topic:
