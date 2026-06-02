@@ -25,7 +25,7 @@ def to_similarity(distance: float) -> float:
         to_similarity(0.3)  -> 0.7
         to_similarity(1.0)  -> 0.0     # orthogonal
     """
-    raise NotImplementedError("M3: implement to_similarity() - 1 - distance")
+    return 1.0 - distance
 
 
 def search(collection, query: str, k: int = 5) -> list[tuple[str, float, dict]]:
@@ -47,7 +47,19 @@ def search(collection, query: str, k: int = 5) -> list[tuple[str, float, dict]]:
             ("Inflation eroded the purchasing power of household savings.", 0.61, {"topic": "finance"})]
         # finance doc first; similarities DESCENDING; values are 1 - distance (NOT raw distances)
     """
-    raise NotImplementedError("M2: implement search() - query, convert distance->similarity, rank desc")
+    qv = embed_one(query)
+    res = collection.query(query_embeddings=[qv], n_results=k)
+    docs = res["documents"][0]
+    distances = res["distances"][0]
+    metadatas = res["metadatas"][0]
+    if not docs:
+        return []
+    results = [
+        (doc, to_similarity(dist), meta)
+        for doc, dist, meta in zip(docs, distances, metadatas)
+    ]
+    results.sort(key=lambda triple: triple[1], reverse=True)
+    return results
 
 
 def main() -> None:

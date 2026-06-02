@@ -25,7 +25,9 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
         cosine_similarity(v, v)   -> 1.0
         cosine_similarity(v, -v)  -> -1.0
     """
-    raise NotImplementedError("M4: implement cosine_similarity() from scratch")
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 
 
 def exact_rank(query_vec: np.ndarray, doc_vecs: list[np.ndarray], k: int) -> list[int]:
@@ -35,7 +37,9 @@ def exact_rank(query_vec: np.ndarray, doc_vecs: list[np.ndarray], k: int) -> lis
         docs = [np.array([1,0]), np.array([0,1]), np.array([0.9,0.1])]
         exact_rank(np.array([1,0]), docs, k=2)  -> [0, 2]   # doc0 then doc2; doc1 (orthogonal) excluded
     """
-    raise NotImplementedError("M4: implement exact_rank() - top-k indices by cosine, desc")
+    scored = [(i, cosine_similarity(query_vec, dv)) for i, dv in enumerate(doc_vecs)]
+    scored.sort(key=lambda pair: pair[1], reverse=True)
+    return [i for i, _ in scored[:k]]
 
 
 def recall_at_k(approx_ids: list[int], exact_ids: list[int], k: int) -> float:
@@ -47,7 +51,9 @@ def recall_at_k(approx_ids: list[int], exact_ids: list[int], k: int) -> float:
         recall_at_k([0, 2, 5], [0, 2, 9], k=3)  -> 0.6667   # two of three overlap
         recall_at_k([0, 1, 2], [0, 1, 2], k=3)  -> 1.0
     """
-    raise NotImplementedError("M5: implement recall_at_k() - overlap of approx vs exact top-k")
+    approx_set = set(approx_ids[:k])
+    exact_set = set(exact_ids[:k])
+    return len(approx_set & exact_set) / k
 
 
 def main() -> None:

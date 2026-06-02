@@ -60,7 +60,15 @@ def build_index(
         col = build_index(["a", "b"], ["d0", "d1"])
         col.count()                      # -> 2  (still 2; no duplicates)
     """
-    raise NotImplementedError("M1: implement build_index() - persistent cosine collection, idempotent")
+    client = get_client()
+    collection = client.get_or_create_collection(
+        name=collection_name, metadata={"hnsw:space": "cosine"}
+    )
+    embeddings = embed_many(docs)
+    collection.upsert(
+        ids=ids, embeddings=embeddings, documents=docs, metadatas=metadatas
+    )
+    return collection
 
 
 def main() -> None:

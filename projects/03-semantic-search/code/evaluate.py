@@ -36,7 +36,17 @@ def evaluate(collection, docs: list[str], ids: list[str], queries: list[str], k:
         evaluate(col, docs, ids, ["interest rates", "magic school"], k=1)
         -> {"per_query": {"interest rates": 1.0, "magic school": 1.0}, "mean_recall": 1.0}
     """
-    raise NotImplementedError("M5: implement evaluate() - recall@k of ANN vs exact baseline per query")
+    doc_vecs = [np.asarray(v, dtype=float) for v in embed_many(docs)]
+    per_query: dict[str, float] = {}
+    for query in queries:
+        qv = embed_one(query)
+        ann = collection.query(query_embeddings=[qv], n_results=k)
+        ann_ids = ann["ids"][0]
+        ann_idx = [ids.index(i) for i in ann_ids]
+        exact_idx = exact_rank(np.asarray(qv, dtype=float), doc_vecs, k)
+        per_query[query] = recall_at_k(ann_idx, exact_idx, k)
+    mean_recall = sum(per_query.values()) / len(per_query) if per_query else 0.0
+    return {"per_query": per_query, "mean_recall": mean_recall}
 
 
 def main() -> None:

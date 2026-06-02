@@ -40,7 +40,11 @@ def rerank(query: str, candidates: list[str]) -> list[tuple[str, float]]:
         -> [("The central bank raised rates.", 8.2), ("A wizard cast a spell.", -6.1)]
         # the on-topic candidate is re-ranked first
     """
-    raise NotImplementedError("M6 (extended): implement rerank() - cross-encoder re-score top-k")
+    model = get_cross_encoder()
+    scores = model.predict([(query, c) for c in candidates])
+    scored = [(c, float(s)) for c, s in zip(candidates, scores)]
+    scored.sort(key=lambda pair: pair[1], reverse=True)
+    return scored
 
 
 def main() -> None:
