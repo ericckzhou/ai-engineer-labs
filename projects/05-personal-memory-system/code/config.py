@@ -73,10 +73,22 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT: the memory system's retrieval knobs.
     model: str = field(default_factory=default_model)
     temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
+
+    # Retrieval scoring (Generative Agents): score = w_rel*rel + w_rec*rec + w_imp*imp
+    decay_rate: float = field(default_factory=lambda: float(os.getenv("MEMORY_DECAY_RATE", "0.995")))
+    top_k: int = field(default_factory=lambda: int(os.getenv("MEMORY_TOP_K", "5")))
+    w_relevance: float = field(default_factory=lambda: float(os.getenv("MEMORY_W_RELEVANCE", "1.0")))
+    w_recency: float = field(default_factory=lambda: float(os.getenv("MEMORY_W_RECENCY", "1.0")))
+    w_importance: float = field(default_factory=lambda: float(os.getenv("MEMORY_W_IMPORTANCE", "1.0")))
+
+    @property
+    def weights(self) -> tuple[float, float, float]:
+        """(w_relevance, w_recency, w_importance) — the order retrieval_score expects."""
+        return (self.w_relevance, self.w_recency, self.w_importance)
 
 
 def load_config() -> Config:

@@ -60,7 +60,9 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## Memory Systems
 
-- Tier 2: `sources/papers/` — Memory architecture papers (to be added)
+- Tier 2: `sources/papers/generative-agents.md` — Park et al. 2023: memory stream; retrieval score = relevance (cosine) + recency (exponential decay `0.995^hours` from last access) + importance (LLM-rated 1–10); reflection
+- Tier 2: `sources/papers/memgpt.md` — Packer et al. 2023: LLMs as operating systems; memory hierarchy (main vs external context), virtual context management, paging, self-editing memory via tools
+- Tier 2: `sources/papers/memory-systems-taxonomy.md` — Tulving 1972/1985, Squire: episodic (events, dated) vs semantic (durable facts) vs procedural (skills); declarative vs non-declarative; kind-aware decay
 
 ## Tool Use / Agents
 

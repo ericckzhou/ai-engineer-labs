@@ -142,23 +142,28 @@ When reasoning about a concept:
 
 ### Memory
 
-**Episodic Memory**
-- Source: `sources/papers/`
+**Memory Stream**
+- Source: `sources/papers/generative-agents.md` (Park et al. 2023: append-only list of memory objects with text, creation/last-accessed times, importance)
 - Lesson: `projects/05-personal-memory-system/source/lesson.agent.md`
 - Known issues: —
 
-**Semantic Memory**
-- Source: `sources/papers/`
+**Retrieval Scoring (relevance + recency + importance)**
+- Source: `sources/papers/generative-agents.md` (`score = w_rel·rel + w_rec·rec + w_imp·imp`; min-max normalized, equal weights)
 - Lesson: `projects/05-personal-memory-system/source/lesson.agent.md`
-- Known issues: —
+- Known issues: relevance-only retrieval is the silent failure — it's RAG over a chat log, not a memory system
 
-**Procedural Memory**
-- Source: `sources/papers/`
+**Memory Decay (exponential recency)**
+- Source: `sources/papers/generative-agents.md` (`recency = decay_rate^hours`, decay_rate 0.995, measured from last access)
 - Lesson: `projects/05-personal-memory-system/source/lesson.agent.md`
-- Known issues: —
+- Known issues: must touch `last_accessed` on retrieval, or recency degenerates to age-since-creation
 
-**Memory Decay**
-- Source: `sources/papers/`
+**Episodic / Semantic / Procedural Memory**
+- Source: `sources/papers/memory-systems-taxonomy.md` (Tulving 1972/1985; Squire — events vs facts vs skills; declarative vs non-declarative)
+- Lesson: `projects/05-personal-memory-system/source/lesson.agent.md`
+- Known issues: one flat decay policy wrongly erases durable semantic/procedural memories
+
+**Memory Hierarchy (main vs external context)**
+- Source: `sources/papers/memgpt.md` (Packer et al. 2023: OS-style paging; main context = prompt, external context = store; retrieval under a budget)
 - Lesson: `projects/05-personal-memory-system/source/lesson.agent.md`
 - Known issues: —
 

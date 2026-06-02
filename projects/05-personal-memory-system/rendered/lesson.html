@@ -421,7 +421,7 @@
     <header class="lesson-header">
       <div class="lesson-badge">Project 05 of 9</div>
       <h1>Personal Memory System</h1>
-      <p class="lesson-tagline">Give your AI a brain that remembers</p>
+      <p class="lesson-tagline">Make a stateless LLM remember — by scoring memories on relevance, recency, and importance</p>
       <div class="lesson-meta">
         <span class="meta-chip">&#128214; Read the lesson</span>
         <span class="meta-chip">&#9997; Fill in understanding</span>
@@ -436,12 +436,13 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>Explain why an LLM is <strong>stateless</strong> and why a memory system is the layer that makes an assistant remember across turns and sessions.</span></li>
+        <li><div class="obj-check"></div><span>Describe the <strong>memory stream</strong>: a growing store of memory objects, each with a creation time, a last-accessed time, and an importance score.</span></li>
+        <li><div class="obj-check"></div><span>Implement the <strong>retrieval score</strong> that combines <strong>relevance</strong> (semantic similarity), <strong>recency</strong> (exponential time decay), and <strong>importance</strong> (salience) into one number.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>exponential recency decay</strong>, <code>recency = decay_rate ^ (hours since last access)</code>, and explain why retrieval refreshes a memory's recency.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish <strong>episodic</strong> (events, dated), <strong>semantic</strong> (durable facts), and <strong>procedural</strong> (skills) memory, and why tagging by <em>kind</em> beats one flat store.</span></li>
+        <li><div class="obj-check"></div><span>Explain the <strong>memory hierarchy</strong> — small in-prompt <em>main context</em> vs large out-of-prompt <em>external context</em> — and frame retrieval as <strong>paging</strong> into a limited budget.</span></li>
+        <li><div class="obj-check"></div><span>Name and reproduce the major <strong>failure modes</strong> of a memory system and say <em>which signal</em> caused each.</span></li>
       </ul>
     </section>
 
@@ -450,22 +451,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>An LLM is <strong>stateless</strong>: each call starts cold, and the context window is finite. Project 01's chatbot only "remembered" because you replayed the entire history into every prompt — that works for one short conversation and then collapses: histories outgrow the context window, every replayed token costs money, and <em>nothing</em> survives across sessions. Close the app and the assistant forgets you. A memory system is the layer that fixes this: store experiences durably <em>outside</em> the prompt, and retrieve only the relevant few back in when they matter.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>You want an assistant that remembers — your preferences, past decisions, what you told it last week — without stuffing your entire history into every prompt. Replay-everything blows the window and the bill. Retrieve-by-similarity-only (plain RAG over your chat log) surfaces the <em>semantically</em> closest memory even if it's ancient and trivial. The memory-system answer: keep a <strong>memory stream</strong>, and <strong>rank</strong> memories by relevance <em>and</em> recency <em>and</em> importance, retrieving the top few into the prompt.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>The failure is quiet and corrosive: an assistant that forgets a standing instruction you gave it (no write-back), or fixates on an old irrelevant detail because it scored relevance only (no recency/importance), or contradicts a decision you made yesterday (never retrieved it). Users don't file a bug — they just stop trusting it.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>Every assistant that "remembers you" — ChatGPT's memory, coding copilots that recall your conventions, support bots that know your history — is some version of this. The judgment that separates a toy from a product: did the right memory get retrieved, did stale memory decay, and did the new turn get written back?</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>Memory is the difference between a stateless tool and an assistant that compounds in value the more you use it. Users pay for an assistant that <em>knows them</em> — and that is precisely a well-scored, well-maintained memory stream.</p>
       </div>
     </section>
 
@@ -474,25 +475,38 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine a friend with a giant box of index cards. Every time something happens, they jot it on a card and toss it in the box: <em>"Eric likes dark mode" (Tuesday), "we decided to use Groq" (last week), "brushed teeth" (this morning).</em> The box is huge — they can't reread every card before answering you. So when you ask something, they grab the handful of cards that are <strong>(1)</strong> actually about your question, <strong>(2)</strong> recent or recently-used, and <strong>(3)</strong> a big deal — and ignore the rest. A card you keep pulling out stays near the top; a trivial old card sinks and fades. That three-part "which cards do I grab?" rule is the whole project.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li>A <strong>memory stream</strong> is an append-only list of memory objects: <code>{text, kind, created_at, last_accessed, importance, embedding}</code>.</li>
+        <li>The store lives in <strong>external context</strong> (out of the prompt — your "disk"); the prompt is <strong>main context</strong> ("RAM"), small and fixed. Retrieval is <strong>paging</strong>: select the top-k memories to load into the prompt for this turn.</li>
+        <li>The ranking is a weighted sum of three signals: <strong>relevance</strong> = <code>cosine(query, memory)</code>; <strong>recency</strong> = <code>decay_rate ^ hours_since(last_accessed)</code>; <strong>importance</strong> = <code>memory.importance / 10</code>. Then <code>score = w_rel·rel + w_rec·rec + w_imp·imp</code>; sort descending, take <code>k</code>.</li>
+        <li>Retrieving a memory <strong>refreshes</strong> its <code>last_accessed</code>, so used memories stay warm and unused ones decay. After the model answers, <strong>write the new turn back</strong> so the system grows.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>A memory system is a <strong>good executive assistant</strong>, not a search engine. Ask "what's the plan for the Berlin trip?" and a great assistant doesn't dump every email containing "Berlin" (that's relevance-only). They surface the <strong>relevant</strong> threads, weighted toward the <strong>recent</strong> ones, and they know which were a <strong>big deal</strong> (the signed contract) versus noise (a lunch reservation). And every time they pull a file to help you, it stays on top of the pile for a while.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre> WRITE (every turn / observation):
+   "Eric prefers Groq for the default API"  ──embed──► vector
+                                              + created_at=now, last_accessed=now, importance=7, kind=semantic
+                                              └─► append to memory stream (external context)
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+ RETRIEVE (per query, e.g. "which API should I default to?"):
+   query ──embed──► q
+        for each memory m in the stream:
+            rel = cosine(q, m.embedding)                     # is it about this?   [0..1]
+            rec = decay_rate ** hours_since(m.last_accessed) # is it fresh?        (0..1]
+            imp = m.importance / 10                          # does it matter?     [0..1]
+            score(m) = w_rel*rel + w_rec*rec + w_imp*imp
+        top_k = sort(memories by score, desc)[:k]
+        touch(top_k): last_accessed = now                    # retrieval refreshes recency
+        inject top_k into the prompt ──► LLM answers grounded in memory</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,14 +514,22 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p>A <strong>memory</strong> is an object <code>m = (text, kind, created_at, last_accessed, importance, embedding)</code>; the <strong>memory stream</strong> is the list of all such objects. <strong>Retrieval</strong> scores every memory against a query <code>q</code> on three components and returns the top-k:</p>
+      <ul>
+        <li><strong>relevance</strong> <code>rel(q, m) = cos(e_q, e_m)</code> — cosine similarity of the embeddings (Project 02).</li>
+        <li><strong>recency</strong> <code>rec(m) = d^h</code>, where <code>d</code> is the decay rate (the paper uses <code>0.995</code>) and <code>h</code> = hours since <code>m.last_accessed</code>.</li>
+        <li><strong>importance</strong> <code>imp(m) = importance / 10</code>, a salience score rated 1–10 at creation.</li>
+      </ul>
+      <p><strong>Score:</strong> <code>score(q, m) = w_rel·rel + w_rec·rec + w_imp·imp</code>. The paper min-max normalizes each component to <code>[0,1]</code> and sets all weights to 1.</p>
 
       <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li><strong>Write.</strong> When something happens, create a memory: embed its text once, stamp <code>created_at = last_accessed = now</code>, assign an <code>importance</code> (fixed default, or an LLM 1–10 rating), tag a <code>kind</code>, and append to the stream.</li>
+        <li><strong>Score (relevance).</strong> Embed the query with the <strong>same</strong> model used for memories; relevance is the cosine similarity. Mixing models makes it meaningless — a silent bug.</li>
+        <li><strong>Score (recency).</strong> <code>rec = decay_rate ^ hours_since(last_accessed)</code>. At 0 hours this is <code>1.0</code>. Recency is from <strong>last access</strong>, not creation — so retrieving and <strong>touching</strong> <code>last_accessed</code> keeps used memories warm.</li>
+        <li><strong>Score (importance).</strong> <code>imp = importance / 10</code>. Set <strong>once at write time</strong> — "distinguishes mundane from core memories." It's why "we signed the contract" (10) outranks "brushed teeth" (1) at equal recency.</li>
+        <li><strong>Combine &amp; retrieve.</strong> <code>score = w_rel·rel + w_rec·rec + w_imp·imp</code>; sort descending; take the top-k that fit the budget. Touch the returned memories' <code>last_accessed = now</code>.</li>
+        <li><strong>Inject &amp; answer, then write back.</strong> Put the retrieved memories into the prompt (main context), call the LLM, then store the new turn as a memory so the system grows.</li>
       </ol>
 
       <h3>Key Concepts</h3>
@@ -516,14 +538,20 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Statelessness</td><td>An LLM call has no memory of prior calls; each request is independent</td><td>The reason a memory layer must exist — the model won't remember unless you make it</td></tr>
+          <tr><td>Memory stream</td><td>A growing list of memory objects (text, times, importance, embedding)</td><td>The store you retrieve from; the central data structure</td></tr>
+          <tr><td>Relevance</td><td>Cosine similarity between the query embedding and a memory's embedding</td><td>Surfaces memories that are <em>about</em> the current situation</td></tr>
+          <tr><td>Recency</td><td><code>decay_rate ^ (hours since last access)</code> — exponential decay toward 0</td><td>Recent/recently-used memories matter more; models forgetting</td></tr>
+          <tr><td>Importance</td><td>A salience score (1–10) assigned at write time — mundane vs core</td><td>Keeps a trivial-but-recent memory from outranking a pivotal one</td></tr>
+          <tr><td>Retrieval score</td><td><code>w_rel·rel + w_rec·rec + w_imp·imp</code></td><td>The single number that ranks memories; the lesson's learning target</td></tr>
+          <tr><td>Episodic / semantic / procedural</td><td>Memory of events (dated) / facts (durable) / skills (applied)</td><td>Different kinds want different decay &amp; retrieval; one flat store is worse</td></tr>
+          <tr><td>Memory hierarchy</td><td>Small in-prompt <em>main context</em> vs large out-of-prompt <em>external context</em></td><td>Retrieval = paging the right memories into a limited budget</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>A memory system is <strong>not</strong> just RAG over your chat log. RAG ranks by relevance alone; a memory system adds recency and importance. The hardest-to-spot bug is forgetting to <strong>touch</strong> <code>last_accessed</code> on retrieval — recency then silently degenerates into "age since creation," and memories you use constantly decay anyway.</p>
       </div>
     </section>
 
@@ -531,30 +559,57 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: <code>litellm</code> (embeddings + chat via <code>config.py</code>), an in-memory <code>MemoryStore</code>, and pure-Python scoring (cosine, decay). Examples mirror the guiding tests.</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — exponential recency decay</h3>
+      <pre><code class="language-python">from scoring import recency_score
 
-# Example code here
+now = 1_000_000.0           # epoch seconds (any fixed "now")
+hour = 3600.0
+# A memory accessed right now vs 1 hour ago vs 2 hours ago, decay_rate = 0.995:
+print(recency_score(now, now,          decay_rate=0.995))   # 1.0      (0 hours)
+print(recency_score(now, now - hour,   decay_rate=0.995))   # 0.995    (1 hour)
+print(recency_score(now, now - 2*hour, decay_rate=0.995))   # 0.990025 (2 hours)
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>Recency is <code>decay_rate ^ hours</code>, so a just-touched memory scores <code>1.0</code> and decays smoothly as it ages. This is why <strong>touching <code>last_accessed</code> on retrieval</strong> matters — it resets the clock and keeps used memories near the top.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — the three-signal score ranks memories</h3>
+      <pre><code class="language-python">from scoring import retrieval_score
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+# Three already-computed (relevance, recency, importance) triples, equal weights:
+w = (1.0, 1.0, 1.0)
+relevant_but_old    = retrieval_score(rel=0.9, rec=0.10, imp=0.3, weights=w)  # 1.30
+fresh_but_off_topic = retrieval_score(rel=0.1, rec=1.00, imp=0.2, weights=w)  # 1.30
+relevant_and_fresh  = retrieval_score(rel=0.8, rec=0.90, imp=0.7, weights=w)  # 2.40  ← wins
+print(relevant_and_fresh > relevant_but_old, relevant_and_fresh > fresh_but_off_topic)  # True True
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>No single signal wins alone. The memory that is <em>about the question</em> <strong>and</strong> <em>fresh</em> <strong>and</strong> <em>matters</em> outranks the one that is merely very relevant but ancient, or merely fresh but off-topic. The weights <code>w</code> are the knob that tunes this.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — relevance-only retrieval grabs the wrong memory</h3>
+      <pre><code class="language-python">from memory_store import Memory, MemoryStore
+from retriever import retrieve
+
+now = 1_000_000.0
+store = MemoryStore()
+# Same topic embedding [1,0,0]; one is trivial+old, one is important+fresh:
+store.add(Memory("m0", "brushed teeth", kind="episodic", created_at=now-1e6,
+                 last_accessed=now-1e6, importance=1, embedding=[1.0, 0.0, 0.0]))
+store.add(Memory("m1", "decided to default to Groq", kind="semantic", created_at=now-10,
+                 last_accessed=now-10,  importance=8, embedding=[1.0, 0.0, 0.0]))
+
+q = [1.0, 0.0, 0.0]   # query embedding — equally relevant to BOTH memories
+top = retrieve(store, q, now=now, k=1, weights=(1.0, 1.0, 1.0), decay_rate=0.995)
+print(top[0].id)      # 'm1'  — recency + importance break the relevance tie correctly
+</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">Why This "Fails"</div>
+        <p>Relevance alone can't tell these apart (identical embeddings). Recency and importance break the tie toward the memory actually worth surfacing. A plain RAG-over-chat-log (relevance only) could just as easily return <code>m0</code>. This is <em>the</em> reason a memory system is more than Project 04 over your history.</p>
       </div>
     </section>
 
@@ -570,13 +625,13 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>In your own words, why is a memory system more than "Project 04 RAG over my chat history"? Use the words relevance, recency, and importance.</li>
+          <li>Why is an LLM stateless, and what exactly did Project 01's chatbot do to fake memory? Why does that approach break down?</li>
+          <li>Recency is measured from <strong>last access</strong>, not creation, and retrieval <strong>touches</strong> <code>last_accessed</code>. Predict what goes wrong if you forget to touch on retrieval.</li>
+          <li>Predict what each signal does <em>alone</em>: relevance-only, recency-only, importance-only. For each, give a query where it returns the wrong memory.</li>
+          <li>Episodic vs semantic vs procedural: give one example of each from your own use of an assistant, and say which should decay and which should not.</li>
+          <li>Memory hierarchy: what is "main context" vs "external context," and why is retrieval a <em>budget</em> (top-k) decision rather than "inject everything"?</li>
+          <li>The one thing you still don't fully understand about memory systems.</li>
         </ol>
       </div>
 
@@ -586,14 +641,22 @@ import litellm
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build a personal memory system in <code>code/</code> that stores experiences and retrieves the most worth-remembering ones for a query, then a chat assistant that uses it:</p>
+      <ul>
+        <li><code>scoring.py</code> — the three scoring signals and their combination: <code>recency_score</code> (exponential decay), <code>importance_score</code> (normalize 1–10), <code>relevance_score</code> (cosine), <code>retrieval_score</code> (weighted sum). <em>Learner core — the learning target.</em></li>
+        <li><code>retriever.py</code> — score every memory in the store, sort, return the top-k, and <strong>touch</strong> their <code>last_accessed</code>. <em>Learner core.</em></li>
+        <li><code>memory_store.py</code> — the <code>Memory</code> dataclass and an in-memory <code>MemoryStore</code>. <em>(Provided — the data structure.)</em></li>
+        <li><code>embedding_helpers.py</code> — embeddings glue, same model both sides. <em>(Provided — Project 02–04 reuse.)</em></li>
+        <li><code>chat_with_memory.py</code> — embed query → retrieve → inject memories → answer → write back. <em>(Provided orchestrator.)</em></li>
+      </ul>
+      <p><strong>Extended:</strong> LLM-rated importance (poignancy 1–10); kind-aware decay (semantic/procedural resist decay); reflection (promote repeated episodic memories into durable facts); persistence across sessions.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p>Retrieval ranks on <strong>relevance + recency + importance</strong> (not similarity alone); recency is <strong>exponential decay</strong> and <code>retrieve()</code> <strong>touches</strong> <code>last_accessed</code>; retrieval returns a bounded <strong>top-k</strong>; the chat loop <strong>writes each turn back</strong>; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments; <code>EVALUATION.md</code> is quantitative; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +669,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Recency decay</h4>
+            <p><code>scoring.recency_score</code> — <code>decay_rate ^ hours_since(last_accessed)</code>. <strong>Validation:</strong> 0h → 1.0; 1h → 0.995; older → smaller (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — Importance &amp; relevance</h4>
+            <p><code>scoring.importance_score</code> (1–10 → [0,1]) and <code>scoring.relevance_score</code> (cosine). <strong>Validation:</strong> identical vectors → 1.0; orthogonal → 0.0; <code>imp(10)=1.0</code> (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Combined score</h4>
+            <p><code>scoring.retrieval_score</code> — weighted sum of the three signals. <strong>Validation:</strong> relevant+fresh+important outranks relevant-but-old and fresh-but-off-topic (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — Retrieve top-k</h4>
+            <p><code>retriever.retrieve</code> — score all, sort desc, return top-k, <strong>touch</strong> <code>last_accessed</code>. <strong>Validation:</strong> the important+fresh memory beats the trivial+old one on identical embeddings; returned memories' <code>last_accessed == now</code>.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — Chat with memory</h4>
+            <p><code>chat_with_memory</code> wires embed → retrieve → inject → answer → write back. <strong>Validation:</strong> the assistant answers using a fact you told it earlier in the session.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break / Evaluate</h4>
+            <p>Drop a signal (relevance-only, no decay, no write-back) and watch recall degrade. <strong>Validation:</strong> each ablation surfaces the wrong memory or forgets; recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +721,13 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Three signals</td><td>score memories on relevance <strong>and</strong> recency <strong>and</strong> importance, not just similarity?</td><td>☐</td></tr>
+          <tr><td>Exponential decay</td><td>compute recency as <code>decay_rate ^ hours_since(last_accessed)</code>?</td><td>☐</td></tr>
+          <tr><td>Touch on retrieve</td><td>update <code>last_accessed = now</code> for the memories it returns?</td><td>☐</td></tr>
+          <tr><td>Top-k budget</td><td>retrieve a bounded <code>top_k</code> into the prompt, not the whole stream?</td><td>☐</td></tr>
+          <tr><td>Same embedding model</td><td>embed memories and queries with the one model from <code>config.py</code>?</td><td>☐</td></tr>
+          <tr><td>Write-back loop</td><td>store each new turn so the memory actually grows?</td><td>☐</td></tr>
+          <tr><td>Kinds</td><td>tag memories episodic/semantic/procedural (and ideally decay them differently)?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +735,12 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>Retrieval is cosine similarity only — you've rebuilt Project 04, not a memory system.</li>
+          <li>Recency never changes because you never touch <code>last_accessed</code> on retrieval.</li>
+          <li>Importance is recomputed at query time instead of stored at write time.</li>
+          <li>You inject the entire memory stream into the prompt (no budget).</li>
+          <li>The assistant never remembers anything new because there's no write-back.</li>
+          <li>You report "it remembers" with no ablation showing a dropped signal breaking recall.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +754,13 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Relevance-only retrieval</td><td>"It's just RAG over my history"</td><td>Surfaces the semantically-closest memory even if ancient/trivial; misses what just mattered</td><td>Add recency + importance to the score</td></tr>
+          <tr><td>Never touching <code>last_accessed</code></td><td>Forgetting recency is measured from <em>access</em>, not creation</td><td>Frequently-used memories decay anyway; recency becomes "age"</td><td>Set <code>last_accessed = now</code> for every retrieved memory</td></tr>
+          <tr><td>One flat decay for everything</td><td>Treating a preference like a one-off event</td><td>Durable facts (dark mode, default API) decay and get forgotten</td><td>Make semantic/procedural memories resist decay by <code>kind</code></td></tr>
+          <tr><td>Importance computed per query</td><td>Confusing salience with relevance</td><td>Wasted LLM calls; importance stops meaning "how big a deal was this"</td><td>Assign importance once, at write time; store it</td></tr>
+          <tr><td>Injecting the whole stream</td><td>"More context is better"</td><td>Blows the context window and the bill; buries the answer</td><td>Retrieve a bounded top-k — paging, not dumping</td></tr>
+          <tr><td>No write-back</td><td>Treating retrieval as the whole system</td><td>The assistant never learns; same questions every session</td><td>Store the new turn (and its importance) back into the stream</td></tr>
+          <tr><td>Mixing embedding models</td><td>Memories and query embedded differently</td><td>Relevance is garbage; whole ranking fails silently</td><td>Pin one embedding model both sides (carries from Project 02)</td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +770,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>Relevance scoring <strong>is</strong> Project 02's cosine similarity over embeddings, and retrieving top-k from a store <strong>is</strong> Project 03/04's retrieval — a memory system is that retrieval with two extra signals (recency, importance) stacked on top, ranking your <em>own past</em> instead of a PDF. The prompt that consumes the retrieved memories is Project 01's system+user message construction; the "same embedding model both sides" rule is inherited wholesale.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p><strong>Project 08 (agent)</strong> turns write-back into a tool the model calls — MemGPT's self-editing memory. <strong>Project 09 (personal learning OS)</strong> builds on <em>reflection</em>: synthesizing durable semantic knowledge from accumulated episodic memories. <strong>Project 07 (evaluation)</strong> generalizes the LLM-rated importance into a full LLM-as-judge scorer.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real assistant-memory systems are this hierarchy plus engineering: a small in-prompt working memory and a large vector-backed store (MemGPT's main vs external context); retrieval scored on relevance + recency + importance (Generative Agents); episodic observations promoted to durable semantic facts via reflection; summarization on eviction when retrieval overflows; and the model itself deciding what to write via tools. Persistence (a real vector DB) and per-user isolation are the production add-ons.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>Any StarcallOS feature that "knows you" — remembers your preferences, recalls past decisions, carries context across sessions — is this memory system. The disciplines here decide whether StarcallOS feels like an assistant that <strong>compounds</strong> (right memory retrieved, stale memory decayed, new facts written back and promoted to durable knowledge) or a goldfish that forgets every session.</p>
       </div>
     </section>
 
@@ -708,29 +793,32 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/official-docs/scikit-learn-cosine-similarity.md</code> — <code>x·y / (‖x‖‖y‖)</code>; the relevance signal (carried from Project 02)</li>
+          <li><code>sources/official-docs/chromadb.md</code> — a real vector store for persisting the memory stream (carried from Project 03)</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li><code>sources/papers/generative-agents.md</code> — Park et al. 2023: the memory stream and the retrieval score (relevance + recency + importance), exponential decay, reflection</li>
+          <li><code>sources/papers/memgpt.md</code> — Packer et al. 2023: the memory hierarchy (main vs external context), retrieval as paging under a context budget</li>
+          <li><code>sources/papers/memory-systems-taxonomy.md</code> — Tulving/Squire: episodic vs semantic vs procedural memory; why kind-aware storage/decay matters</li>
+          <li><code>sources/papers/sentence-bert.md</code> — bi-encoder embeddings behind the relevance signal (carried)</li>
         </ul>
       </div>
 
       <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
+        <h4>Tier 3 — Engineering Guides</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li>None specific to this lesson — the Generative Agents and MemGPT papers are themselves the engineering blueprints.</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li>None specific to this lesson — the Project 02–03 embedding/retrieval sources are the prerequisites.</li>
         </ul>
       </div>
     </section>
