@@ -33,7 +33,10 @@ def embed(text: str) -> np.ndarray:
         v.shape     # -> (768,)   for nomic-embed-text  (READ from the vector, never hardcode)
         embed("the cat sat on the mat")  # same text → same vector (deterministic)
     """
-    raise NotImplementedError("M3: implement embed() - text to numpy vector via litellm")
+    import litellm
+
+    resp = litellm.embedding(model=default_embedding_model(), input=[text])
+    return np.array(resp["data"][0]["embedding"])
 
 
 # ----------------------------------------------------------------------------------------------

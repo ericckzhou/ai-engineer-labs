@@ -37,7 +37,10 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
         cosine_similarity(v, -v)                                           -> -1.0   # opposite
         cosine_similarity(np.array([1., 1.]),     np.array([10., 10.]))    -> 1.0    # magnitude ignored
     """
-    raise NotImplementedError("M4: implement cosine_similarity() from scratch - no library shortcut")
+    dot = float(np.dot(a, b))
+    na = float(np.linalg.norm(a))
+    nb = float(np.linalg.norm(b))
+    return dot / (na * nb)
 
 
 # ----------------------------------------------------------------------------------------------

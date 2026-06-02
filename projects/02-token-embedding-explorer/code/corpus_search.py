@@ -42,7 +42,12 @@ def search(query: str, corpus: list[str], k: int = 3) -> list[tuple[str, float]]
         search("query", ["far", "near", "mid"], k=1)        -> [("near", 0.99)]   # respects k
         search("query", [], k=3)                            -> []                 # empty corpus
     """
-    raise NotImplementedError("M5: implement search() - embed corpus, rank by cosine, return top-k")
+    if not corpus:
+        return []
+    query_vec = embed(query)
+    scored = [(text, cosine_similarity(query_vec, embed(text))) for text in corpus]
+    scored.sort(key=lambda pair: pair[1], reverse=True)
+    return scored[:k]
 
 
 # ----------------------------------------------------------------------------------------------

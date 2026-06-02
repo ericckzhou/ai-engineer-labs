@@ -36,7 +36,7 @@ def encode(text: str) -> list[int]:
         isinstance(ids, list) and all(isinstance(i, int) for i in ids)   # -> True
         # e.g. ids might be [24912, 2375] for the o200k_base encoding
     """
-    raise NotImplementedError("M1: implement encode() - text to list[int] token IDs")
+    return get_encoder().encode(text)
 
 
 def decode(ids: list[int]) -> str:
@@ -51,7 +51,7 @@ def decode(ids: list[int]) -> str:
         decode(encode("emoji 🚀 and ünïcöde"))         -> "emoji 🚀 and ünïcöde"
         decode(encode(""))                             -> ""
     """
-    raise NotImplementedError("M1: implement decode() - list[int] back to str")
+    return get_encoder().decode(ids)
 
 
 def token_pieces(ids: list[int]) -> list[str]:
@@ -69,7 +69,8 @@ def token_pieces(ids: list[int]) -> list[str]:
         "".join(pieces) == "Tokenization is not magic."   # -> True (lossless concatenation)
         # e.g. pieces ≈ ['Token', 'ization', ' is', ' not', ' magic', '.']
     """
-    raise NotImplementedError("M1: implement token_pieces() - per-id decoded chunks")
+    enc = get_encoder()
+    return [enc.decode([i]) for i in ids]
 
 
 def count(text: str) -> int:
@@ -82,7 +83,7 @@ def count(text: str) -> int:
         count("Tokenization is not magic.") == len(encode("Tokenization is not magic."))  # -> True
         count("") == 0
     """
-    raise NotImplementedError("M1: implement count() - number of tokens in text")
+    return len(encode(text))
 
 
 # ----------------------------------------------------------------------------------------------
