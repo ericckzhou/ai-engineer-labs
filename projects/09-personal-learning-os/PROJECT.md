@@ -38,17 +38,14 @@ This project IS a startup idea. Personal AI OS is the product category that Appl
 
 ```
 code/
-  os_core.py            — Main orchestration layer
-  query_router.py       — Route tasks to right component
-  knowledge_graph.py    — Personal knowledge data model
-  component_registry.py — Register and manage components
-  integration/
-    memory_adapter.py   — Wraps Project 5 memory system
-    search_adapter.py   — Wraps Project 3 semantic search
-    agent_adapter.py    — Wraps Project 8 agent
-    eval_adapter.py     — Wraps Project 7 evaluation
-  cli.py                — User interface
-  evaluate_system.py    — Holistic system evaluation
+  os_app.py        — User-facing REPL and one-shot CLI
+  learning_os.py   — Main orchestration layer
+  router.py        — Route requests to SAVE, RECALL, TASK, or CHAT
+  knowledge.py     — Personal knowledge graph data model
+  subsystems.py    — Provided stand-ins for memory, retrieval, agent, and chat workers
+  evaluate_os.py   — Holistic router/system evaluation
+  config.py        — Provider and runtime configuration
+  tests/           — Offline guiding tests for each learner-owned milestone
   requirements.txt
   README.md
 ```
