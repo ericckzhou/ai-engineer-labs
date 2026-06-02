@@ -15,7 +15,8 @@ PRICES: dict[str, tuple[float, float]] = {
     # pricing page (https://groq.com/pricing) — do NOT guess. Looking it up from the source
     # IS the first step of the cost milestone. Until you add it, cost_of() correctly raises
     # KeyError for the default model rather than inventing a number.
-    # "groq/llama-3.3-70b-versatile": (<in>, <out>),  # TODO(learner): fill from source
+    # Source: https://groq.com/pricing — Llama 3.3 70B Versatile 128k (looked up 2026-06-02).
+    "groq/llama-3.3-70b-versatile": (0.59, 0.79),
     #
     # Anthropic figures (source: sources/official-docs/anthropic-pricing.md) — kept for the
     # lesson's worked cost example and for provider switching:
@@ -39,8 +40,8 @@ def cost_of(model: str, input_tokens: int, output_tokens: int) -> float:
         cost_of("claude-sonnet-4-6", 0, 1_000_000)  -> 15.0    # 1M output @ $15/MTok
         cost_of("no-such-model", 100, 100)          -> raises KeyError
     """
-    # TODO(learner): look up the price tuple in PRICES and apply the formula above.
-    raise NotImplementedError("Implement cost_of() — see source/lesson.agent.md §3 'The Math'")
+    in_price, out_price = PRICES[model]  # KeyError on unknown model is correct
+    return input_tokens / 1e6 * in_price + output_tokens / 1e6 * out_price
 
 
 class CostTracker:
@@ -68,8 +69,12 @@ class CostTracker:
             t.total    # -> 18.0   (running total)
             t.turns    # -> 2
         """
-        # TODO(learner): compute this turn's cost via cost_of(), update totals, return it.
-        raise NotImplementedError("Implement CostTracker.record()")
+        turn_cost = cost_of(model, input_tokens, output_tokens)
+        self.turns += 1
+        self.total += turn_cost
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+        return turn_cost
 
     def summary(self) -> str:
         return (

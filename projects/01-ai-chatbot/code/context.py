@@ -26,8 +26,8 @@ def estimate_tokens(messages: list[dict], system: str = "") -> int:
         estimate_tokens([{"role": "user", "content": "x" * 40}])                 -> 10   # 40 // 4
         estimate_tokens([{"role": "user", "content": "x" * 40}], system="y" * 8) -> 12   # (40+8)//4
     """
-    # TODO(learner): sum the character lengths of all content (+ system) and divide by ~4.
-    raise NotImplementedError("Implement estimate_tokens()")
+    total_chars = len(system) + sum(len(m["content"]) for m in messages)
+    return total_chars // 4
 
 
 def within_budget(messages: list[dict], budget: int, system: str = "") -> bool:
@@ -41,8 +41,7 @@ def within_budget(messages: list[dict], budget: int, system: str = "") -> bool:
         within_budget([{"role": "user", "content": "x" * 40}], 10)  -> True    # 10 <= 10
         within_budget([{"role": "user", "content": "x" * 40}], 9)   -> False   # 10 > 9
     """
-    # TODO(learner)
-    raise NotImplementedError("Implement within_budget()")
+    return estimate_tokens(messages, system) <= budget
 
 
 def trim_to_budget(messages: list[dict], budget: int, system: str = "") -> list[dict]:
@@ -63,5 +62,19 @@ def trim_to_budget(messages: list[dict], budget: int, system: str = "") -> list[
         u2 in result and a2 in result   # -> True (newest turns survive)
         # msgs itself is unchanged (len still 5) — you returned a NEW list.
     """
-    # TODO(learner): this is the core design decision of the context guard.
-    raise NotImplementedError("Implement trim_to_budget()")
+    # 1. Work on a copy — never mutate the caller's list.
+    trimmed = list(messages)
+    if within_budget(trimmed, budget, system):
+        return trimmed  # 4. already within budget → no-op
+
+    # 2. The system message (index 0 when present) is pinned; the conversation turns
+    #    that follow it are the droppable region.
+    has_system = bool(trimmed) and trimmed[0].get("role") == "system"
+    head = 1 if has_system else 0
+
+    # 3. Drop the OLDEST turn first, one at a time, until we fit. Dropping from the
+    #    front of an alternating [u, a, u, a, ...] sequence keeps roles alternating.
+    while not within_budget(trimmed, budget, system) and len(trimmed) > head:
+        del trimmed[head]
+
+    return trimmed

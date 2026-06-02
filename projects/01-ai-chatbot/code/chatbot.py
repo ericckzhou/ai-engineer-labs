@@ -15,7 +15,7 @@ from __future__ import annotations
 import litellm
 
 from config import Config, load_config
-from context import trim_to_budget
+from context import estimate_tokens, trim_to_budget
 from cost_tracker import CostTracker
 
 
@@ -39,7 +39,43 @@ def stream_completion(history: list[dict], cfg: Config) -> tuple[str, dict]:
         isinstance(text, str)                              # the full assembled reply
         usage["input_tokens"], usage["output_tokens"]      # ints → feed CostTracker.record()
     """
-    raise NotImplementedError("Implement stream_completion() — see lesson §4 Example 3")
+    stream = litellm.completion(
+        model=cfg.model,
+        messages=history,
+        stream=True,
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+        stream_options={"include_usage": True},  # ask the provider to send usage on the final chunk
+    )
+
+    parts: list[str] = []
+    usage_obj = None
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content if chunk.choices else None
+        if delta:
+            print(delta, end="", flush=True)
+            parts.append(delta)
+        # The final chunk (after content) carries usage when include_usage is honored.
+        if getattr(chunk, "usage", None):
+            usage_obj = chunk.usage
+    print()  # newline after the streamed reply
+
+    full_text = "".join(parts)
+
+    if usage_obj is not None:
+        usage = {
+            "input_tokens": usage_obj.prompt_tokens,
+            "output_tokens": usage_obj.completion_tokens,
+        }
+    else:
+        # Provider didn't return usage on the stream — fall back to a local estimate so the
+        # cost tracker still gets integers to work with.
+        usage = {
+            "input_tokens": estimate_tokens(history),
+            "output_tokens": estimate_tokens([{"role": "assistant", "content": full_text}]),
+        }
+
+    return full_text, usage
 
 
 def run_repl(cfg: Config) -> None:
@@ -80,7 +116,13 @@ def run_repl(cfg: Config) -> None:
         #      append is the #1 bug (the bot acts amnesiac). (lesson §9 Common Mistakes)
         #   5. cost = tracker.record(cfg.model, usage["input_tokens"], usage["output_tokens"]);
         #      print the per-turn cost.
-        raise NotImplementedError("Implement the conversation turn in run_repl()")
+        history.append({"role": "user", "content": user})
+        history = trim_to_budget(history, cfg.context_budget, cfg.system_prompt)
+        text, usage = stream_completion(history, cfg)
+        # Appending the assistant turn is what gives the bot memory (lesson §9).
+        history.append({"role": "assistant", "content": text})
+        cost = tracker.record(cfg.model, usage["input_tokens"], usage["output_tokens"])
+        print(f"  (turn cost: ${cost:.6f})")
 
 
 def main() -> None:
