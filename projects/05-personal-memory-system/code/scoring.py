@@ -44,7 +44,9 @@ def recency_score(now: float, last_accessed: float, decay_rate: float = 0.995,
         recency_score(now, now - hour)      -> 0.995      # 1 hour,  0.995 ** 1
         recency_score(now, now - 2 * hour)  -> 0.990025   # 2 hours, 0.995 ** 2
     """
-    raise NotImplementedError("M1: implement recency_score() — decay_rate ** (hours since last access)")
+    elapsed = now - last_accessed
+    hours = max(elapsed, 0.0) / unit_seconds  # clamp clock skew so recency never exceeds 1.0
+    return decay_rate ** hours
 
 
 def importance_score(importance: float, max_scale: float = 10.0) -> float:
@@ -62,7 +64,7 @@ def importance_score(importance: float, max_scale: float = 10.0) -> float:
         importance_score(5)  -> 0.5
         importance_score(1)  -> 0.1
     """
-    raise NotImplementedError("M2: implement importance_score() — rating / max_scale, clamped to [0,1]")
+    return max(0.0, min(1.0, importance / max_scale))
 
 
 def relevance_score(query_vec: list[float], mem_vec: list[float]) -> float:
@@ -82,7 +84,11 @@ def relevance_score(query_vec: list[float], mem_vec: list[float]) -> float:
         relevance_score([1, 0, 0], [1, 0, 0]) -> 1.0    # identical direction
         relevance_score([1, 0, 0], [0, 1, 0]) -> 0.0    # orthogonal
     """
-    raise NotImplementedError("M2: implement relevance_score() — cosine similarity, guard zero norm")
+    dot = sum(a * b for a, b in zip(query_vec, mem_vec))
+    norms = math.sqrt(sum(a * a for a in query_vec)) * math.sqrt(sum(b * b for b in mem_vec))
+    if norms == 0:
+        return 0.0
+    return dot / norms
 
 
 def retrieval_score(rel: float, rec: float, imp: float,
@@ -104,7 +110,8 @@ def retrieval_score(rel: float, rec: float, imp: float,
         retrieval_score(0.1, 1.0, 0.2)                        -> 1.3    # fresh but off-topic
         # → the 2.4 memory (relevant AND fresh AND important) wins.
     """
-    raise NotImplementedError("M3: implement retrieval_score() — weighted sum of (rel, rec, imp)")
+    w_rel, w_rec, w_imp = weights
+    return w_rel * rel + w_rec * rec + w_imp * imp
 
 
 def main() -> None:

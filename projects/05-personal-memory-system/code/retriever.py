@@ -55,7 +55,20 @@ def retrieve(
         retrieve(store, [1,0,0], now=now, k=1)  ->  [m1]      # relevance ties; recency+importance win
         # and afterwards m1.last_accessed == now  (it was touched)
     """
-    raise NotImplementedError("M4: implement retrieve() — score all, sort desc, take k, touch last_accessed")
+    scored: list[tuple[float, Memory]] = []
+    for m in store.all():
+        rel = relevance_score(query_embedding, m.embedding)
+        rec = recency_score(now, m.last_accessed, decay_rate)
+        imp = importance_score(m.importance)
+        scored.append((retrieval_score(rel, rec, imp, weights), m))
+
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    top = [m for _, m in scored[:k]]
+
+    # Touch AFTER scoring so retrieval refreshes recency without skewing this turn's ranking.
+    for m in top:
+        m.last_accessed = now
+    return top
 
 
 def main() -> None:
