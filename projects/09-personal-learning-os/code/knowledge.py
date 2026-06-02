@@ -56,7 +56,16 @@ class KnowledgeGraph:
             2 not in g.edges.get(3, {})   # 3 shares nothing
             1 not in g.edges[1]       # no self-edge
         """
-        raise NotImplementedError("M2: register the node and link it to sharers (symmetric, no self-edge)")
+        tags = set(tags)
+        self.nodes[item_id] = tags
+        self.edges.setdefault(item_id, {})
+        for other_id, other_tags in self.nodes.items():
+            if other_id == item_id:
+                continue  # no self-edge
+            shared = len(tags & other_tags)
+            if shared >= min_shared:
+                self.edges[item_id][other_id] = shared
+                self.edges.setdefault(other_id, {})[item_id] = shared  # symmetric
 
     def related(self, item_id, k: int = 5) -> list:
         """[learner] Return up to `k` neighbor ids of `item_id`, most shared tags first. (M2)
@@ -73,4 +82,10 @@ class KnowledgeGraph:
             related(1) -> [2]      # only neighbor
             related(3) -> []       # no neighbors
         """
-        raise NotImplementedError("M2: return up to k neighbor ids ranked by shared-tag weight")
+        if item_id not in self.edges:
+            return []
+        neighbors = sorted(
+            self.edges[item_id].items(),
+            key=lambda pair: (-pair[1], pair[0]),  # weight desc, id asc for determinism
+        )
+        return [other_id for other_id, _ in neighbors[:k]]

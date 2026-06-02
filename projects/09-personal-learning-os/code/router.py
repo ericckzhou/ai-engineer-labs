@@ -85,5 +85,11 @@ def route_query(query: str, threshold: float = 0.0) -> Route:
         route_query("explain cosine similarity").name       -> "CHAT"   (no signal -> safe default)
         route_query("note: buy milk").reason                -> "matched SAVE markers: ['note:']"
     """
-    raise NotImplementedError(
-        "M1: classify by precedence (SAVE ▸ RECALL ▸ TASK), else the safe default CHAT")
+    query_lower = query.lower()
+    for route in PRECEDENCE:
+        score, matched = _score(query_lower, _MARKERS[route])
+        if score >= 1:
+            confidence = min(1.0, score / 2.0)
+            if confidence >= threshold:
+                return Route(route, reason=f"matched {route} markers: {matched}", confidence=confidence)
+    return Route(DEFAULT_ROUTE, reason="no strong save/recall/task signal — safe default", confidence=0.0)

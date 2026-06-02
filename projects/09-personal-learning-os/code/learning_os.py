@@ -72,4 +72,12 @@ class LearningOS:
             os_.handle("explain routing").route                 -> "CHAT"  (provenance = [])
             # every Response carries route + provenance; exactly one worker is invoked.
         """
-        raise NotImplementedError("M3: route -> dispatch to one subsystem -> Response with provenance")
+        route = route_query(query)
+        worker = self.subsystems[route.name]
+        result = worker(query)
+        return Response(
+            answer=result.answer,
+            route=route.name,
+            reason=route.reason,
+            provenance=result.sources,
+        )

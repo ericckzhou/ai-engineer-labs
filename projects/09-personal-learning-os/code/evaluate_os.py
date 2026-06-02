@@ -51,4 +51,24 @@ def evaluate_routing(cases: list[dict], route_fn: Callable) -> dict:
               "per_route": {"SAVE": 1.0, "TASK": 0.0},
               "misroutes": [{"query": "summarize my week", "expected": "TASK", "got": "RECALL"}]}
     """
-    raise NotImplementedError("M4: compute overall accuracy, per-route accuracy, and the misroute list")
+    total = len(cases)
+    if total == 0:
+        return {"accuracy": 0.0, "per_route": {}, "misroutes": []}
+
+    total_r: dict[str, int] = {}
+    correct_r: dict[str, int] = {}
+    misroutes: list[dict] = []
+    overall_correct = 0
+
+    for case in cases:
+        expected = case["expected_route"]
+        got = route_fn(case["query"]).name
+        total_r[expected] = total_r.get(expected, 0) + 1
+        if got == expected:
+            correct_r[expected] = correct_r.get(expected, 0) + 1
+            overall_correct += 1
+        else:
+            misroutes.append({"query": case["query"], "expected": expected, "got": got})
+
+    per_route = {r: correct_r.get(r, 0) / total_r[r] for r in total_r}
+    return {"accuracy": overall_correct / total, "per_route": per_route, "misroutes": misroutes}
