@@ -54,7 +54,17 @@ def build_prompt(query: str, chunks: list[Chunk]) -> list[dict]:
         "Q3 revenue was 4.2M" in msgs[-1]["content"]   # chunk text is in the prompt
         # the system text mentions answering only from context AND saying "don't know" when absent
     """
-    raise NotImplementedError("M3: implement build_prompt() - context + ids + ground-and-refuse system msg")
+    system = (
+        "You answer questions using ONLY the provided context. "
+        "Cite the chunk id(s) you used in square brackets, e.g. [c0]. "
+        "If the answer is not in the context, say you don't know — do not guess."
+    )
+    context_block = "\n".join(f"[{c.id}] {c.text}" for c in chunks)
+    user = f"Context:\n{context_block}\n\nQuestion: {query}"
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
 
 
 def answer(query: str, chunks: list[Chunk]) -> Answer:
@@ -73,7 +83,17 @@ def answer(query: str, chunks: list[Chunk]) -> Answer:
         -> Answer(text="Q3 revenue was 4.2M [c0].", citations=["c0"])
         # off-document question -> text says it doesn't know, citations == []
     """
-    raise NotImplementedError("M4: implement answer() - completion over the grounded prompt, parse citations")
+    import litellm
+
+    messages = build_prompt(query, chunks)
+    cfg = load_config()
+    response = litellm.completion(model=cfg.model, messages=messages, temperature=cfg.temperature)
+    text = response.choices[0].message.content
+    citations: list[str] = []
+    for cid in _CITE.findall(text):
+        if cid not in citations:  # dedupe, keep first-seen order
+            citations.append(cid)
+    return Answer(text=text, citations=citations)
 
 
 def main() -> None:

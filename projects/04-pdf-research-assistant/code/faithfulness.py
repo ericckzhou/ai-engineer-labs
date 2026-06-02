@@ -46,7 +46,9 @@ def faithfulness_score(verdicts: list[bool]) -> float:
         faithfulness_score([False, False])       -> 0.0       # pure hallucination
         faithfulness_score([])                   -> 1.0       # no claims -> vacuously faithful
     """
-    raise NotImplementedError("M5: implement faithfulness_score() - |supported| / |total|")
+    if not verdicts:
+        return 1.0  # no claims -> nothing unsupported -> vacuously faithful (documented choice)
+    return sum(verdicts) / len(verdicts)
 
 
 def check_faithfulness(answer_text: str, chunks: list[Chunk], claims: list[str] | None = None) -> FaithfulnessReport:
@@ -66,7 +68,28 @@ def check_faithfulness(answer_text: str, chunks: list[Chunk], claims: list[str] 
         -> FaithfulnessReport(score=0.5, claims=[...2...], verdicts=[True, False])
         # claim 1 is supported; claim 2 ("40%") contradicts the context -> unsupported -> hallucination
     """
-    raise NotImplementedError("M5: implement check_faithfulness() - extract claims, verify each, score")
+    import litellm
+
+    if claims is None:
+        # Simple sentence split for the lab (real RAGAS uses an LLM to extract statements).
+        claims = [s.strip() for s in answer_text.split(". ") if s.strip()]
+    context = "\n".join(c.text for c in chunks)
+    cfg = load_config()
+
+    verdicts: list[bool] = []
+    for claim in claims:
+        resp = litellm.completion(
+            model=cfg.model,
+            messages=[
+                {"role": "system", "content": _VERIFY_SYSTEM},
+                {"role": "user", "content": f"Context:\n{context}\n\nClaim: {claim}"},
+            ],
+            temperature=0.0,
+        )
+        reply = resp.choices[0].message.content.strip().lower()
+        verdicts.append(reply.startswith("yes"))
+
+    return FaithfulnessReport(faithfulness_score(verdicts), claims, verdicts)
 
 
 def main() -> None:

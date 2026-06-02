@@ -53,7 +53,24 @@ def chunk_text(
             Chunk("c2","E F G H",...), Chunk("c3","G H I J",...)]
         # step = 2; adjacent chunks share 2 tokens; 4 chunks, no redundant tail
     """
-    raise NotImplementedError("M1: implement chunk_text() - fixed-size windows with overlap, stable ids")
+    tokens = text.split()
+    if not tokens:
+        return []
+    step = chunk_size - overlap
+    if step <= 0:
+        raise ValueError("overlap must be smaller than chunk_size (step would be <= 0)")
+
+    chunks: list[Chunk] = []
+    start = 0
+    while True:
+        window = tokens[start : start + chunk_size]
+        chunks.append(
+            Chunk(id=f"c{len(chunks)}", text=" ".join(window), source=source, start=start)
+        )
+        if start + chunk_size >= len(tokens):
+            break  # this window reached the end — no redundant tail chunk
+        start += step
+    return chunks
 
 
 def main() -> None:
