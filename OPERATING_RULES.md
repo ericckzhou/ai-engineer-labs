@@ -89,6 +89,9 @@ When a conflict between layers is detected:
 10. **Source structure follows the tier system.**
     Sources are organized by type: `sources/papers/`, `sources/books/`, `sources/videos/`, `sources/articles/`, `sources/official-docs/`. Do not place sources in other directories.
 
+10a. **Rendered source HTML is generated, never canonical.**
+    `catalogs/source-map.md` and `sources/**/*.md` remain authoritative. If either changes, run `python scripts/render_sources.py` and verify with `python scripts/render_sources.py --check`. Do not hand-edit `catalogs/rendered/` or `sources/rendered/`.
+
 ---
 
 ## Teaching Rules

@@ -243,12 +243,20 @@ def page(title: str, badge: str, body: str, nav: list[tuple[str, str]], extra_he
   .source-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
   .source-actions a { background:var(--accent-bg); color:var(--accent); padding:7px 11px; border-radius:7px; text-decoration:none; font-size:13px; font-weight:600; }
   .source-actions a:hover { text-decoration:underline; }
-  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin:18px 0 28px; }
-  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; align-items:start; margin:18px 0 28px; }
+  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; min-width:0; overflow-wrap:anywhere; word-break:normal; }
   .metadata-item strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:3px; }
+  .metadata-item a { overflow-wrap:anywhere; word-break:break-word; }
+  .metadata-item.metadata-authors { grid-column:span 2; }
+  .metadata-item.metadata-url { grid-column:span 2; }
   hr { border:0; border-top:1px solid var(--border); margin:28px 0; }
   main ul, main ol { margin: 12px 0 18px 24px; }
   main li { margin-bottom: 8px; }
+  @media (max-width: 900px) {
+    .metadata-grid { grid-template-columns: 1fr; }
+    .metadata-item.metadata-authors,
+    .metadata-item.metadata-url { grid-column:auto; }
+  }
 """
     nav_links = "\n".join(
         f'<li><a href="#{ident}">{html.escape(text)}</a></li>' for text, ident in nav[:40]
@@ -300,11 +308,24 @@ def render_source_note(source: Path) -> str:
     markdown = source.read_text(encoding="utf-8")
     body, nav = render_markdown(markdown, rendered_source_path(source))
     metadata = parse_metadata(markdown)
-    metadata_html = "\n".join(
-        f'<div class="metadata-item"><strong>{html.escape(key)}</strong>{render_inline(value, rendered_source_path(source))}</div>'
-        for key, value in metadata.items()
-        if key in {"Type", "Tier", "Author(s)", "Date", "URL", "Accessed"}
-    )
+    metadata_items: list[str] = []
+    for key, value in metadata.items():
+        if key not in {"Type", "Tier", "Author(s)", "Date", "URL", "Accessed"}:
+            continue
+        class_name = "metadata-item"
+        if key == "Author(s)":
+            class_name += " metadata-authors"
+        if key == "URL":
+            class_name += " metadata-url"
+            safe_value = html.escape(value, quote=True)
+            rendered_value = f'<a href="{safe_value}">{html.escape(value)}</a>'
+        else:
+            rendered_value = render_inline(value, rendered_source_path(source))
+        metadata_items.append(
+            f'<div class="{class_name}"><strong>{html.escape(key)}</strong>'
+            f"{rendered_value}</div>"
+        )
+    metadata_html = "\n".join(metadata_items)
     source_map_link = href(rendered_source_path(source), CATALOG_RENDERED)
     markdown_link = href(rendered_source_path(source), source)
     header = f"""

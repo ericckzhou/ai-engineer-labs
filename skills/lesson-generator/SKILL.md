@@ -204,6 +204,7 @@ Close the function body with `raise NotImplementedError("Mx: <what to implement>
 - [ ] **`lesson.html` actually RENDERED** from `lesson.agent.md` — every section populated, **no skeleton stubs left**. Verify: `grep -cE "TODO|placeholder-content|to be written" projects/XX/rendered/lesson.html` prints `0`. (Do not mistake the pre-stamped CSS skeleton for a rendered lesson.)
 - [ ] `catalogs/concept-map.md` updated with new concepts
 - [ ] `catalogs/source-map.md` updated with new sources
+- [ ] If `sources/` or `catalogs/source-map.md` changed, run `python scripts/render_sources.py` and verify `python scripts/render_sources.py --check`
 - [ ] `source/resources.md` annotated with all sources used
 - [ ] `code/` scaffolding follows the boundary: setup solved, interfaces clear, **core left incomplete**
 - [ ] Every `code/` file labeled `provided`/`partial`/`learner`/`reference` in `source/project.md`

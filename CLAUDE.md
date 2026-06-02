@@ -133,6 +133,7 @@ When generating or updating lesson content for a concept:
 8. Generate `code/` starter scaffolding per the Scaffolding Boundary below — and label every file.
 9. Generate `rendered/lesson.html` from the agent version — **render every section; do not leave the pre-stamped skeleton.** Verify `grep -cE "TODO|placeholder-content" rendered/lesson.html` prints `0` before treating the lesson as done.
 10. Update `catalogs/concept-map.md` with any new concepts and sources.
+11. If `sources/` or `catalogs/source-map.md` changed, regenerate rendered source views with `python scripts/render_sources.py`, then verify with `python scripts/render_sources.py --check`. Markdown remains canonical; generated HTML is for human browsing.
 
 Do not generate lesson content from memory. Gather evidence from `sources/` first.
 

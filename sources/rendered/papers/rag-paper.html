@@ -392,12 +392,20 @@
   .source-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
   .source-actions a { background:var(--accent-bg); color:var(--accent); padding:7px 11px; border-radius:7px; text-decoration:none; font-size:13px; font-weight:600; }
   .source-actions a:hover { text-decoration:underline; }
-  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin:18px 0 28px; }
-  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; align-items:start; margin:18px 0 28px; }
+  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; min-width:0; overflow-wrap:anywhere; word-break:normal; }
   .metadata-item strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:3px; }
+  .metadata-item a { overflow-wrap:anywhere; word-break:break-word; }
+  .metadata-item.metadata-authors { grid-column:span 2; }
+  .metadata-item.metadata-url { grid-column:span 2; }
   hr { border:0; border-top:1px solid var(--border); margin:28px 0; }
   main ul, main ol { margin: 12px 0 18px 24px; }
   main li { margin-bottom: 8px; }
+  @media (max-width: 900px) {
+    .metadata-grid { grid-template-columns: 1fr; }
+    .metadata-item.metadata-authors,
+    .metadata-item.metadata-url { grid-column:auto; }
+  }
 
   </style>
 </head>
@@ -430,9 +438,9 @@
         </div>
         <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div>
 <div class="metadata-item"><strong>Tier</strong>2 (Foundational Paper)</div>
-<div class="metadata-item"><strong>Author(s)</strong>Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela</div>
+<div class="metadata-item metadata-authors"><strong>Author(s)</strong>Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela</div>
 <div class="metadata-item"><strong>Date</strong>2020 (submitted 2020-05-22; NeurIPS 2020)</div>
-<div class="metadata-item"><strong>URL</strong>https://arxiv.org/abs/2005.11401</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a></div>
 <div class="metadata-item"><strong>Accessed</strong>2026-06-01</div></div>
 
       </header>
