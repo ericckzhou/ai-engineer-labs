@@ -66,8 +66,9 @@ Tier 4 (Educational): sources/videos/... or books/...
 
 ## Tool Use / Agents
 
-- Tier 1: `sources/official-docs/anthropic-tool-use.md` — (to be added)
-- Tier 2: `sources/papers/react-paper.md` — ReAct paper (to be added)
+- Tier 1: `sources/official-docs/anthropic-tool-use.md` — Anthropic tool use: tool = name + description + JSON-schema input; model returns `stop_reason:"tool_use"` with `tool_use` blocks → execute → return `tool_result`; the agentic loop; `tool_choice` (auto/any/tool/none); tools as structured output
+- Tier 1: `sources/articles/building-effective-agents.md` — Anthropic engineering: agent = "LLMs using tools based on environmental feedback in a loop"; workflows vs. agents; the augmented LLM (retrieval + tools + memory); the agent-computer interface (ACI)
+- Tier 2: `sources/papers/react-paper.md` — Yao et al. 2022: ReAct — interleave reasoning traces and actions (Thought→Action→Observation); acting overcomes chain-of-thought hallucination; more interpretable trajectories
 
 ## Evaluation
 

@@ -73,10 +73,15 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT: the copilot needs a chat model, an embedding model (for context injection),
+    # a repo root to operate inside, a retrieval budget (top_k_files), and a loop cap (max_agent_steps).
     model: str = field(default_factory=default_model)
-    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
+    embedding_model: str = field(default_factory=default_embedding_model)
+    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.2")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
+    repo_root: str = field(default_factory=lambda: os.getenv("COPILOT_REPO_ROOT", "."))
+    top_k_files: int = field(default_factory=lambda: int(os.getenv("COPILOT_TOP_K", "4")))
+    max_agent_steps: int = field(default_factory=lambda: int(os.getenv("COPILOT_MAX_STEPS", "8")))
 
 
 def load_config() -> Config:

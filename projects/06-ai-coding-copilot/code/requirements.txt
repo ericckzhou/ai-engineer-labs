@@ -1,5 +1,3 @@
 litellm
 python-dotenv
-rich
-tree-sitter
 pytest

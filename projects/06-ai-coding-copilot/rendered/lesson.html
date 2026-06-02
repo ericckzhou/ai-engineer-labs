@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -421,7 +421,7 @@
     <header class="lesson-header">
       <div class="lesson-badge">Project 06 of 9</div>
       <h1>AI Coding Copilot</h1>
-      <p class="lesson-tagline">Build the tool that understands your codebase</p>
+      <p class="lesson-tagline">Give a model eyes — tool use and the agentic loop, so it reads your code instead of guessing</p>
       <div class="lesson-meta">
         <span class="meta-chip">&#128214; Read the lesson</span>
         <span class="meta-chip">&#9997; Fill in understanding</span>
@@ -436,12 +436,14 @@
       <h2>Learning Objectives</h2>
       <p>By the end of this project, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>Explain why an LLM with <strong>no tools</strong> can only guess about your codebase, and why tools are "one of the highest-leverage primitives you can give an agent."</span></li>
+        <li><div class="obj-check"></div><span>Define a <strong>tool</strong> as a <code>name</code> + <code>description</code> + JSON-schema <code>parameters</code>, and explain why "the description is the API."</span></li>
+        <li><div class="obj-check"></div><span>Trace the <strong>tool-use protocol</strong>: the model returns a structured <em>call</em>, your code <em>executes</em> it, you feed the <em>result</em> back, the model continues.</span></li>
+        <li><div class="obj-check"></div><span>Implement the <strong>agentic loop</strong> — call → dispatch tools → feed results back → repeat — and explain why the loop, not a clever prompt, is the program.</span></li>
+        <li><div class="obj-check"></div><span>Explain <strong>ReAct</strong> (interleaved reasoning + acting) and why acting reduces the hallucination a reasoning-only prompt produces.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish <strong>context injection</strong> (retrieve relevant files up front) from <strong>tool-fetched context</strong> (the model pulls what it needs), and say when each wins.</span></li>
+        <li><div class="obj-check"></div><span>Parse provider tool calls correctly — including that <code>arguments</code> arrives as a <strong>JSON string</strong> — and bound the loop with <code>max_steps</code>.</span></li>
+        <li><div class="obj-check"></div><span>Name the major <strong>failure modes</strong> of a tool-using copilot (runaway loop, path traversal, vague descriptions, no result feedback) and which decision causes each.</span></li>
       </ul>
     </section>
 
@@ -450,22 +452,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>An LLM is a pure text function: it cannot read your files, list your directory, or run your tests. Ask a bare model "why does <code>auth.py</code> throw on login?" and it has never seen <code>auth.py</code> — so it <strong>guesses</strong>, fluently and wrongly. The two non-answers before tool use were: paste your whole repo into the prompt (blows the context window and the bill), or accept generic advice untethered from your code. Tool use is the fix: give the model a few functions — read a file, list a directory, search the code — and let it <em>pull exactly the context it needs</em>.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>You want an assistant that answers questions about <em>your</em> codebase, grounded in the real files, not a plausible hallucination. You can't fit the repo in the prompt, and you can't predict which files matter ("fix this bug" might touch one file or five). The answer is an <strong>agent</strong>: "an LLM using tools based on environmental feedback in a loop." It reasons about what it needs, calls a tool to get it, observes the result, and repeats until it can answer.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>A tool that takes a file path is an <strong>attack surface</strong> — an unsandboxed <code>read_file</code> will happily return <code>../../../../etc/passwd</code>. A loop with no cap spins forever, burning tokens. A vague tool description makes the model call the wrong tool. None of these show up in the happy-path demo — they show up in production.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>This is the most widely adopted AI product category: GitHub Copilot, Cursor, Claude Code, and every internal "ask our codebase" tool are this pattern. On real software-engineering benchmarks like SWE-bench, "adding even basic tools produces outsized capability gains."</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>Developer tools are the fastest category to monetize — developers pay for tools that save time. A copilot that reads your code and answers in-context removes the constant context-switch from "writing code" to "grepping and reading docs" — immediately measurable value.</p>
       </div>
     </section>
 
@@ -474,25 +476,35 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine you text a very smart friend "why won't my game start?" — but they can't see your computer. They'll guess, and probably guess wrong. Now imagine you give them three buttons they can press that <em>you</em> answer for them: <strong>"show me a file," "list a folder,"</strong> and <strong>"search for a word."</strong> Now the conversation changes: they press "list folder," you tell them what's there; they press "show me <code>game.py</code>," you paste it; they read it and say "line 12 — you forgot to load the level." They didn't get smarter — they got <em>eyes</em>. The whole project is: (1) build those buttons, (2) let your friend keep pressing buttons until they actually know the answer, and (3) make sure "show me a file" can't be tricked into showing them your password file.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li>A <strong>tool</strong> is a function you expose to the model as a schema: <code>{"type":"function","function":{"name","description","parameters"}}</code>. The model never sees the body — only the schema.</li>
+        <li>You call <code>litellm.completion(messages, tools=...)</code>. The model replies one of two ways: plain content (it's done), or <strong><code>message.tool_calls</code></strong> — a list of <code>{id, function:{name, arguments}}</code> where <code>arguments</code> is a <strong>JSON string</strong>.</li>
+        <li>The <strong>loop</strong>: parse the calls → execute each (<code>dispatch_tool(name, json.loads(arguments), repo_root)</code>) → append one <code>{"role":"tool","tool_call_id":id,"content":result}</code> per call → call the model again. Repeat until it returns content with no tool calls, or you hit <code>max_steps</code>.</li>
+        <li>This is <strong>ReAct</strong>: the model's text is the <em>Thought</em>, the tool call is the <em>Action</em>, the tool result is the <em>Observation</em> you feed back. Every file-taking tool routes through <code>safe_resolve(repo_root, path)</code>, which fails closed on escapes.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>A copilot is a <strong>new contractor on their first day in your codebase</strong>, not a psychic. A bad onboarding hands them nothing and asks "fix the bug" — they guess. A good onboarding gives them a <strong>badge that opens specific doors</strong>: they can read files, list directories, and grep — but only inside <em>this</em> building (the repo root), and the badge won't open the server room (the sandbox). They walk around, read what they need, and <em>then</em> tell you the fix. The loop is them walking the building; the tool schema is what's printed on each door; the sandbox is what the badge refuses to open.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
-
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+      <pre> USER: "Why does config default to Groq?"
+   │  (optionally: inject top-k relevant files as starting context — P03/P04 retrieval)
+   ▼
+ run_agent loop  (max_steps cap):
+   step 1: model ──► tool_call: search_code(query="default_model")
+           dispatch ─► safe_resolve+grep ─► "config.py:40 def default_model(): ..."
+           append tool_result ──► loop
+   step 2: model ──► tool_call: read_file(path="config.py")
+           dispatch ─► safe_resolve+open ─► "&lt;contents of config.py&gt;"
+           append tool_result ──► loop
+   step 3: model ──► (no tool calls) "It defaults to Groq because PROVIDER_DEFAULTS
+                      lists GROQ_API_KEY first; see config.py:23." ◄── ANSWER</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,14 +512,16 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p>A <strong>tool</strong> is <code>(name, description, parameters)</code> where <code>parameters</code> is a JSON Schema; the set of tools is the model's <strong>action space</strong>. A <strong>tool call</strong> is <code>(id, name, arguments)</code> emitted by the model — in the LiteLLM/OpenAI shape, an entry in <code>message.tool_calls</code> with <code>function.arguments</code> as a <strong>JSON string</strong>. A <strong>tool result</strong> is the value your code returns for a given <code>tool_call_id</code>, appended as a <code>{"role":"tool", ...}</code> message. An <strong>agent</strong> is "an LLM using tools based on environmental feedback in a loop."</p>
 
       <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li><strong>Define the tools.</strong> Write <code>TOOL_SCHEMAS</code>: a <code>name</code>, a <em>careful</em> <code>description</code> (the model picks from this alone), and a <code>parameters</code> JSON Schema. Implement the matching functions.</li>
+        <li><strong>(Optional) Inject context.</strong> Embed the question, retrieve the top-k most relevant files (Project 03/04), and prepend them — cheap grounding so the model doesn't have to discover obvious files via tools.</li>
+        <li><strong>Call the model.</strong> <code>litellm.completion(messages, tools=TOOL_SCHEMAS, tool_choice="auto")</code>. With <code>auto</code>, the model decides each turn whether to call a tool or answer.</li>
+        <li><strong>Parse tool calls.</strong> If <code>message.tool_calls</code> is non-empty, build <code>(id, name, arguments)</code> and <code>json.loads</code> the arguments string. If empty, the model answered — return its content.</li>
+        <li><strong>Execute (dispatch).</strong> For each call, <code>dispatch_tool(name, arguments, repo_root)</code> routes to the right function. Every path argument goes through <code>safe_resolve</code> first.</li>
+        <li><strong>Feed results back, then loop.</strong> Append the assistant message (with its <code>tool_calls</code>), then one <code>tool</code> message per call — order matters. Go back to step 3, bounded by <code>max_steps</code>.</li>
       </ol>
 
       <h3>Key Concepts</h3>
@@ -516,14 +530,19 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Tool use (function calling)</td><td>Letting the model emit a structured request to call a function you defined; your code runs it and returns the result</td><td>Turns a text-in/text-out model into one that can <em>act</em></td></tr>
+          <tr><td>Tool schema</td><td>A tool's <code>name</code>, <code>description</code>, and JSON-schema <code>parameters</code></td><td>The only thing the model sees about a tool; "the description is the API"</td></tr>
+          <tr><td>Tool call / tool result</td><td>The model's structured call (id, name, args) and the value you feed back</td><td>The two halves of the protocol; the result is the model's "observation"</td></tr>
+          <tr><td>Agentic loop</td><td>call model → run requested tools → feed results back → repeat until it answers</td><td>The program itself; the model drives control flow</td></tr>
+          <tr><td>ReAct</td><td>Interleaving reasoning traces with actions (Thought → Action → Observation)</td><td>Acting fetches ground truth, cutting the hallucination of reasoning-only prompts</td></tr>
+          <tr><td>Context injection</td><td>Retrieve the top-k relevant files up front and put them in the prompt</td><td>Cheap one-shot grounding; the model still can't reach beyond what you injected</td></tr>
+          <tr><td>Sandboxed execution</td><td>Resolving tool file paths under a fixed repo root and rejecting escapes</td><td>A tool that takes a path is an attack surface; <code>../../etc/passwd</code> must fail closed</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>Tool use does <strong>not</strong> make the model "smarter" — it gives the model <em>eyes</em>. The intelligence is the loop + good tools, not a clever prompt. And the loop is <strong>not</strong> <code>while True</code>: the model controls it, so an unbounded loop is a runaway-budget risk. <code>max_steps</code> is mandatory.</p>
       </div>
     </section>
 
@@ -531,30 +550,57 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: <code>litellm</code> (chat + tools via <code>config.py</code>), provided sandboxed file tools, and a pure-Python loop. Examples mirror the guiding tests.</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — sandbox a tool path</h3>
+      <pre><code class="language-python">from tools import safe_resolve
 
-# Example code here
+repo = "/work/myrepo"
+safe_resolve(repo, "src/config.py")     # -> Path("/work/myrepo/src/config.py")  (ok)
+safe_resolve(repo, "./README.md")       # -> Path("/work/myrepo/README.md")       (ok)
+safe_resolve(repo, "../../etc/passwd")  # -> raises ValueError  (escapes repo root)
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>A file tool that takes a path is an attack surface. <code>safe_resolve</code> resolves the path and <strong>fails closed</strong> if it leaves the repo root. Every tool that touches the filesystem goes through this first — the model's <code>arguments</code> are untrusted input.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — parse the model's tool calls</h3>
+      <pre><code class="language-python">from types import SimpleNamespace
+from agent_loop import parse_tool_calls
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+# Shape LiteLLM returns: message.tool_calls[i].function.arguments is a JSON *string*.
+msg = SimpleNamespace(content=None, tool_calls=[
+    SimpleNamespace(id="call_1", function=SimpleNamespace(
+        name="read_file", arguments='{"path": "config.py"}')),
+])
+calls = parse_tool_calls(msg)
+print(calls[0].name)        # 'read_file'
+print(calls[0].arguments)   # {'path': 'config.py'}   ← a dict, json.loads'd from the string
+print(parse_tool_calls(SimpleNamespace(content="done", tool_calls=None)))  # []  (model answered)
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>The model's request arrives as objects whose <code>arguments</code> is a <strong>JSON string</strong> — <code>parse_tool_calls</code> must <code>json.loads</code> it into a dict. When there are no tool calls, it returns <code>[]</code>, which is the loop's signal that the model is done.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — the loop without a cap runs forever</h3>
+      <pre><code class="language-python">from agent_loop import run_agent
+from types import SimpleNamespace
+
+# A broken/looping model that ALWAYS asks to read the same file, never answers:
+def always_calls_tool(messages, tools):
+    return SimpleNamespace(content=None, tool_calls=[
+        SimpleNamespace(id="c", function=SimpleNamespace(
+            name="read_file", arguments='{"path": "config.py"}'))])
+
+answer = run_agent(messages=[{"role":"user","content":"hi"}],
+                   repo_root=".", complete=always_calls_tool, max_steps=3)
+print(answer)   # a "max steps reached" sentinel — NOT an infinite loop
+</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">Why This "Fails"</div>
+        <p>The model controls the loop, so a confused model can spin forever (or burn your whole budget). <code>max_steps</code> is the seatbelt: the loop terminates and returns a clear sentinel. This is the failure you reproduce in M6 — and the reason the agentic loop is never an unbounded <code>while True</code>.</p>
       </div>
     </section>
 
@@ -570,13 +616,13 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>In your own words, why does giving a model tools beat writing a cleverer prompt for "why does <code>auth.py</code> fail on login?" Use the word <em>hallucination</em> and connect it to ReAct.</li>
+          <li>"The description is the API." Explain what the model actually sees about a tool, and predict what happens if two tools have near-identical descriptions.</li>
+          <li>Walk the protocol: the model emits a tool <em>call</em>, then what are the exact steps your code takes before the model speaks again? Where does <code>json.loads</code> come in, and why?</li>
+          <li>Why must the assistant message be appended <em>before</em> the tool-result messages? What breaks if you skip appending the assistant turn?</li>
+          <li>Predict the three failure modes of removing, respectively: (a) the <code>max_steps</code> cap, (b) <code>safe_resolve</code>, (c) feeding tool results back. Which design decision causes each?</li>
+          <li>Context injection vs. tool-fetched context: give one question where injecting the top-k files is enough, and one where the model <em>must</em> use tools mid-task. Why?</li>
+          <li>The one thing you still don't fully understand about the agentic loop.</li>
         </ol>
       </div>
 
@@ -586,14 +632,21 @@ import litellm
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build a context-aware coding copilot in <code>code/</code> that answers questions about a target repository by reading it through tools:</p>
+      <ul>
+        <li><code>tools.py</code> — <code>safe_resolve</code> (path sandbox) and <code>dispatch_tool</code> (route a tool call) are the <em>learner core</em>; <code>read_file</code> / <code>list_directory</code> / <code>search_code</code> and <code>TOOL_SCHEMAS</code> are <em>provided</em>.</li>
+        <li><code>agent_loop.py</code> — <code>parse_tool_calls</code> (extract calls, <code>json.loads</code> the args) and <code>run_agent</code> (the ReAct loop) are the <em>learner core</em> — the learning target.</li>
+        <li><code>context_selector.py</code> — embed the question, rank files by cosine, return top-k as starting context. <em>(Provided — Project 02/03 reuse.)</em></li>
+        <li><code>copilot.py</code> — the orchestrator: build the prompt, inject context, run the agent, print the answer. <em>(Provided.)</em></li>
+      </ul>
+      <p><strong>Extended:</strong> a reasoning trace (full ReAct); a sandboxed <code>write_file</code> with dry-run; structured output via a forced <code>emit_answer</code> tool with citations; parallel tool calls.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p>Every file-path tool routes through <code>safe_resolve</code> (traversal fails closed); <code>parse_tool_calls</code> <code>json.loads</code> the <code>arguments</code> string and returns <code>[]</code> when the model answers; <code>run_agent</code> appends the assistant turn <strong>before</strong> the tool results and is bounded by <code>max_steps</code>; the copilot answers using files it actually <strong>read</strong>; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments; <code>EVALUATION.md</code> is concrete; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +659,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Sandbox paths</h4>
+            <p><code>tools.safe_resolve(repo_root, rel)</code> — resolve under root, reject escapes. <strong>Validation:</strong> valid path resolves; <code>../../etc/passwd</code> raises <code>ValueError</code> (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — Parse tool calls</h4>
+            <p><code>agent_loop.parse_tool_calls(message)</code> — extract <code>(id,name,args)</code>, <code>json.loads</code> arguments. <strong>Validation:</strong> a fake message yields one call with a dict <code>arguments</code>; no calls → <code>[]</code> (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Dispatch</h4>
+            <p><code>tools.dispatch_tool(name, args, repo_root)</code> — route to read/list/search, handle unknown. <strong>Validation:</strong> <code>read_file</code> dispatch returns the fixture file's contents; unknown tool returns an error string (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — The loop</h4>
+            <p><code>agent_loop.run_agent(messages, repo_root, complete, max_steps)</code> — call → dispatch → feed back → repeat. <strong>Validation:</strong> a scripted <code>complete</code> executes a tool then returns the answer; an always-calling <code>complete</code> stops at <code>max_steps</code> (offline test).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — Copilot end-to-end</h4>
+            <p><code>copilot.py</code> injects context + runs the agent against a real repo. <strong>Validation:</strong> ask "what does config default to?" and it reads files and answers with a file/line citation.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break / Evaluate</h4>
+            <p>Remove <code>max_steps</code>, remove <code>safe_resolve</code>, or stop feeding results back. <strong>Validation:</strong> runaway loop / path escape / model ignores its own output — each recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +711,13 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Tool schemas</td><td>define each tool with a <code>name</code>, a <em>specific</em> <code>description</code>, and a JSON-schema <code>parameters</code>?</td><td>☐</td></tr>
+          <tr><td>Parse correctly</td><td><code>json.loads</code> the <code>arguments</code> JSON string into a dict before dispatching?</td><td>☐</td></tr>
+          <tr><td>The loop</td><td>call the model, dispatch requested tools, feed results back, and repeat until it answers?</td><td>☐</td></tr>
+          <tr><td>Loop cap</td><td>bound the loop with <code>max_steps</code> and return cleanly when hit (no infinite loop)?</td><td>☐</td></tr>
+          <tr><td>Message order</td><td>append the assistant turn <em>before</em> the tool-result messages?</td><td>☐</td></tr>
+          <tr><td>Sandbox</td><td>route every file-path argument through <code>safe_resolve</code> and reject escapes?</td><td>☐</td></tr>
+          <tr><td>Grounded answer</td><td>answer using files it actually read, ideally with a file/line citation — not a guess?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +725,12 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li>Your loop is <code>while True</code> with no cap — one confused response burns your budget.</li>
+          <li><code>read_file</code> will return a path outside the repo (you never sandboxed).</li>
+          <li>You pass <code>tc.function.arguments</code> straight into the tool without <code>json.loads</code>.</li>
+          <li>You feed tool results back but forgot to append the assistant message first (provider error).</li>
+          <li>The model "answers" without ever calling a tool, and you call that success — it guessed.</li>
+          <li>You injected the whole repo into the prompt instead of retrieving the top-k.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +744,14 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td><code>arguments</code> used as a dict directly</td><td>It <em>looks</em> like an object</td><td><code>TypeError</code> / wrong args; tool gets a string</td><td><code>json.loads(tc.function.arguments)</code> first</td></tr>
+          <tr><td>No <code>max_steps</code> cap</td><td>Happy-path demo always terminates</td><td>A looping model spins forever, burning tokens</td><td>Bound the loop; return a sentinel at the cap</td></tr>
+          <tr><td>Unsandboxed file paths</td><td>"It's just reading a file"</td><td><code>../../etc/passwd</code> traversal; data exfiltration</td><td>Route every path through <code>safe_resolve</code>; fail closed</td></tr>
+          <tr><td>Tool results without the assistant turn</td><td>Appending only the <code>tool</code> message</td><td>Provider rejects the request (orphan tool result)</td><td>Append the assistant message (with <code>tool_calls</code>) <em>then</em> the results</td></tr>
+          <tr><td>Vague tool descriptions</td><td>Treating descriptions as comments</td><td>Model picks the wrong tool or fills bad args</td><td>"The description is the API" — be specific, give boundaries</td></tr>
+          <tr><td>Crashing on a tool error</td><td>Tool raises, loop dies</td><td>One bad arg kills the whole answer</td><td>Catch and return an error <em>string</em>; let the model react</td></tr>
+          <tr><td>No tools, clever prompt instead</td><td>"The model is smart enough"</td><td>Confident hallucination about code it never saw</td><td>Give it tools; acting beats reasoning-only (ReAct)</td></tr>
+          <tr><td>Injecting the whole repo</td><td>"More context is better"</td><td>Context-window blowout and cost; buries the answer</td><td>Retrieve top-k relevant files; let tools fetch the rest</td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +761,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>The loop's inner call <strong>is</strong> Project 01's <code>litellm.completion</code> — you've just added <code>tools=</code> and wrapped it in a <code>while</code>. The <strong>context injection</strong> half (embed the question, rank files by cosine, take top-k) is Project 02's similarity and Project 03/04's retrieval applied to source files, unchanged — which is why this lesson leaves it <em>provided</em> and spends your effort on the genuinely new thing: the tool loop.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p><strong>Project 07 (evaluation)</strong> is how you'd measure this copilot — correctness, relevance, and whether it hallucinated vs. read the file. <strong>Project 08 (agent)</strong> is this loop generalized: more tools, planning, sub-tasks, and self-editing memory — "LLMs using tools in a loop" scaled up. The tool-use protocol you build here is the substrate for every later agent.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real copilots are this loop plus engineering: retrieval to seed context, a curated tool set with carefully documented schemas (the ACI), strict sandboxing and permissioning on every tool, a bounded agentic loop with retries and a step budget, structured/cited final output, and evaluation in the loop. GitHub Copilot, Cursor, and Claude Code are all variations on "augmented LLM (retrieval + tools) run in a loop" with production-grade interfaces and guardrails.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p>Any StarcallOS capability that <em>acts on the user's behalf</em> — reading their files, searching their data, calling an API, editing a document — is this tool loop. The disciplines here decide whether those actions are safe and useful: sandboxed tools (never let a tool escape its scope), a bounded loop (never burn the user's budget on a confused agent), grounded answers (act on real data, don't hallucinate), and a clean agent-computer interface. The copilot is the smallest complete instance of "StarcallOS does something for you."</p>
       </div>
     </section>
 
@@ -708,29 +784,31 @@ import litellm
       <div class="source-tier">
         <h4>Tier 1 — Official Documentation</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/official-docs/anthropic-tool-use.md</code> — tool schemas, the tool_use/tool_result cycle, the agentic loop, <code>tool_choice</code>, tools as structured output</li>
+          <li><code>sources/articles/building-effective-agents.md</code> — the definition of an agent ("LLMs using tools in a loop"), the augmented LLM, and the agent-computer interface (ACI)</li>
+          <li><code>sources/official-docs/litellm-completion.md</code> — the <code>tools</code> / <code>tool_choice</code> params and the OpenAI-style <code>tool_calls</code> shape (arguments as a JSON string)</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li><code>sources/papers/react-paper.md</code> — Yao et al. 2022: ReAct — interleaving reasoning and acting; why acting reduces hallucination and makes loops terminate</li>
+          <li><code>sources/papers/rag-paper.md</code> — Lewis et al. 2020: retrieval-augmented generation — the context-injection half (carried from Project 04)</li>
         </ul>
       </div>
 
       <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
+        <h4>Tier 3 — Engineering Guides</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li><code>sources/articles/chunking-strategies.md</code> — chunking source files for the embeddings index (carried from Project 03/04; for the extended per-chunk retrieval)</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li>None specific to this lesson — the Anthropic tool-use docs and the ReAct paper are themselves the primary teaching sources.</li>
         </ul>
       </div>
     </section>

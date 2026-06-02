@@ -172,22 +172,37 @@ When reasoning about a concept:
 ### Agents
 
 **Tool Use / Function Calling**
-- Source: `sources/official-docs/anthropic-tool-use.md`
+- Source: `sources/official-docs/anthropic-tool-use.md` (tool = name + description + JSON-schema params; model emits a structured call → execute → feed `tool_result` back; `tool_choice` auto/any/tool/none)
+- Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: LiteLLM/OpenAI shape carries `function.arguments` as a JSON **string** (must `json.loads`); raw Anthropic uses `tool_use`/`tool_result` blocks with `stop_reason:"tool_use"`
+
+**ReAct Pattern**
+- Source: `sources/papers/react-paper.md` (Yao et al. 2022: interleave Thought → Action → Observation; acting fetches ground truth → less hallucination than reasoning-only)
 - Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`
 - Known issues: —
 
-**ReAct Pattern**
-- Source: `sources/papers/react-paper.md`
-- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+**Agent Loop (LLM + tools in a loop)**
+- Source: `sources/articles/building-effective-agents.md` (Anthropic: agent = "LLMs using tools based on environmental feedback in a loop"; augmented LLM = retrieval + tools + memory)
+- Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: loop must be bounded (`max_steps`) — the model drives control flow, so an unbounded loop is a runaway-cost risk
+
+**Agent-Computer Interface (ACI) / Tool Schema Design**
+- Source: `sources/articles/building-effective-agents.md` ("invest just as much effort in good agent-computer interfaces"; the model picks tools from the description alone — "the description is the API")
+- Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`
 - Known issues: —
 
-**Agent Loops**
-- Source: `sources/articles/`
-- Lesson: `projects/08-ai-agent/source/lesson.agent.md`
+**Context Injection vs. Tool-Fetched Context**
+- Source: `sources/papers/rag-paper.md`, `sources/articles/building-effective-agents.md` (retrieve obvious files up front vs. let the model pull what it needs mid-task)
+- Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`
 - Known issues: —
+
+**Tool Sandboxing (path containment)**
+- Source: `sources/official-docs/anthropic-tool-use.md` (tool arguments are untrusted model input; resolve under a root and fail closed on escapes)
+- Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`
+- Known issues: check containment **after** resolving — a raw `".." in path` string check is unsound (symlinks/absolute paths)
 
 **Structured Output**
-- Source: `sources/official-docs/`
+- Source: `sources/official-docs/anthropic-tool-use.md` (a `tool_use` block is schema-conforming → define a tool whose schema is the desired shape; `strict:true`)
 - Lesson: `projects/06-ai-coding-copilot/source/lesson.agent.md`
 - Known issues: —
 
