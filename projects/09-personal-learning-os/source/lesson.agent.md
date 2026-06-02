@@ -384,6 +384,10 @@ See source/resources.md for the full annotated source list.
 
 > **Scope of the knowledge graph:** the *lightweight, tag-linked personal graph* is grounded in the **knowledge-graphs survey** (a graph is the right structure when links between saved items are first-class and traversable) and in **Generative Agents' reflection** (linking memories into higher-level structure). It stays a modest educational construct — not a full RDF/SPARQL/ontology or KG-embedding system.
 
+**Optional — going deeper (after the OS routes and grades):**
+> The capstone is a multi-route system: a request fans out to CHAT / SEARCH / TASK and comes back with provenance. Once it works, the next real-world question is *how do you see inside it* when a route misbehaves in production.
+- `sources/official-docs/opentelemetry-genai-semconv.md` *(optional — depth)* — standard GenAI telemetry (spans/attributes per model call). The production form of the per-route logging here: trace a request across its route, attach token/cost/latency, and make a routing regression a queryable event rather than a guess.
+
 ---
 
 ## Instructor Notes

@@ -840,6 +840,14 @@ print(report["misroutes"])    # [{'query': 'summarize everything I saved this we
           <li><strong>Scope note:</strong> the lightweight tag-linked graph is grounded in the knowledge-graphs survey (Hogan et al. 2021) and Generative Agents' reflection. It stays a modest educational construct — not a full RDF/SPARQL/ontology or KG-embedding system (see <code>source/resources.md</code>).</li>
         </ul>
       </div>
+
+      <div class="source-tier">
+        <h4>Optional — Going Deeper</h4>
+        <p class="callout tip">Read this <em>after</em> the OS routes and grades. The capstone is a multi-route system; once it works, the real-world question is how to <em>see inside it</em> when a route misbehaves. Not required to finish the project.</p>
+        <ul>
+          <li><code>sources/official-docs/opentelemetry-genai-semconv.md</code> <em>(optional — depth)</em> — standard GenAI telemetry (spans/attributes per model call): the production form of the per-route logging here. Trace a request across its route, attach token/cost/latency, and make a routing regression a queryable event rather than a guess.</li>
+        </ul>
+      </div>
     </section>
 
   </main>

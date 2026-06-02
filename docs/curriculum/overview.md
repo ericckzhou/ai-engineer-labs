@@ -114,7 +114,18 @@ Nine projects. Each one builds on the last. Each one teaches something that real
 
 ## Optional Deepening Sources
 
-The source layer also includes targeted material for MCP, AI observability, agent self-improvement patterns, and knowledge graphs. These sources are not new required projects; they support electives (below) and optional extensions to Projects 6-9.
+The source layer includes targeted material that goes **beyond** what any project requires. These
+are not new projects and they gate nothing — they are *optional depth*, surfaced inside each
+lesson's Sources section under **"Optional — going deeper,"** to be read only **after** the lab
+works and the learner can explain their own build. The rule is deliberate: finish the essential
+struggle first, then reframe it with the literature.
+
+Where the optional depth attaches:
+
+- **Project 6 (Coding Copilot) → MCP.** `mcp-architecture`, `mcp-tools`, `mcp-security-best-practices` — the hand-wired tool loop, restated as a reusable protocol surface (and the basis for Elective 1).
+- **Project 7 (Evaluation) → observability + self-correction.** `opentelemetry-genai-semconv` (eval traces as standard telemetry) and `self-refine` (the judge's critique fed back to improve the next draft).
+- **Project 8 (Agent) → self-improvement & architectures.** `reflexion`, `self-refine`, `tree-of-thoughts`, `rewoo` — design options beyond a single linear ReAct trajectory, framed as choices, not requirements.
+- **Project 9 (Learning OS) → composition & provenance.** `knowledge-graphs-survey` for structured memory; `opentelemetry-genai-semconv` for observing a multi-route system.
 
 ---
 

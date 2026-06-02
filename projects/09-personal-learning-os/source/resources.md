@@ -113,6 +113,19 @@ claiming the capstone implements the research area.
 
 ---
 
+## Optional — Going Deeper
+
+> Read **after** the OS routes and grades. The capstone is a multi-route system; once it works, the
+> real-world question is how to *see inside it* when a route misbehaves. Not required to complete the
+> project.
+
+- **OpenTelemetry — GenAI Semantic Conventions** — `sources/official-docs/opentelemetry-genai-semconv.md` *(optional — depth)*
+  - URL: https://opentelemetry.io/docs/specs/semconv/gen-ai/
+  - Why it matters: standard GenAI telemetry (spans/attributes per model call) — the production form of the per-route logging here. Trace a request across its route, attach token/cost/latency, and make a routing regression a queryable event rather than a guess.
+  - Where you'll see this: any production agent/router observed through an OTel-compatible stack (Phoenix, LangSmith, Braintrust, vendor APM).
+
+---
+
 ## Recommended Reading Order
 
 For a learner new to this topic:
