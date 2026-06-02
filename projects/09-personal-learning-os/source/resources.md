@@ -1,18 +1,42 @@
-﻿# Resources & Sources
+# Resources & Sources — Project 09: Personal Learning OS
 
 > All sources used for this lesson, organized by tier.
 > Every claim in lesson.agent.md traces back to one of these.
+> Project 09 is the **capstone**: it *orchestrates* the prior projects rather than introducing a new
+> model technique. The sources are the ones that define **composition** — routing, orchestrator-workers,
+> provenance, and reflection — plus the evaluation discipline applied to the system's front door. Most
+> carry over from earlier projects; the emphasis shifts to *how the pieces fit into one system.*
 
 ---
 
-## Tier 1: Official Documentation
+## Tier 1: Official Documentation / Engineering Guidance
 
 > Primary sources. Check these first.
 
-- [ ] **TODO:** Add official documentation links
-  - URL:
-  - What to read:
-  - Key sections:
+- **Anthropic — Building Effective Agents** — `sources/articles/building-effective-agents.md`
+  - URL: https://www.anthropic.com/engineering/building-effective-agents
+  - What to read: the **augmented LLM** as the building block ("an LLM enhanced with augmentations such
+    as retrieval, tools, and memory"); the **routing** workflow ("classifies an input and directs it to
+    a specialized followup task"; "separation of concerns"; good "for complex tasks where there are
+    distinct categories that are better handled separately"); the **orchestrator-workers** pattern (a
+    central LLM "dynamically breaks down tasks, delegates them to worker LLMs, and synthesizes their
+    results"); and "add complexity only when it demonstrably improves outcomes" — here a *routing* rule.
+    The spine of the whole capstone.
+
+- **Anthropic — Citations** — `sources/official-docs/anthropic-citations.md`
+  - URL: https://platform.claude.com/docs/en/docs/build-with-claude/citations
+  - What to read: claim → source location, `cited_text`, verifiable pointers. The production form of the
+    **provenance** the orchestrator attaches to every `Response`. (Carried from Project 04.)
+
+- **Anthropic — Tool Use (Function Calling) Overview** — `sources/official-docs/anthropic-tool-use.md`
+  - URL: https://platform.claude.com/docs/en/docs/build-with-claude/tool-use/overview
+  - What to read: the agentic loop behind the `TASK` route (the bounded agent the OS routes the
+    multi-step requests to). Carried from Projects 06/08.
+
+- **LiteLLM — completion()** — `sources/official-docs/litellm-completion.md`
+  - URL: https://docs.litellm.ai/docs/completion/input
+  - What to read: the single-call interface behind the `CHAT` route and the optional LLM-backed router.
+    Carried from Project 01.
 
 ---
 
@@ -20,24 +44,41 @@
 
 > Academic papers that established the concepts in this lesson.
 
-- [ ] **TODO:** Add foundational papers
-  - Title:
-  - Authors:
-  - Year:
-  - URL:
-  - Why it matters:
+- **RAG** — `sources/papers/rag-paper.md`
+  - Title: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks
+  - Authors: Lewis et al.
+  - Year: 2020
+  - URL: https://arxiv.org/abs/2005.11401
+  - Why it matters: **provenance** — an answer should carry a verifiable pointer to what produced it
+    (parametric + non-parametric memory; updatable knowledge). Applied here to the orchestrator's
+    `Response.provenance`. (Carried from Project 04.)
+
+- **Generative Agents** — `sources/papers/generative-agents.md`
+  - Title: Generative Agents: Interactive Simulacra of Human Behavior
+  - Authors: Park et al.
+  - Year: 2023
+  - URL: https://arxiv.org/abs/2304.03442
+  - Why it matters: **reflection** — synthesizing/linking memories into higher-level structure — is the
+    conceptual basis for the lightweight personal **knowledge graph** (link saved items; surface related)
+    and for graph-aware recall. (Carried from Project 05.)
+
+- **MT-Bench / LLM-as-a-Judge** — `sources/papers/mt-bench.md`
+  - Title: Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena
+  - Authors: Zheng et al.
+  - Year: 2023
+  - URL: https://arxiv.org/abs/2306.05685
+  - Why it matters: evaluate with **numbers, per case** — applied here to the **router** (per-route
+    accuracy, not just an overall mean, so a silently-broken route is visible). (Carried from Projects 07/08.)
 
 ---
 
-## Tier 3: Engineering Blogs
+## Tier 3: Engineering Guides
 
-> Practical engineering perspectives from teams who've shipped this in production.
+> Practical engineering perspectives.
 
-- [ ] **TODO:** Add engineering blog posts
-  - Title:
-  - Source (company):
-  - URL:
-  - Key insight:
+- (None specific to this lesson beyond the Anthropic engineering guidance in Tier 1. "Building Effective
+  Agents" is itself the primary engineering source for the routing and orchestrator-workers patterns the
+  capstone is built on.)
 
 ---
 
@@ -45,11 +86,20 @@
 
 > Tutorials, courses, and explanatory content useful for learning.
 
-- [ ] **TODO:** Add educational sources
-  - Title:
-  - Author/Source:
-  - URL:
-  - Best for:
+- (None specific to this lesson. The prior projects (P01–P08) are the conceptual prerequisites — each
+  subsystem the OS routes to is one you already built.)
+
+---
+
+## A note on the knowledge graph (truth-rules disclosure)
+
+The repository currently has **no dedicated primary source on knowledge graphs as such**. This lesson
+therefore grounds the *lightweight, tag-linked personal graph* in **Generative Agents' reflection**
+(linking memories into higher-level structure) and treats the graph itself as an **engineering
+construct**, not a sourced claim. Per `OPERATING_RULES.md` (Truth Rules 3–4), no source is invented for
+it. If the curriculum later adds a knowledge-graph primary source (e.g. a survey on KG construction or
+entity linking), register it in `catalogs/source-map.md` under *System Design → Knowledge Graphs* and
+cite it in `lesson.agent.md` §10 and here.
 
 ---
 
@@ -57,10 +107,12 @@
 
 For a learner new to this topic:
 
-1. Start with: <!-- TODO -->
-2. Then read: <!-- TODO -->
-3. Then read: <!-- TODO -->
-4. For depth: <!-- TODO -->
+1. Start with: `sources/articles/building-effective-agents.md` — the augmented LLM, **routing**, and
+   **orchestrator-workers**. Read this before writing any code; it defines the whole capstone.
+2. Then: `sources/papers/rag-paper.md` — provenance (why every answer carries a pointer to its source).
+3. Then: `sources/papers/generative-agents.md` — reflection (the basis for linking saved items into a graph).
+4. Reference: `sources/papers/mt-bench.md` — evaluate per case, applied to the router.
+5. Reference: `sources/official-docs/anthropic-citations.md` — the production form of provenance.
 
 ---
 
@@ -68,5 +120,11 @@ For a learner new to this topic:
 
 Topics adjacent to this lesson worth exploring later:
 
-- <!-- TODO -->
-- <!-- TODO -->
+- LLM-based routers vs. small classification models vs. rules — accuracy/latency/cost tradeoffs of each.
+- Knowledge-graph construction and entity linking — turning notes into a real semantic graph (the
+  primary-source gap noted above).
+- Multi-agent orchestration (orchestrator-workers, evaluator-optimizer) — composing several agents
+  behind one front door (Building Effective Agents).
+- Observability for orchestrated systems: per-route traces, dashboards, and regression alerts on the
+  front door.
+- Memory consolidation / reflection jobs that summarize and re-index a growing personal store.

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -418,10 +418,14 @@
   <main>
 
     <!-- Header -->
-    <header class="lesson-header">
-      <div class="lesson-badge">Project 09 of 9</div>
+    <header class="lesson-header" style="position:relative;">
+      <div style="position:absolute;top:24px;right:0;text-align:right;font-size:13px;line-height:1.6;color:var(--text-muted);max-width:220px;">
+        <div style="font-weight:700;color:var(--accent);">~15–20 hrs</div>
+        <div>Requires: Projects <a href="../../05-personal-memory-system/rendered/lesson.html" style="color:var(--accent);">05</a>–<a href="../../08-ai-agent/rendered/lesson.html" style="color:var(--accent);">08</a></div>
+      </div>
+      <div class="lesson-badge">Project 09 of 9 · Capstone</div>
       <h1>Personal Learning OS</h1>
-      <p class="lesson-tagline">Orchestrate everything into a system that works for you</p>
+      <p class="lesson-tagline">The whole course, assembled into one system — a single front door that routes each request to the right specialist, with a trail you can trust</p>
       <div class="lesson-meta">
         <span class="meta-chip">&#128214; Read the lesson</span>
         <span class="meta-chip">&#9997; Fill in understanding</span>
@@ -434,14 +438,16 @@
     <!-- Learning Objectives -->
     <section id="objectives">
       <h2>Learning Objectives</h2>
-      <p>By the end of this project, you will be able to:</p>
+      <p>By the end of this capstone, you will be able to:</p>
       <ul class="objectives">
-        <!-- TODO: Add specific objectives from lesson.agent.md -->
-        <li><div class="obj-check"></div>Objective 1 — to be written</li>
-        <li><div class="obj-check"></div>Objective 2 — to be written</li>
-        <li><div class="obj-check"></div>Objective 3 — to be written</li>
-        <li><div class="obj-check"></div>Objective 4 — to be written</li>
-        <li><div class="obj-check"></div>Objective 5 — to be written</li>
+        <li><div class="obj-check"></div><span>Describe a multi-capability AI app as an <strong>augmented LLM assembled into a system</strong> (retrieval + tools + memory), and see the eight prior projects as <em>subsystems</em> of one OS.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>query routing</strong> — classify a request and "direct it to a specialized followup task" — and explain why that buys "separation of concerns."</span></li>
+        <li><div class="obj-check"></div><span>Justify a <strong>routing precedence</strong> and a <strong>safe default</strong>: order the checks so a high-stakes intent (save) is never shadowed by a generic one, and fall back to the cheapest safe route.</span></li>
+        <li><div class="obj-check"></div><span>Build an <strong>orchestrator</strong> that routes, dispatches to one subsystem, and <strong>synthesizes a response with provenance</strong> — which route handled it and which items it used.</span></li>
+        <li><div class="obj-check"></div><span>Build a lightweight personal <strong>knowledge graph</strong> that links saved items by shared tags and surfaces related ones.</span></li>
+        <li><div class="obj-check"></div><span><strong>Evaluate the system</strong>, not just a part: measure routing accuracy <strong>overall and per route</strong>, and explain why a mean hides a silently-broken route.</span></li>
+        <li><div class="obj-check"></div><span>Apply <strong>"use the simplest thing that works"</strong> at the system level: route a simple lookup to a single retrieval, reserve the agent for the genuinely open-ended request.</span></li>
+        <li><div class="obj-check"></div><span>Name the major <strong>failure modes</strong> of an orchestrated system (a dropped save, everything-to-the-agent, no provenance, a router that regresses unseen) and the decision that prevents each.</span></li>
       </ul>
     </section>
 
@@ -450,22 +456,22 @@
       <h2>1. Motivation</h2>
 
       <h3>Why This Exists</h3>
-      <p class="placeholder-content"><!-- TODO: The real motivation. What engineering problem does this solve? --></p>
+      <p>By Project 08 you have eight working capabilities: a chatbot (P01), embeddings (P02), semantic search (P03), retrieval with citations (P04), a memory system (P05), a tool-using copilot (P06), an evaluation harness (P07), and a reliable autonomous agent (P08). Each runs on its own. But a <em>person</em> doesn't think in projects — they say "remember this," "what did I note about X," "summarize everything I've saved on Y," or just "explain this to me." A <strong>Personal Learning OS</strong> is the front door that takes any of those and sends it to the right capability. The new problem is no longer <em>how to build a retriever or an agent</em> — you've done that. It's <strong>how to compose</strong> them.</p>
 
       <div class="callout info">
         <div class="callout-title">The Core Problem</div>
-        <p><!-- TODO: One-sentence problem statement. --></p>
+        <p>Without a router you have two bad options. <strong>One giant prompt</strong> that tries to save, recall, reason, and act in a single call is unreliable (it conflates "remember this" with "answer this"), unauditable, and expensive (you pay for the agent's machinery on a trivial lookup). <strong>Making the user pick the tool</strong> — a "save" button, a "search" tab — pushes your system's complexity onto the user and defeats the single front door. Routing is the third option: <em>the system</em> classifies the request and dispatches it to a specialized subsystem.</p>
       </div>
 
       <h3>What Breaks Without It</h3>
-      <p class="placeholder-content"><!-- TODO: Concrete failure scenario. --></p>
+      <p>The cost of routing wrong is concrete: mis-route a "remember my doctor's appointment" to small-talk chat and the note is <strong>silently lost</strong>; mis-route a one-line lookup to the agent and you've spent ten steps and real money on something a single retrieval would have answered. A system with brilliant specialists and a bad front door feels broken even when every individual subsystem works perfectly.</p>
 
       <h3>Real-World Stakes</h3>
-      <p class="placeholder-content"><!-- TODO: Where does this matter in production? --></p>
+      <p>This is the shape of every "AI assistant" product: a single conversational surface backed by many specialized capabilities. ChatGPT routes between chat, browsing, code execution, and image generation. A personal-knowledge tool routes between capture, recall, and synthesis. The product is <em>not</em> any single capability — those are commodities. The product is the <strong>orchestration</strong>: the right specialist for the request, every time, with a trail you can inspect.</p>
 
       <div class="callout tip">
         <div class="callout-title">Startup Lens</div>
-        <p><!-- TODO: Would users pay for this? What is the commercial value? --></p>
+        <p>This <em>is</em> StarcallOS in miniature. People pay for the integration — one interface that quietly does the right thing — not for yet another chatbot. The capabilities are table stakes; the seamless routing and the trustworthy, auditable answers are the moat. And the discipline that protects the bill is P08's, lifted to the system: route the simple request to the cheap subsystem, reserve the expensive agent for the request that genuinely needs it.</p>
       </div>
     </section>
 
@@ -474,25 +480,43 @@
       <h2>2. Mental Model</h2>
 
       <h3>Explain Like I'm 12</h3>
-      <p class="placeholder-content"><!-- TODO: Simplest possible explanation with an analogy. --></p>
+      <p>Imagine a big help desk with one friendly person at the front and four expert rooms behind them. You walk up and say anything. The front-desk person's only job is to <strong>figure out which room you need</strong>: the <strong>Filing Room</strong> if you're handing them something to keep ("remember this"), the <strong>Library</strong> if you're asking for something you stored before ("what did I write about my trip?"), the <strong>Workshop</strong> for a big multi-step job ("go through all my notes about France and make me a summary"), or the <strong>Chat Couch</strong> if you just want to talk. If they guess wrong, bad things happen: hand a note to the Couch and it gets thrown away; send a one-second question to the Workshop and you wait an hour for what the Library could've handed you instantly. So they follow simple rules — "if they're handing me something to keep, that's <em>always</em> the Filing Room first" — and when they truly can't tell, they default to the Couch, which is safe and cheap. This project is you building that front desk.</p>
 
       <h3>Explain Like I'm a Software Engineer</h3>
-      <p class="placeholder-content"><!-- TODO: Technical depth. Assume strong programming background. --></p>
+      <ul>
+        <li>The OS is the <strong>augmented LLM as a system</strong>: retrieval (P03/P05), tools/agent (P06/P08), and memory (P05), wired behind one entrypoint. The subsystems are <strong>provided</strong> (you built them); the learning target is the composition.</li>
+        <li><strong><code>route_query(query) -&gt; Route</code></strong> is a classifier. Deterministic and signal-based so it's offline-testable: match intent markers, score them, return the highest-precedence route above a confidence threshold, else the safe default (<code>CHAT</code>). Production routing "can be handled by an LLM or a more traditional classification model."</li>
+        <li><strong>Precedence is correctness, not style.</strong> <code>SAVE</code> is checked before <code>CHAT</code> because a dropped save is a <em>data-loss</em> failure; <code>TASK</code> (the agent) is gated so only genuinely multi-step requests reach it.</li>
+        <li><strong><code>LearningOS.handle(query)</code></strong> is the orchestrator: route → look up the subsystem in a dispatch table → call it → wrap the result in a <code>Response</code> carrying <code>route</code>, <code>reason</code>, and <code>provenance</code>.</li>
+        <li><strong><code>KnowledgeGraph</code></strong> links saved items by shared tags; <code>related(id)</code> returns neighbors ranked by shared-tag count — the reflection idea at engineering scale.</li>
+        <li><strong><code>evaluate_routing(cases, route_fn)</code></strong> scores the router on a frozen labeled set: overall accuracy <strong>and per-route</strong> accuracy, plus the misroutes.</li>
+      </ul>
 
       <h3>Real-World Analogy</h3>
       <div class="callout info">
         <div class="callout-title">Analogy</div>
-        <p><!-- TODO: A parallel from outside AI that makes the mechanism intuitive. --></p>
+        <p>The OS is a <strong>hospital triage nurse</strong>. Every patient comes through one door and describes their problem in their own words. The nurse doesn't treat anyone — their single, high-stakes skill is <strong>routing</strong>: chest pain to cardiology <em>now</em>, a sprained wrist to orthopedics, a question about results to records, and "I just feel off" to general intake (the safe default). Triage has strict <strong>precedence</strong> — life-threatening symptoms are checked first, never shadowed by a minor complaint — because the cost of mis-triaging the emergency is catastrophic. And every patient gets a <strong>chart</strong>: which department, why, what was done — provenance. A hospital with brilliant specialists and a bad triage nurse is a dangerous hospital. The OS is the nurse; P01–P08 are the departments.</p>
       </div>
 
       <h3>How It Works (Diagram)</h3>
-      <pre><!-- TODO: ASCII diagram of the core data flow or concept structure
+      <pre> REQUEST: "remember that my StarcallOS demo is on June 20"
+   │  route_query → matches SAVE markers ("remember that") → Route(SAVE)
+   ▼  handle → store.save(item, tags=[...]) → graph.add(id, tags)
+   ▼  Response(answer="Saved.", route="SAVE", provenance=[item#42])
 
-Example structure:
-[Input] → [Process A] → [Process B] → [Output]
-                ↓
-           [Storage]
---></pre>
+ REQUEST: "what did I save about StarcallOS?"
+   │  route_query → matches RECALL markers ("what did I save") → Route(RECALL)
+   ▼  handle → store.recall("StarcallOS") → [#42, #17]
+   ▼  Response(answer="You noted: demo on June 20; …", route="RECALL", provenance=[#42,#17])
+
+ REQUEST: "go through everything I know about StarcallOS and draft a status summary"
+   ▼  Route(TASK) → bounded agent over the store (P08) → multi-step synthesis
+
+ REQUEST: "what's the difference between recall and precision?"   (no personal data)
+   ▼  no strong signal → Route(CHAT, safe default) → single LLM call
+
+ evaluate_routing(labeled_cases, route_query)
+   ─► {accuracy: 0.92, per_route: {SAVE:1.0, RECALL:0.9, TASK:0.8, CHAT:0.95}, misroutes:[…]}</pre>
     </section>
 
     <!-- Section 3: Technical Explanation -->
@@ -500,14 +524,15 @@ Example structure:
       <h2>3. Technical Explanation</h2>
 
       <h3>Formal Definition</h3>
-      <p class="placeholder-content"><!-- TODO: Precise definition. Cite sources. --></p>
+      <p><strong>Routing</strong> is the workflow where the system "classifies an input and directs it to a specialized followup task." It "allows for separation of concerns, and building more specialized prompts." A <strong>route</strong> is one of a fixed, small set <code>{SAVE, RECALL, TASK, CHAT}</code>, each bound to exactly one subsystem; <code>route_query</code> returns the chosen route plus a <code>reason</code> and a <code>confidence</code>. The <strong>orchestrator</strong> follows the orchestrator-workers pattern: a central component that "dynamically breaks down tasks, delegates them to worker [subsystems], and synthesizes their results." <strong>Provenance</strong> is the set of item ids / source pointers that produced the answer. A <strong>knowledge graph</strong> here is an undirected weighted graph where an edge's weight is the number of tags two saved items share.</p>
 
       <h3>How It Works Step by Step</h3>
-      <!-- TODO: Ordered list walking through the mechanism -->
       <ol>
-        <li>Step 1 — to be written</li>
-        <li>Step 2 — to be written</li>
-        <li>Step 3 — to be written</li>
+        <li><strong>Classify the request (routing).</strong> <code>route_query</code> scans the text for intent markers per route, scores each, and selects the highest-precedence route whose confidence clears the threshold; if none does, return the safe default <code>CHAT</code>. Precedence — <code>SAVE</code> ▸ <code>RECALL</code> ▸ <code>TASK</code> ▸ <code>CHAT</code> — ranks routes by the cost of mis-routing.</li>
+        <li><strong>Dispatch to one subsystem.</strong> <code>handle</code> looks the route up in a dispatch table and calls exactly one subsystem. One request → one specialist — the "separation of concerns" routing buys.</li>
+        <li><strong>Synthesize with provenance.</strong> Each subsystem returns a <code>SubsystemResult(answer, sources)</code>. The orchestrator wraps it into a <code>Response(answer, route, reason, provenance=sources)</code> — what makes the system auditable.</li>
+        <li><strong>Grow the graph on save.</strong> When the route is <code>SAVE</code>, the save worker records the item and links it into the graph by shared tags. Later, recall can surface connected notes.</li>
+        <li><strong>Evaluate the router.</strong> <code>evaluate_routing</code> runs over a frozen labeled set and computes overall accuracy, <strong>per-route</strong> accuracy, and the explicit misroute list — the only way to catch a route that's silently at 0%.</li>
       </ol>
 
       <h3>Key Concepts</h3>
@@ -516,14 +541,19 @@ Example structure:
           <tr><th>Concept</th><th>Definition</th><th>Why It Matters</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>concept</td><td>definition</td><td>why it matters</td></tr>
+          <tr><td>Augmented LLM as a system</td><td>An LLM enhanced with retrieval, tools, and memory — the eight prior projects wired into one app</td><td>The capstone is the realization that P01–P08 were always <em>parts</em> of one system</td></tr>
+          <tr><td>Query routing</td><td>"Classifies an input and directs it to a specialized followup task"</td><td>One front door, many specialists: each gets a narrower job and a focused prompt</td></tr>
+          <tr><td>Precedence + safe default</td><td>An ordered set of route checks with a fallback to the cheapest safe route</td><td>The order is a correctness decision — a mis-ordered router silently drops a "remember this"</td></tr>
+          <tr><td>Orchestrator (orchestrator-workers)</td><td>Routes, delegates to a worker subsystem, and synthesizes the result</td><td>This is the OS: route → dispatch → assemble, with provenance attached at synthesis</td></tr>
+          <tr><td>Provenance</td><td>The response carries which route handled it and which items it used</td><td>An orchestrated answer with no trail is an unauditable black box</td></tr>
+          <tr><td>Personal knowledge graph</td><td>Saved items linked by shared tags; "related" = neighbors by shared-tag weight</td><td>Turns a flat list into a navigable structure — reflection at engineering scale</td></tr>
+          <tr><td>System-level evaluation</td><td>Routing accuracy overall <strong>and per route</strong> on a frozen set</td><td>A 90%-overall router can be 0% on <code>save</code>; only per-route numbers expose it</td></tr>
         </tbody>
       </table>
 
       <div class="callout warning">
         <div class="callout-title">Common Misconception</div>
-        <p><!-- TODO: The #1 thing people misunderstand about this concept. --></p>
+        <p>Routing order is <strong>not</strong> cosmetic. Precedence encodes the asymmetric cost of mistakes: <code>SAVE</code> first because a dropped save is silent data loss; <code>CHAT</code> last because it's the cheap, safe catch-all. Reordering the checks changes the system's behavior even with identical markers. And the safe default must be the cheapest, least-destructive route (<code>CHAT</code>) — never <code>TASK</code> (which burns agent cost) and never silently <code>SAVE</code> (which stores junk).</p>
       </div>
     </section>
 
@@ -531,30 +561,63 @@ Example structure:
     <section id="examples">
       <h2>4. Guided Examples</h2>
 
-      <h3>Example 1: Simplest Case</h3>
-      <p><!-- TODO: Setup for the example --></p>
-      <pre><code class="language-python"># TODO: Minimal working example
-# This should be runnable with just the base dependencies
+      <p>The lab stack: the <strong>provided</strong> subsystem kernel (<code>MemoryStore</code>, the dispatch table, an injected <code>chat</code>), a deterministic signal-based router, a tiny pure-Python graph, and a pure-logic evaluator. Examples mirror the guiding tests; all run <strong>offline</strong>.</p>
 
-import litellm
+      <h3>Example 1: Simplest Case — classify a request</h3>
+      <pre><code class="language-python">from router import route_query
 
-# Example code here
+route_query("remember that my StarcallOS demo is on June 20").name   # -> "SAVE"
+route_query("what did I save about StarcallOS?").name                # -> "RECALL"
+route_query("go through all my notes on France and draft a summary").name  # -> "TASK"
+route_query("explain the difference between recall and precision").name    # -> "CHAT"  (safe default)
+
+r = route_query("remember to email Sam")
+print(r.name, "|", r.reason)   # SAVE | matched SAVE markers: ['remember']
 </code></pre>
       <div class="callout tip">
         <div class="callout-title">What to Observe</div>
-        <p><!-- TODO: What should the learner notice about this output? --></p>
+        <p>The router maps free-text intent to a small fixed set of routes, and returns <em>why</em> (<code>reason</code>) — not just a label. The fourth request has no save/recall/task signal, so it falls to the safe default <code>CHAT</code>. The classification is the entire front door of the system.</p>
       </div>
 
-      <h3>Example 2: Real-World Case</h3>
-      <p><!-- TODO: More realistic usage --></p>
-      <pre><code class="language-python"># TODO: More complete example</code></pre>
+      <h3>Example 2: Real-World Case — orchestrate a request end to end</h3>
+      <pre><code class="language-python">from learning_os import LearningOS
+from subsystems import MemoryStore, make_subsystems
+from knowledge import KnowledgeGraph
 
-      <h3>Example 3: When It Fails</h3>
-      <p><!-- TODO: Intentional failure that reveals a limitation --></p>
-      <pre><code class="language-python"># TODO: Edge case / failure example</code></pre>
+store, graph = MemoryStore(), KnowledgeGraph()
+# fake chat fn so this is offline; the real app injects a LiteLLM-backed one
+os_ = LearningOS(make_subsystems(store, graph, chat=lambda msgs: "(chat answer)"), graph)
+
+r1 = os_.handle("remember that StarcallOS uses a routing front door")   # SAVE
+print(r1.route, r1.provenance)        # 'SAVE' [&lt;id of the new item&gt;]
+
+r2 = os_.handle("what did I save about StarcallOS?")                    # RECALL
+print(r2.route, r2.provenance)        # 'RECALL' [&lt;id of item saved above&gt;]
+</code></pre>
+      <div class="callout tip">
+        <div class="callout-title">What to Observe</div>
+        <p>One entrypoint (<code>handle</code>) routed two different requests to two different subsystems, and <strong>every</strong> response carries <code>route</code> and <code>provenance</code>. The save flowed into the store <em>and</em> the graph; the recall pulled it back out. The orchestrator never did any retrieval or saving itself — it routed and synthesized.</p>
+      </div>
+
+      <h3>Example 3: When It Fails — the per-route number a mean hides</h3>
+      <pre><code class="language-python">from evaluate_os import evaluate_routing
+from router import route_query
+
+cases = [
+    {"query": "remember to call mom", "expected_route": "SAVE"},
+    {"query": "note: buy milk", "expected_route": "SAVE"},
+    {"query": "what did I note about milk?", "expected_route": "RECALL"},
+    {"query": "summarize everything I saved this week", "expected_route": "TASK"},
+    {"query": "what is a vector database?", "expected_route": "CHAT"},
+]
+report = evaluate_routing(cases, route_query)
+print(report["accuracy"])     # e.g. 0.8  (overall — looks fine)
+print(report["per_route"])    # e.g. {'SAVE': 1.0, 'RECALL': 1.0, 'TASK': 0.0, 'CHAT': 1.0}
+print(report["misroutes"])    # [{'query': 'summarize everything I saved this week', ...}]
+</code></pre>
       <div class="callout danger">
-        <div class="callout-title">Why This Fails</div>
-        <p><!-- TODO: Explanation of the failure mode --></p>
+        <div class="callout-title">Why This "Fails"</div>
+        <p>Overall accuracy of 0.8 looks fine — but <code>per_route</code> reveals <code>TASK</code> is <strong>0%</strong>: every multi-step request is being mis-routed. The mean hid a completely broken route. This is the P07/P08 lesson (measure per case, not just the average) applied to the system's front door, and it's how you'd find that your router needs better <code>TASK</code> markers.</p>
       </div>
     </section>
 
@@ -570,30 +633,40 @@ import litellm
       <div class="knowledge-check">
         <h4>Knowledge Check — Answer These in UNDERSTANDING.md</h4>
         <ol>
-          <li>Explain the core concept in your own words to a smart 12-year-old.</li>
-          <li>Explain the core concept to a software engineer with no AI background.</li>
-          <li>Draw your mental model of how data flows through this system.</li>
-          <li>If you removed the key component, what would break?</li>
-          <li>What is the most likely failure mode in a production system?</li>
-          <li>Where have you seen a similar pattern before — inside or outside AI?</li>
-          <li><!-- TODO: One question specific to this lesson --></li>
+          <li>In your own words, what is <strong>query routing</strong>, and why does "classify then dispatch to a specialist" give a more reliable system than one giant prompt that tries to do everything?</li>
+          <li>Routing <strong>precedence</strong> is a correctness decision. Why must <code>SAVE</code> be checked before <code>CHAT</code>, and why must the safe default be <code>CHAT</code> rather than <code>TASK</code> or <code>SAVE</code>? Name the concrete failure each rule prevents.</li>
+          <li>The orchestrator returns <code>route</code>, <code>reason</code>, and <code>provenance</code> on every response. Why is that part of the <strong>contract</strong> and not just logging — who needs to read them, and what breaks if <code>handle</code> only printed them?</li>
+          <li>Predict the four failure modes of: (a) mis-routing a <code>SAVE</code> to <code>CHAT</code>, (b) routing every request to <code>TASK</code>, (c) returning answers with no provenance, (d) shipping a router change with no evaluation. Which design decision prevents each?</li>
+          <li>Why does <code>evaluate_routing</code> report <strong>per-route</strong> accuracy and not just an overall mean? Describe a router that scores 90% overall but is dangerous.</li>
+          <li>The knowledge graph links saved items by shared tags. Why link <strong>incrementally</strong> on each save instead of rebuilding all pairs, and why must a node never be related to itself?</li>
+          <li>Give one request you would route to a single retrieval (<code>RECALL</code>) and one you would route to the agent (<code>TASK</code>), and justify why the first does <strong>not</strong> need the agent.</li>
+          <li>The one thing you still don't fully understand about composing subsystems into one system.</li>
         </ol>
       </div>
 
-      <p>After filling in <code>UNDERSTANDING.md</code>, use the AI mentor pattern in <code>docs/meta/learning-flow.md</code> to get feedback. Record the feedback in <code>UNDERSTANDING_FEEDBACK.md</code>.</p>
+      <p>After filling in <code>UNDERSTANDING.md</code>, use the AI mentor pattern in <code>docs/meta/learning-flow.md</code> to get feedback. Record it in <code>UNDERSTANDING_FEEDBACK.md</code>.</p>
     </section>
 
     <!-- Section 6: Project Assignment -->
     <section id="assignment">
       <h2>6. Project Assignment</h2>
-      <p>See <code>PROJECT.md</code> for the full project specification including file structure and extended requirements.</p>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including file structure and extended requirements.</p>
 
       <h3>Core Requirement</h3>
-      <p><!-- TODO: The minimum viable implementation that proves understanding. --></p>
+      <p>Build the <strong>composition layer</strong> that turns eight separate capabilities into one Personal Learning OS, in <code>code/</code>:</p>
+      <ul>
+        <li><code>router.py</code> — <code>route_query</code> (M1) is the <em>learner core</em>: the deterministic, precedence-ordered, safe-default classifier that is the system's front door.</li>
+        <li><code>knowledge.py</code> — <code>KnowledgeGraph.add</code> / <code>.related</code> (M2) is the <em>learner core</em>: link saved items by shared tags and surface related ones, incrementally.</li>
+        <li><code>learning_os.py</code> — <code>LearningOS.handle</code> (M3) is the <em>learner core</em>: the orchestrator — route → dispatch to one subsystem → synthesize a <code>Response</code> with provenance.</li>
+        <li><code>evaluate_os.py</code> — <code>evaluate_routing</code> (M4) is the <em>learner core</em>: score the router overall and per route on a frozen set, and list the misroutes.</li>
+        <li><code>subsystems.py</code> — the provided kernel: <code>MemoryStore</code>, <code>make_subsystems</code>, and the four workers. <em>(Provided — they stand in for P01/P03/P05/P08.)</em></li>
+        <li><code>os_app.py</code> — the orchestrator app: a real LiteLLM <code>chat</code>, the subsystems, a REPL that prints route + reason + answer + provenance. <em>(Provided.)</em></li>
+      </ul>
+      <p><strong>Extended:</strong> an LLM-backed router compared against the deterministic one with <code>evaluate_routing</code>; provenance passed into the prompt for inline citations; graph-aware recall that expands hits with <code>related(id)</code>; a reflection job that summarizes recent items; threshold tuning for routing precision/recall.</p>
 
       <div class="callout info">
         <div class="callout-title">Definition of Done</div>
-        <p><!-- TODO: Specific, observable criteria for completion. --></p>
+        <p><code>route_query</code> classifies by precedence with a safe default and never sends an unsure request to <code>TASK</code>/<code>SAVE</code>; <code>handle</code> dispatches to <strong>exactly one</strong> subsystem and returns a <code>Response</code> with route + provenance; saves flow into the store <strong>and</strong> the graph; <code>KnowledgeGraph</code> is incremental, symmetric, self-free; <code>evaluate_routing</code> reports overall + per-route + misroutes; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments (incl. mis-ordered precedence and everything-to-<code>TASK</code>); <code>EVALUATION.md</code> is per-route; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
     </section>
 
@@ -606,29 +679,43 @@ import litellm
         <div class="milestone">
           <div class="milestone-num">1</div>
           <div class="milestone-content">
-            <h4>Milestone 1 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M1 — Query router</h4>
+            <p><code>router.route_query(query, threshold)</code> — classify into <code>{SAVE, RECALL, TASK, CHAT}</code> by precedence, with a safe default. <strong>Validation:</strong> save/recall/task phrasings route correctly; an unsignaled request → <code>CHAT</code> (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">2</div>
           <div class="milestone-content">
-            <h4>Milestone 2 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M2 — Knowledge graph</h4>
+            <p><code>knowledge.KnowledgeGraph.add(id, tags)</code> + <code>.related(id)</code> — link by shared tags, incrementally; rank neighbors. <strong>Validation:</strong> items sharing tags become neighbors ranked by shared-tag count; no self-edge; symmetric (offline test).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">3</div>
           <div class="milestone-content">
-            <h4>Milestone 3 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M3 — Orchestrator</h4>
+            <p><code>learning_os.LearningOS.handle(query)</code> — route → dispatch → <code>Response(answer, route, reason, provenance)</code>. <strong>Validation:</strong> a save then a recall round-trips through the store; every response carries route + provenance; exactly one subsystem runs (offline test with fake subsystems).</p>
           </div>
         </div>
         <div class="milestone">
           <div class="milestone-num">4</div>
           <div class="milestone-content">
-            <h4>Milestone 4 — to be written</h4>
-            <p>What you build and how to validate it.</p>
+            <h4>M4 — Evaluate routing</h4>
+            <p><code>evaluate_os.evaluate_routing(cases, route_fn)</code> — overall + per-route accuracy + misroutes. <strong>Validation:</strong> a labeled set yields correct numbers; a broken route shows as 0% per-route while overall stays high (offline test).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — OS end-to-end</h4>
+            <p><code>os_app.py</code> runs the REPL on a real provider, routing live requests through the subsystems. <strong>Validation:</strong> type "remember …", then "what did I save about …", then a synthesis request; see distinct routes + provenance printed.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break / Evaluate</h4>
+            <p>Mis-order precedence (CHAT first), drop the safe default, route everything to <code>TASK</code>, and strip provenance. <strong>Validation:</strong> a dropped/lost save / nonsense routes / cost+latency blow-up / unauditable answers — each recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
           </div>
         </div>
       </div>
@@ -644,12 +731,13 @@ import litellm
           <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Specific criteria from lesson.agent.md -->
-          <tr><td>Correctness</td><td>Produce correct outputs for test cases?</td><td>☐</td></tr>
-          <tr><td>Reliability</td><td>Work consistently on repeated calls?</td><td>☐</td></tr>
-          <tr><td>Cost awareness</td><td>Track token usage and cost?</td><td>☐</td></tr>
-          <tr><td>Failure handling</td><td>Handle errors gracefully?</td><td>☐</td></tr>
-          <tr><td>Understanding</td><td>Demonstrate the key insight in code?</td><td>☐</td></tr>
+          <tr><td>Routing precedence</td><td>check high-stakes intents (<code>SAVE</code>) before generic ones, so a "remember this" is never shadowed by <code>CHAT</code>?</td><td>☐</td></tr>
+          <tr><td>Safe default</td><td>fall back to the cheapest, non-destructive route (<code>CHAT</code>) when no signal is strong — never to <code>TASK</code> or <code>SAVE</code>?</td><td>☐</td></tr>
+          <tr><td>One specialist per request</td><td>dispatch each request to exactly one subsystem via the table — not run several or inline their logic in <code>handle</code>?</td><td>☐</td></tr>
+          <tr><td>Provenance returned</td><td>put <code>route</code>, <code>reason</code>, and the used item ids/sources <em>in the returned</em> <code>Response</code>, not just print them?</td><td>☐</td></tr>
+          <tr><td>Graph incremental + correct</td><td>link a new item to existing items by shared tags in one pass, with no self-edge and symmetric edges?</td><td>☐</td></tr>
+          <tr><td>System-level eval</td><td>report routing accuracy <strong>per route</strong>, not only the overall mean, and surface the misroutes?</td><td>☐</td></tr>
+          <tr><td>Right specialist for the job</td><td>route a simple lookup to <code>RECALL</code> and reserve <code>TASK</code> for genuinely multi-step requests — and can you name one of each?</td><td>☐</td></tr>
         </tbody>
       </table>
 
@@ -657,8 +745,12 @@ import litellm
         <div class="callout-title">Red Flags</div>
         <p>Your implementation may have problems if:</p>
         <ul>
-          <li><!-- TODO: Red flag 1 --></li>
-          <li><!-- TODO: Red flag 2 --></li>
+          <li><code>CHAT</code> is checked first or is the highest-precedence match, so saves and recalls leak into small talk.</li>
+          <li>Your safe default is <code>TASK</code> (every unsure request spins up the expensive agent) or <code>SAVE</code> (you store junk).</li>
+          <li><code>handle</code> retrieves or saves <em>itself</em> instead of dispatching to a subsystem — the orchestrator is doing a worker's job.</li>
+          <li><code>Response</code> has no <code>route</code>/<code>provenance</code>, so a caller can't tell what happened or audit the answer.</li>
+          <li><code>KnowledgeGraph.add</code> rebuilds every pair each call (O(N²)) or links a node to itself.</li>
+          <li>Your evaluation reports a single accuracy number, so a route that's silently 0% looks fine.</li>
         </ul>
       </div>
     </section>
@@ -672,10 +764,14 @@ import litellm
           <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
         </thead>
         <tbody>
-          <!-- TODO: Fill in from lesson.agent.md -->
-          <tr><td>Mistake 1</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 2</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
-          <tr><td>Mistake 3</td><td>Why</td><td>Consequence</td><td>Fix</td></tr>
+          <tr><td>Checking <code>CHAT</code> (or the broadest route) first</td><td>"Most requests are chat"</td><td>Saves/recalls get swallowed as small talk and silently lost</td><td>Order checks by the cost of mistakes: <code>SAVE</code> ▸ <code>RECALL</code> ▸ <code>TASK</code> ▸ <code>CHAT</code></td></tr>
+          <tr><td>Safe default = <code>TASK</code></td><td>"When unsure, let the agent figure it out"</td><td>Every ambiguous request costs agent steps + money</td><td>Default to <code>CHAT</code>; gate <code>TASK</code> behind clear multi-step signal</td></tr>
+          <tr><td><code>handle</code> does retrieval/saving itself</td><td>"It's just one line, I'll inline it"</td><td>Orchestrator and subsystems blur; no separation of concerns; untestable</td><td>Dispatch through the table to exactly one subsystem; <code>handle</code> only routes + synthesizes</td></tr>
+          <tr><td>Provenance printed, not returned</td><td>"I can see it in the logs"</td><td>Callers/tests/evaluators can't inspect the decision; not auditable</td><td>Put <code>route</code>, <code>reason</code>, <code>provenance</code> <em>in the</em> <code>Response</code></td></tr>
+          <tr><td>Graph rebuilt every save</td><td>"Recompute all pairs to be safe"</td><td>O(N²) per save; quadratic blow-up; slows every capture</td><td>Link the new node to current members in one pass; keep edges incremental</td></tr>
+          <tr><td>Node related to itself</td><td>forgot to skip <code>id == other</code></td><td>"Related notes" always lists the note you're on</td><td>Skip self when adding edges and when returning <code>related</code></td></tr>
+          <tr><td>One overall accuracy number</td><td>"90% — good enough"</td><td>A route silently at 0% is invisible; the system looks healthy and isn't</td><td>Report <strong>per-route</strong> accuracy + the misroute list</td></tr>
+          <tr><td>Routing everything through the agent</td><td>"The agent can do anything"</td><td>Slow, costly, less reliable than a single retrieval for simple asks</td><td>Route by need; "add complexity only when it demonstrably improves outcomes"</td></tr>
         </tbody>
       </table>
     </section>
@@ -685,18 +781,18 @@ import litellm
       <h2>10. Connections</h2>
 
       <h3>Builds On</h3>
-      <p><!-- TODO: Prior project knowledge this relies on --></p>
+      <p>This is <strong>the whole course assembled into one system.</strong> <code>CHAT</code> is Project 01 (a single completion). <code>RECALL</code> is Projects 03 and 05 (retrieval over a memory store). <code>SAVE</code> is Project 05 plus the new knowledge graph. <code>TASK</code> is Project 08's reliable agent (and through it, Project 06's tools). The <strong>provenance</strong> the orchestrator attaches is Project 04's citation discipline. The <strong>evaluation</strong> of the router is Project 07/08's "numbers, per case" discipline pointed at the front door. Nothing here re-teaches a capability — every subsystem is <em>provided</em> precisely because you already built it. The new work is the one thing the prior projects deliberately left out: how to <strong>compose</strong> them.</p>
 
       <h3>Enables</h3>
-      <p><!-- TODO: Future projects this makes possible --></p>
+      <p>This is the terminal project of the core curriculum — but it's the <em>first</em> project of building a real product. Everything beyond here is depth on a subsystem (better retrieval, a smarter router, more tools, richer evaluation) or breadth (more routes, more capabilities behind the same front door). The pattern you build — one entrypoint, a router, a dispatch table, provenance, and a system-level eval — is the skeleton every multi-capability AI app grows on.</p>
 
       <h3>Production Patterns</h3>
-      <p><!-- TODO: How real production systems implement this --></p>
+      <p>Real assistant systems are this skeleton plus production engineering: a router (rules, a small classifier, or an LLM) with a confidence threshold and a safe fallback; a capability/dispatch registry; per-capability prompts and budgets (P08's reliability layer on the <code>TASK</code> route); provenance and citations on every answer (P04); a frozen evaluation set for the router and each subsystem (P07); and observability — a trace of <em>which route handled what</em>. Anthropic's guidance frames the spectrum: a single augmented LLM call, then workflows (prompt chaining, <strong>routing</strong>, <strong>orchestrator-workers</strong>, evaluator-optimizer), then a full agent — reach for the simplest that works, and compose the named patterns rather than building one monolith.</p>
 
       <h3>StarcallOS Relevance</h3>
       <div class="callout info">
         <div class="callout-title">StarcallOS Connection</div>
-        <p><!-- TODO: How this pattern applies to your personal AI OS. See STARCALLOS_REFLECTION.md. --></p>
+        <p><strong>Project 09 is the smallest complete StarcallOS.</strong> StarcallOS <em>is</em> a personal OS with one conversational surface over many capabilities — capture, recall, research, action — and its core engineering problem is exactly this lesson's: route each request to the right capability, do it with a trail the user can trust, link what the user saves into a navigable structure, and reserve the expensive autonomous machinery for the requests that truly need it. The router is StarcallOS's front door; the dispatch table is its capability registry; the provenance is its trust layer; the system-level eval is how StarcallOS knows a change to the front door didn't quietly break the "remember this" path. Build this project well and you have prototyped the spine of StarcallOS.</p>
       </div>
     </section>
 
@@ -706,31 +802,36 @@ import litellm
       <p>See <code>source/resources.md</code> for the complete annotated source list.</p>
 
       <div class="source-tier">
-        <h4>Tier 1 — Official Documentation</h4>
+        <h4>Tier 1 — Official Documentation / Engineering Guidance</h4>
         <ul>
-          <!-- TODO: Fill in from resources.md -->
-          <li><a href="#">Documentation source 1</a></li>
+          <li><code>sources/articles/building-effective-agents.md</code> — the augmented LLM (retrieval + tools + memory); <strong>routing</strong> ("classifies an input and directs it to a specialized followup task"; "separation of concerns"); <strong>orchestrator-workers</strong> ("breaks down tasks, delegates … and synthesizes their results"); and "add complexity only when it demonstrably improves outcomes" as a routing rule. The spine of the capstone.</li>
+          <li><code>sources/official-docs/anthropic-citations.md</code> — claim → source location; the production form of the provenance the orchestrator attaches (carried from P04).</li>
+          <li><code>sources/official-docs/anthropic-tool-use.md</code> — the agentic loop behind the <code>TASK</code> route (carried from P06/P08).</li>
+          <li><code>sources/official-docs/litellm-completion.md</code> — the single-call interface behind the <code>CHAT</code> route and the optional LLM router (carried from P01).</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 2 — Foundational Papers</h4>
         <ul>
-          <li><!-- TODO: Papers --></li>
+          <li><code>sources/papers/rag-paper.md</code> — Lewis et al. 2020: provenance — an answer should carry a verifiable pointer to what produced it (applied to the orchestrator's <code>Response</code>).</li>
+          <li><code>sources/papers/generative-agents.md</code> — Park et al. 2023: reflection — linking memories into higher-level structure — the basis for the personal knowledge graph and graph-aware recall.</li>
+          <li><code>sources/papers/mt-bench.md</code> — Zheng et al. 2023: evaluate with numbers, per case — applied to the router (per-route accuracy, not just the mean).</li>
         </ul>
       </div>
 
       <div class="source-tier">
-        <h4>Tier 3 — Engineering Blogs</h4>
+        <h4>Tier 3 — Engineering Guides</h4>
         <ul>
-          <li><!-- TODO: Engineering blog posts --></li>
+          <li>None specific to this lesson beyond the Anthropic engineering guidance in Tier 1 ("Building Effective Agents" is itself the primary source for the routing and orchestrator-workers patterns).</li>
         </ul>
       </div>
 
       <div class="source-tier">
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
-          <li><!-- TODO: Educational resources --></li>
+          <li>None specific to this lesson. The prior projects (P01–P08) are the conceptual prerequisites — each subsystem the OS routes to is one you already built.</li>
+          <li><strong>Note:</strong> the repository has no dedicated primary source on knowledge graphs as such. The lightweight tag-linked graph is grounded in Generative Agents' reflection and treated as an engineering construct, not a sourced claim. No source is invented for it (see <code>source/resources.md</code>).</li>
         </ul>
       </div>
     </section>

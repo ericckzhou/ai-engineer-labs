@@ -1,5 +1,4 @@
 litellm
-chromadb
 python-dotenv
 rich
 pytest

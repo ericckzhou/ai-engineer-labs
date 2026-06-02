@@ -73,10 +73,18 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT: the Personal Learning OS's routing/retrieval/graph knobs.
     model: str = field(default_factory=default_model)
-    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
+    # Low temperature: routing and synthesis should behave deterministically, not creatively.
+    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.2")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
+    # Recall: how many stored items a RECALL/TASK route pulls from the memory store.
+    top_k: int = field(default_factory=lambda: int(os.getenv("OS_TOP_K", "5")))
+    # Routing: confidence floor. If the best route's confidence is below this, fall back to CHAT
+    # (the safe default). 0.0 = any positive signal routes; raise it to demand stronger evidence.
+    route_threshold: float = field(default_factory=lambda: float(os.getenv("OS_ROUTE_THRESHOLD", "0.0")))
+    # Knowledge graph: minimum shared tags required to draw an edge between two saved items.
+    link_min_shared_tags: int = field(default_factory=lambda: int(os.getenv("OS_LINK_MIN_SHARED_TAGS", "1")))
 
 
 def load_config() -> Config:

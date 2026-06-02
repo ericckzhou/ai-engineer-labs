@@ -262,17 +262,37 @@ When reasoning about a concept:
 
 ---
 
-### System Design
+### System Design (Project 09 — capstone)
+
+**Augmented LLM as a System**
+- Source: `sources/articles/building-effective-agents.md` (the building block: an LLM "enhanced with augmentations such as retrieval, tools, and memory")
+- Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
+- Known issues: the capstone is composition, not a ninth capability — the subsystems (P01/P03/P05/P08) are provided
 
 **Query Routing**
-- Source: `sources/articles/`
+- Source: `sources/articles/building-effective-agents.md` (routing: "classifies an input and directs it to a specialized followup task"; "separation of concerns"; routing can be an LLM or a traditional classifier)
 - Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
-- Known issues: —
+- Known issues: precedence is a *correctness* decision (check `SAVE` before `CHAT`) and the safe default must be the cheapest, non-destructive route (`CHAT`, never `TASK`/`SAVE`); a mis-ordered router silently drops a "remember this"
 
-**Knowledge Graphs**
-- Source: `sources/papers/`
+**Orchestrator-Workers (Orchestration)**
+- Source: `sources/articles/building-effective-agents.md` (a central LLM "dynamically breaks down tasks, delegates them to worker LLMs, and synthesizes their results")
 - Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
-- Known issues: —
+- Known issues: the orchestrator must dispatch to exactly one subsystem and only synthesize — if `handle` retrieves/saves itself it has taken on a worker's job (loses separation of concerns)
+
+**Provenance (orchestrated answers)**
+- Source: `sources/papers/rag-paper.md` (verifiable pointer to what produced the answer), `sources/official-docs/anthropic-citations.md` (claim → source location)
+- Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`, `projects/04-pdf-research-assistant/source/lesson.agent.md`
+- Known issues: provenance must be *returned* in the `Response`, not printed — a printed trail is invisible to callers, tests, and the evaluator
+
+**Knowledge Graphs (personal, tag-linked)**
+- Source: `sources/papers/generative-agents.md` (reflection — linking memories into higher-level structure; the conceptual basis). **No dedicated KG primary source exists yet** — the lightweight tag-linked graph is an engineering construct, not a sourced claim (see `projects/09-personal-learning-os/source/resources.md`); add a KG source here if one is later added to `sources/`
+- Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
+- Known issues: link **incrementally** (not O(N²) full-rebuild), keep edges **symmetric**, and never link a node to itself
+
+**System-Level Evaluation (per-route routing accuracy)**
+- Source: `sources/papers/mt-bench.md` (score with numbers, **per case** — applied to the router, not a single answer)
+- Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
+- Known issues: an overall accuracy mean hides a route that is silently 0% — report per-route accuracy + the misroute list on a frozen labeled set
 
 ---
 

@@ -84,6 +84,18 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 2: `sources/papers/ragas.md` — Es et al. 2023: reference-free RAG eval; faithfulness `F = |V|/|S|` (hallucination metric), answer relevance, context relevance
 - Tier 2: `sources/papers/mt-bench.md` — Zheng et al. 2023: LLM-as-a-judge — ~80% human agreement; biases (position/verbosity/self-enhancement); mitigations (reasoning-before-score, reference-guided, position-swap); MT-Bench + Chatbot Arena
 
+## System Design / Orchestration (Project 09 — capstone)
+
+> Composing the prior subsystems into one system. No new sources — these carry over, with the emphasis on *routing*, *orchestration*, *provenance*, and *system-level evaluation*.
+
+- Tier 1: `sources/articles/building-effective-agents.md` — the **augmented LLM** (retrieval + tools + memory) as the building block; **routing** ("classifies an input and directs it to a specialized followup task"; "separation of concerns"); **orchestrator-workers** ("dynamically breaks down tasks, delegates … and synthesizes their results"); "add complexity only when it demonstrably improves outcomes" as a *routing* rule
+- Tier 1: `sources/official-docs/anthropic-citations.md` — claim → source location; the production form of the provenance the orchestrator returns (carried from Project 04)
+- Tier 2: `sources/papers/rag-paper.md` — provenance: an answer should carry a verifiable pointer to what produced it (applied to the orchestrator's `Response`)
+- Tier 2: `sources/papers/generative-agents.md` — reflection (linking memories into higher-level structure): the conceptual basis for the lightweight personal **knowledge graph**
+- Tier 2: `sources/papers/mt-bench.md` — evaluate with numbers, **per case** — applied to the router (per-route accuracy, not just an overall mean)
+
+> **Knowledge-graph gap:** the repository has no dedicated primary source on knowledge graphs as such. Project 09's tag-linked graph is grounded in Generative Agents' reflection and treated as an engineering construct, not a sourced claim (per `OPERATING_RULES.md` Truth Rules 3–4). If a KG primary source is later added to `sources/`, register it here under *System Design → Knowledge Graphs* and cite it in the lesson.
+
 ---
 
 *Entries marked "to be added" need to be created in `sources/` by the Researcher agent.*
