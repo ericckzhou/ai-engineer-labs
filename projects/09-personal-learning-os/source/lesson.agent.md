@@ -276,6 +276,10 @@ Build the **composition layer** that turns eight separate capabilities into one 
 - **Reflection job:** a periodic step that reads recent items and writes a higher-level summary item back into the store + graph — reflection as a synthesis subsystem (source: `sources/papers/generative-agents.md`).
 - **Confidence threshold tuning:** sweep `route_threshold` and plot routing precision/recall — find the value that minimizes dangerous misroutes.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones
@@ -376,8 +380,9 @@ See source/resources.md for the full annotated source list.
 - `sources/official-docs/anthropic-citations.md` — claim → source location; the production form of the provenance the orchestrator returns.
 - `sources/official-docs/anthropic-tool-use.md` — the agentic loop behind the `TASK` route (carried from P06/P08).
 - `sources/official-docs/litellm-completion.md` — the single-call interface behind the `CHAT` route and the optional LLM router (carried from P01).
+- `sources/papers/knowledge-graphs-survey.md` — knowledge graphs as a data model: **entities and relations as first-class, traversable structure** — grounds the term for the lightweight tag-linked personal graph.
 
-> **A note on the knowledge graph:** the repository has no dedicated primary source on knowledge graphs as such. This lesson grounds the *lightweight, tag-linked personal graph* in Generative Agents' **reflection** (linking memories into higher-level structure) and treats the graph itself as an engineering construct, not a sourced claim. If the curriculum later adds a knowledge-graph primary source, register it in `catalogs/source-map.md` and cite it here. Do not invent one.
+> **Scope of the knowledge graph:** the *lightweight, tag-linked personal graph* is grounded in the **knowledge-graphs survey** (a graph is the right structure when links between saved items are first-class and traversable) and in **Generative Agents' reflection** (linking memories into higher-level structure). It stays a modest educational construct — not a full RDF/SPARQL/ontology or KG-embedding system.
 
 ---
 

@@ -668,6 +668,10 @@ print(report["misroutes"])    # [{'query': 'summarize everything I saved this we
         <div class="callout-title">Definition of Done</div>
         <p><code>route_query</code> classifies by precedence with a safe default and never sends an unsure request to <code>TASK</code>/<code>SAVE</code>; <code>handle</code> dispatches to <strong>exactly one</strong> subsystem and returns a <code>Response</code> with route + provenance; saves flow into the store <strong>and</strong> the graph; <code>KnowledgeGraph</code> is incremental, symmetric, self-free; <code>evaluate_routing</code> reports overall + per-route + misroutes; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments (incl. mis-ordered precedence and everything-to-<code>TASK</code>); <code>EVALUATION.md</code> is per-route; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->
@@ -818,6 +822,7 @@ print(report["misroutes"])    # [{'query': 'summarize everything I saved this we
           <li><code>sources/papers/rag-paper.md</code> — Lewis et al. 2020: provenance — an answer should carry a verifiable pointer to what produced it (applied to the orchestrator's <code>Response</code>).</li>
           <li><code>sources/papers/generative-agents.md</code> — Park et al. 2023: reflection — linking memories into higher-level structure — the basis for the personal knowledge graph and graph-aware recall.</li>
           <li><code>sources/papers/mt-bench.md</code> — Zheng et al. 2023: evaluate with numbers, per case — applied to the router (per-route accuracy, not just the mean).</li>
+          <li><code>sources/papers/knowledge-graphs-survey.md</code> — Hogan et al. 2021: grounds the term <em>knowledge graph</em> — entities and relations as a first-class, traversable data model. The capstone's tag-linked personal graph stays a modest educational construct (not RDF/SPARQL/KG-embedding).</li>
         </ul>
       </div>
 
@@ -832,7 +837,7 @@ print(report["misroutes"])    # [{'query': 'summarize everything I saved this we
         <h4>Tier 4 — Educational Sources</h4>
         <ul>
           <li>None specific to this lesson. The prior projects (P01–P08) are the conceptual prerequisites — each subsystem the OS routes to is one you already built.</li>
-          <li><strong>Note:</strong> the repository has no dedicated primary source on knowledge graphs as such. The lightweight tag-linked graph is grounded in Generative Agents' reflection and treated as an engineering construct, not a sourced claim. No source is invented for it (see <code>source/resources.md</code>).</li>
+          <li><strong>Scope note:</strong> the lightweight tag-linked graph is grounded in the knowledge-graphs survey (Hogan et al. 2021) and Generative Agents' reflection. It stays a modest educational construct — not a full RDF/SPARQL/ontology or KG-embedding system (see <code>source/resources.md</code>).</li>
         </ul>
       </div>
     </section>

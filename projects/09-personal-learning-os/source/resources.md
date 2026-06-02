@@ -70,6 +70,16 @@
   - Why it matters: evaluate with **numbers, per case** — applied here to the **router** (per-route
     accuracy, not just an overall mean, so a silently-broken route is visible). (Carried from Projects 07/08.)
 
+- **Knowledge Graphs (survey)** — `sources/papers/knowledge-graphs-survey.md`
+  - Title: Knowledge Graphs
+  - Authors: Hogan, Blomqvist, Cochez, d'Amato, et al.
+  - Year: 2021
+  - URL: https://arxiv.org/abs/2003.02320
+  - Why it matters: grounds the term **knowledge graph** — entities and relations as a first-class,
+    traversable data model. The Project 09 graph stays a **lightweight tag-linked personal graph**
+    (not RDF/SPARQL/ontology/KG-embedding); the survey is the source for *why a graph is the right
+    structure when links between saved items must be explicit and traversable*.
+
 ---
 
 ## Tier 3: Engineering Guides
@@ -91,15 +101,15 @@
 
 ---
 
-## A note on the knowledge graph (truth-rules disclosure)
+## Scope of the knowledge graph
 
-The repository currently has **no dedicated primary source on knowledge graphs as such**. This lesson
-therefore grounds the *lightweight, tag-linked personal graph* in **Generative Agents' reflection**
-(linking memories into higher-level structure) and treats the graph itself as an **engineering
-construct**, not a sourced claim. Per `OPERATING_RULES.md` (Truth Rules 3–4), no source is invented for
-it. If the curriculum later adds a knowledge-graph primary source (e.g. a survey on KG construction or
-entity linking), register it in `catalogs/source-map.md` under *System Design → Knowledge Graphs* and
-cite it in `lesson.agent.md` §10 and here.
+The *lightweight, tag-linked personal graph* is grounded in two sources: the **knowledge-graphs survey**
+(`sources/papers/knowledge-graphs-survey.md`) for the data model — entities and relations as first-class,
+traversable structure — and **Generative Agents' reflection** for linking memories into higher-level
+structure. The Project 09 implementation stays a **modest educational construct**: a tag-linked personal
+graph, **not** a full RDF, SPARQL, ontology, or KG-embedding system. The survey grounds *why a graph is
+the right structure* when links between saved items must be explicit and traversable; it does not license
+claiming the capstone implements the research area.
 
 ---
 
