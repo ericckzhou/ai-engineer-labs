@@ -56,4 +56,13 @@ def evaluate_run(result: RunResult, expected: dict) -> dict:
             -> {"completed": False, "steps": 3, "tool_calls": 3, "efficiency": 0.666...,
                 "stop_reason": "stuck"}
     """
-    raise NotImplementedError("M4: compute completed/steps/tool_calls/efficiency/stop_reason")
+    answer = result.answer or ""
+    completed = (result.stop_reason == "answered") and (expected["answer_contains"] in answer)
+    efficiency = min(1.0, expected["optimal_steps"] / max(result.steps, 1))
+    return {
+        "completed": completed,
+        "steps": result.steps,
+        "tool_calls": len(result.history),
+        "efficiency": efficiency,
+        "stop_reason": result.stop_reason,
+    }

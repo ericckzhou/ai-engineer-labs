@@ -121,5 +121,26 @@ def run_agent(messages: list, repo_root, complete: Callable, budget: BudgetTrack
         # a model that always calls a (different) tool and never answers:
         run_agent(...).stop_reason   -> "budget"  (hit the step/token ceiling)
     """
-    raise NotImplementedError(
-        "M3: drive call -> dispatch (recover) -> feed back -> guard (stuck/budget) -> repeat")
+    history: list[Action] = []
+    while budget.steps < budget.max_steps + 25:  # defensive structural cap; guards stop us first
+        msg = complete(messages, tools)
+        budget.tick(estimate_tokens(msg))
+        calls = parse_tool_calls(msg)
+        if not calls:
+            return RunResult(msg.content or "", history, budget.steps, budget.tokens, "answered")
+
+        messages.append(msg)  # assistant turn must precede its tool results
+        for call in calls:
+            history.append(Action(call.name, call.arguments))  # record before running
+            try:
+                result = dispatch_tool(call.name, call.arguments, repo_root)
+            except Exception as e:  # recovery: feed the error back as an observation, don't crash
+                result = f"Error: {e}"
+            messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+
+        if detect_stuck(history, stuck_window):
+            return RunResult(None, history, budget.steps, budget.tokens, "stuck")
+        if budget.over_budget():
+            return RunResult(None, history, budget.steps, budget.tokens, "budget")
+
+    return RunResult(None, history, budget.steps, budget.tokens, "max_steps")

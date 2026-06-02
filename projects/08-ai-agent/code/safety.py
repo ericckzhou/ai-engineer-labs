@@ -56,7 +56,10 @@ def detect_stuck(history: list[Action], window: int = 3) -> bool:
 
         detect_stuck([Action("read_file", {"path": "a.py"})], window=3)  -> False  (too short)
     """
-    raise NotImplementedError("M1: return True iff the last `window` actions are all identical")
+    if len(history) < window:
+        return False
+    recent = history[-window:]
+    return all(a == recent[0] for a in recent)
 
 
 @dataclass
@@ -82,7 +85,8 @@ class BudgetTracker:
             b = BudgetTracker(max_steps=5, max_tokens=10_000)
             b.tick(2000); b.tick(2000)     # -> b.steps == 2, b.tokens == 4000
         """
-        raise NotImplementedError("M2: increment steps by 1 and add tokens_used to tokens")
+        self.steps += 1
+        self.tokens += tokens_used
 
     def over_budget(self) -> str | None:
         """[learner] Return a reason STRING if a ceiling was crossed, else None. (M2)
@@ -102,4 +106,8 @@ class BudgetTracker:
             b.tick(2000); b.tick(2000); b.over_budget()   -> None
             b.tick(7000); b.over_budget()                 -> "token budget exhausted (11000/10000)"
         """
-        raise NotImplementedError("M2: return a reason string when steps or tokens cross the ceiling")
+        if self.steps >= self.max_steps:
+            return f"step budget exhausted ({self.steps}/{self.max_steps})"
+        if self.tokens >= self.max_tokens:
+            return f"token budget exhausted ({self.tokens}/{self.max_tokens})"
+        return None
