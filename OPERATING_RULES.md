@@ -130,6 +130,9 @@ These rules govern what Claude provides versus what the learner must build. The 
     *Always provide:* clear project brief, starter files, dependency setup, `.env.example` when environment variables are needed, a one-command run workflow, a one-command test workflow, tests or checks that guide the learner, rubric, reflection prompts, optional hints, extension tasks.
     *Never provide:* a complete working solution for the learner-owned core component, copy-paste final answers, hidden "magic" code that bypasses the intended learning, or excessive scaffolding that removes the main design decision.
 
+17a. **Keep solutions off `main`.**
+    The `main` branch is the spoiler-free learner version. Completed learner-owned core implementations belong on a separate `solutions` branch, not in the starter curriculum. Curriculum, docs, tests, and scaffolding may be shared across branches; final answers must not be merged back into `main`.
+
 18. **Label every project file or section with exactly one role.**
     - `provided` — complete scaffolding or support code (setup, plumbing, fixtures).
     - `partial` — starter code with TODOs marking learner-owned gaps.

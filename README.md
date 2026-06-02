@@ -82,6 +82,12 @@ Electives are optional off-spine deep dives. They are not required to complete t
 |---|---|---|
 | [MCP Interface Layer](projects/electives/01-mcp-interface-layer/) | Wrap the memory system as an MCP server | Teaches provider/consumer protocol design |
 
+## Branch Policy
+
+The `main` branch is the learner version: lessons, setup, starter code, tests, rubrics, and TODOs. It intentionally does not include completed learner-owned core implementations.
+
+Reference implementations belong on a separate `solutions` branch so learners can fork `main` without spoilers while reviewers can still inspect completed work.
+
 ## What Makes This Different
 
 Most AI projects demonstrate output. This repo demonstrates learning.
