@@ -652,6 +652,10 @@ print(answer)   # a "max steps reached" sentinel — NOT an infinite loop
         <div class="callout-title">Definition of Done</div>
         <p>Every file-path tool routes through <code>safe_resolve</code> (traversal fails closed); <code>parse_tool_calls</code> <code>json.loads</code> the <code>arguments</code> string and returns <code>[]</code> when the model answers; <code>run_agent</code> appends the assistant turn <strong>before</strong> the tool results and is bounded by <code>max_steps</code>; the copilot answers using files it actually <strong>read</strong>; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments; <code>EVALUATION.md</code> is concrete; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->

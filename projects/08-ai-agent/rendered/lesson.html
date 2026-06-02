@@ -670,6 +670,10 @@ print(result.stop_reason)   # 'answered'  — the raise became an observation, t
         <div class="callout-title">Definition of Done</div>
         <p><code>detect_stuck</code> flags identical repeated actions and not different productive ones; <code>BudgetTracker</code> enforces steps <strong>and</strong> tokens and reports <em>why</em> it stopped; <code>run_agent</code> catches a raising tool and feeds the error back (recovery), appends the assistant turn <strong>before</strong> the tool results, and returns a distinct <code>stop_reason</code>; <code>evaluate_run</code> reports completion/steps/tool-calls/efficiency; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments (incl. the "agent where a call would do" ablation); <code>EVALUATION.md</code> is concrete; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->

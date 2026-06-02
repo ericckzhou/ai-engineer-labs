@@ -672,6 +672,10 @@ def stream_ask(history, model="claude-sonnet-4-6"):
         <div class="callout-title">Extended Requirements</div>
         <p>Context-window guard (estimate &amp; warn/trim before exceeding budget); provider switch (change one config value to run a different model); <code>/cost</code> and <code>/reset</code> commands; persist a transcript to disk.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->

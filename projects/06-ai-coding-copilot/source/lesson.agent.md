@@ -250,6 +250,10 @@ Build a context-aware coding copilot in `code/` that answers questions about a t
 - **Structured output via a tool:** add an `emit_answer(answer, citations[])` tool and force `tool_choice` to it so the final answer is schema-validated with file:line citations (source: `sources/official-docs/anthropic-tool-use.md`).
 - **Parallel tool calls:** handle a model that requests several tools in one turn; execute and feed back all results before looping.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

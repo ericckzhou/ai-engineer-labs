@@ -662,6 +662,10 @@ print(top[0].id)      # 'm1'  — recency + importance break the relevance tie c
         <div class="callout-title">Definition of Done</div>
         <p>Retrieval ranks on <strong>relevance + recency + importance</strong> (not similarity alone); recency is <strong>exponential decay</strong> and <code>retrieve()</code> <strong>touches</strong> <code>last_accessed</code>; retrieval returns a bounded <strong>top-k</strong>; the chat loop <strong>writes each turn back</strong>; the guiding tests pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments; <code>EVALUATION.md</code> is quantitative; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->

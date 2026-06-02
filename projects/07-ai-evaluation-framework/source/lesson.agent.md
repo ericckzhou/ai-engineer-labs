@@ -254,6 +254,10 @@ Build a reusable evaluation harness in `code/`:
 - **Cost/latency tracking** per eval run (reuse Project 01's cost math).
 - **Verbosity audit:** log answer length next to score and check the correlation.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

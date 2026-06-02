@@ -473,6 +473,10 @@ every input is hostile until validated.
 8. What did wrapping P05 (rather than building memory again) teach you about the difference
    between a *capability* and an *interface to a capability*?
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Project Milestones

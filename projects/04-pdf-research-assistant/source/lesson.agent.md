@@ -243,6 +243,10 @@ Build a PDF research assistant in `code/` that answers questions about a documen
 - Compare **two chunking strategies** (e.g. fixed-size vs recursive/sentence) on the same questions and report the difference in retrieval + faithfulness.
 - Add **context relevance** scoring (`CR`) to diagnose whether a weak answer is a retrieval problem or a generation problem (source: `sources/papers/ragas.md`).
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

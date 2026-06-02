@@ -242,6 +242,10 @@ A CLI chatbot that: (a) holds a multi-turn conversation with correct history man
 - Provider switch: change one config value to run the same loop on a different model/provider. [src: litellm-completion]
 - `/cost` and `/reset` commands; persist a transcript to disk.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

@@ -269,6 +269,10 @@ Build the **reliability layer** that turns P06's tool loop into a trustworthy au
 - **Cost budget:** extend `BudgetTracker` with a real `max_usd` ceiling using your provider's official per-MTok price (source: `sources/official-docs/anthropic-pricing.md`).
 - **Retry with backoff:** on a *transient* tool error, retry the same call once before feeding the error back.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

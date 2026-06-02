@@ -285,6 +285,10 @@ Build a semantic search engine in `code/` over a provided corpus:
 - Compare `space="cosine"` vs `space="l2"` on the same corpus and explain the ranking differences.
 - Sweep `ef_search` and record recall vs. (qualitative) latency.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones

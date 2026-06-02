@@ -651,6 +651,10 @@ print("recall@%d = %.2f" % (k, recall))
         <div class="callout-title">Definition of Done</div>
         <p>The index is a <strong>persistent Chroma collection</strong>; distances are converted to similarities with no inversion; <code>evaluate.py</code> reports <strong>recall@k</strong> vs. the exact baseline as a number; the guiding tests in <code>code/tests/</code> pass; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments; <code>EVALUATION.md</code> is quantitative; <code>STARCALLOS_REFLECTION.md</code> names ≥1 concrete pattern.</p>
       </div>
+      <div class="callout tip">
+        <div class="callout-title">Start building</div>
+        <p>Open <a href="../code/README.md"><code>code/README.md</code></a> for setup, the milestone build order, and the file roles (which files are <em>provided</em> vs. <em>learner-owned</em>). Run <code>python -m pytest</code> to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.</p>
+      </div>
     </section>
 
     <!-- Section 7: Milestones -->

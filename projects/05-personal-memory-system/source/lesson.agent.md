@@ -257,6 +257,10 @@ Build a personal memory system in `code/` that stores experiences and retrieves 
 - **Reflection / promotion:** periodically synthesize repeated important episodic memories into a durable semantic fact and write it back (source: `sources/papers/generative-agents.md`).
 - **Persistence:** persist the stream to disk (or a Chroma collection, Project 03) so memory survives across sessions.
 
+### Start Building
+
+**Open [`code/README.md`](../code/README.md)** for setup, the milestone build order, and the file roles (which files are *provided* vs. *learner-owned*). Run `python -m pytest` to see the failing guiding tests, then implement the learner-owned functions in milestone order until they pass.
+
 ---
 
 ## Section 7: Project Milestones
