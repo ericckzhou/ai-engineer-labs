@@ -2,6 +2,9 @@
 
 Maps topics to source material by tier. Navigation only — truth lives in `sources/`.
 
+Rendered HTML for humans is generated at `catalogs/rendered/source-map.html` by
+`scripts/render_sources.py`. This Markdown file remains canonical.
+
 ## Format
 
 ```
@@ -91,11 +94,35 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 1: `sources/articles/building-effective-agents.md` — the **augmented LLM** (retrieval + tools + memory) as the building block; **routing** ("classifies an input and directs it to a specialized followup task"; "separation of concerns"); **orchestrator-workers** ("dynamically breaks down tasks, delegates … and synthesizes their results"); "add complexity only when it demonstrably improves outcomes" as a *routing* rule
 - Tier 1: `sources/official-docs/anthropic-citations.md` — claim → source location; the production form of the provenance the orchestrator returns (carried from Project 04)
 - Tier 2: `sources/papers/rag-paper.md` — provenance: an answer should carry a verifiable pointer to what produced it (applied to the orchestrator's `Response`)
-- Tier 2: `sources/papers/generative-agents.md` — reflection (linking memories into higher-level structure): the conceptual basis for the lightweight personal **knowledge graph**
+- Tier 2: `sources/papers/generative-agents.md` — reflection (linking memories into higher-level structure): the conceptual basis for linking memories into higher-order concepts
+- Tier 2: `sources/papers/knowledge-graphs-survey.md` — knowledge graphs as graph-shaped representations of entities and relationships; grounds the lightweight personal graph concept without claiming a full KG implementation
 - Tier 2: `sources/papers/mt-bench.md` — evaluate with numbers, **per case** — applied to the router (per-route accuracy, not just an overall mean)
 
-> **Knowledge-graph gap:** the repository has no dedicated primary source on knowledge graphs as such. Project 09's tag-linked graph is grounded in Generative Agents' reflection and treated as an engineering construct, not a sourced claim (per `OPERATING_RULES.md` Truth Rules 3–4). If a KG primary source is later added to `sources/`, register it here under *System Design → Knowledge Graphs* and cite it in the lesson.
+## Model Context Protocol (MCP)
 
----
+> Protocol surface for provider/consumer decoupling. The source base for the **MCP Interface Layer elective** (`projects/electives/01-mcp-interface-layer/`) and for comparing hand-wired tools (Projects 06/08/09) with reusable protocol-exposed capabilities.
 
-*Entries marked "to be added" need to be created in `sources/` by the Researcher agent.*
+- Tier 1: `sources/official-docs/mcp-architecture.md` — client-host-server architecture, JSON-RPC, stateful sessions, capability negotiation, composable isolated servers
+- Tier 1: `sources/official-docs/mcp-tools.md` — tool discovery/calling, `inputSchema`, optional `outputSchema`, structured results, protocol vs execution errors, tool security
+- Tier 1: `sources/official-docs/mcp-resources.md` — resource URIs, application-controlled context data, listing/reading resources, memory/corpus/resource surfaces
+- Tier 1: `sources/official-docs/mcp-prompts.md` — reusable prompt templates with arguments, host/user-selected prompts
+- Tier 1: `sources/official-docs/mcp-transports.md` — data layer vs transport layer, stdio vs Streamable HTTP, local vs remote operational constraints
+- Tier 1: `sources/official-docs/mcp-security-best-practices.md` — local server execution risk, consent, sandboxing, least privilege, token/session risks
+- Tier 1: `sources/official-docs/mcp-build-server.md` — practical server scaffolding, FastMCP, stdio logging caveat, host configuration
+
+## AI Observability
+
+- Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces
+
+## Agent Self-Improvement Patterns
+
+> Optional extensions for Project 08. These are architecture comparisons, not required base-agent behavior.
+
+- Tier 2: `sources/papers/reflexion.md` — verbal reflection from feedback stored in memory for future attempts
+- Tier 2: `sources/papers/self-refine.md` — generate, critique, revise loop without weight updates
+- Tier 2: `sources/papers/tree-of-thoughts.md` — search over multiple reasoning paths with generation, evaluation, selection, and backtracking
+- Tier 2: `sources/papers/rewoo.md` — plan first, execute tool calls, then solve; efficiency tradeoff versus adaptive ReAct loops
+
+## Knowledge Graphs
+
+- Tier 2: `sources/papers/knowledge-graphs-survey.md` — graph-shaped representation of entities and relationships; grounds Project 09's lightweight personal knowledge graph concept

@@ -63,3 +63,21 @@ Always cite the highest-tier source available.
 ## Rule
 
 Never cite a source that isn't in this directory. If you need to cite something, add it here first.
+
+## Rendered Source Views
+
+Markdown is canonical. Generated HTML exists only for human browsing:
+
+```
+catalogs/rendered/source-map.html
+sources/rendered/<category>/<source-name>.html
+```
+
+Regenerate the HTML after source-map or source-note edits:
+
+```bash
+python scripts/render_sources.py
+python scripts/render_sources.py --check
+```
+
+Do not hand-edit files under `catalogs/rendered/` or `sources/rendered/`.

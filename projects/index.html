@@ -211,6 +211,7 @@
       <code>.md</code> files (e.g. <code>source/lesson.agent.md</code>) are the canonical, dense versions written for
       <strong>LLM / agent</strong> consumption. <code>.html</code> files (e.g. <code>rendered/lesson.html</code>) are the
       progressive, visual versions for <strong>human learners</strong>. When they differ, the Markdown agent version wins.
+      Browse the rendered <a href="../catalogs/rendered/source-map.html">Source Map</a> for every source note.
     </p>
 
   </div>
@@ -473,13 +474,47 @@
         </article>
 
       </div>
+
+      <h2 class="section-title">Electives</h2>
+      <p style="color:var(--text-muted);font-size:0.92rem;margin:-6px 0 18px;max-width:72ch;">Optional, off-spine labs that go deeper on a focused topic. Not part of the numbered 1–9 sequence and they gate nothing — take them after the prerequisites listed on each card.</p>
+      <div class="grid">
+
+        <!-- E1 -->
+        <article class="card">
+          <div class="topline"><span class="num">E1</span></div>
+          <h3>MCP Interface Layer</h3>
+          <p class="desc">Stop hand-wiring tools into one app loop. Wrap Project 05's memory system as a <strong>Model Context Protocol server</strong> — tools, resources, and a prompt — then consume that one server from two different hosts. The learning target is the provider/consumer split (M×N → M+N): turning a subsystem into a reusable protocol surface, with a real trust boundary. The backend and transport wiring are provided.</p>
+          <div class="meta">
+            <span class="pill diff">Advanced</span>
+            <span class="pill status-available">Available</span>
+            <span class="pill">~10–14 hrs</span>
+            <span class="pill">Requires: <a href="05-personal-memory-system/rendered/lesson.html">05</a>, <a href="06-ai-coding-copilot/rendered/lesson.html">06</a>, <a href="08-ai-agent/rendered/lesson.html">08</a></span>
+          </div>
+          <div class="tags">
+            <span class="tag">MCP</span><span class="tag">provider/consumer split</span><span class="tag">tools/resources/prompts</span><span class="tag">stdio vs HTTP</span><span class="tag">trust boundary</span>
+          </div>
+          <div class="links">
+            <a class="primary" href="electives/01-mcp-interface-layer/rendered/lesson.html">Open lesson →</a>
+            <div class="secondary">
+              <a href="electives/01-mcp-interface-layer/PROJECT.md">Overview</a>
+              <a class="md" href="electives/01-mcp-interface-layer/source/lesson.agent.md">Lesson source</a>
+              <a class="md" href="electives/01-mcp-interface-layer/source/project.md">Project spec</a>
+              <a class="md" href="electives/01-mcp-interface-layer/source/rubric.md">Rubric</a>
+              <a class="md" href="electives/01-mcp-interface-layer/source/reflection.template.md">Reflection template</a>
+              <a class="md" href="electives/01-mcp-interface-layer/source/resources.md">Sources</a>
+              <a class="md" href="electives/01-mcp-interface-layer/code/README.md">Code</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
     </div>
   </main>
 
   <footer class="site">
     <div class="wrap">
-      <p>AI Engineering Lab — 9 projects, ordered. Each builds on the last. Primary sources live in <code>../sources/</code>; navigation indexes in <code>../catalogs/</code>.</p>
-      <p style="margin-top:6px">Links point to each project's real layout: <code>rendered/lesson.html</code> (human) · <code>source/*.md</code> (agent) · <code>code/README.md</code>. All nine projects are authored and available, ending with the Personal Learning OS capstone.</p>
+      <p>AI Engineering Lab — 9 core projects, ordered, plus electives. Each core project builds on the last. Primary sources live in <code>../sources/</code>; navigation indexes in <code>../catalogs/</code>.</p>
+      <p style="margin-top:6px">Links point to each project's real layout: <code>rendered/lesson.html</code> (human) · <code>source/*.md</code> (agent) · <code>code/README.md</code>. All nine core projects are authored and available, ending with the Personal Learning OS capstone; electives (e.g. the MCP Interface Layer) are optional, off-spine deep dives.</p>
     </div>
   </footer>
 

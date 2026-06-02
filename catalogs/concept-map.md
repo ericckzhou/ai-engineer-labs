@@ -233,6 +233,62 @@ When reasoning about a concept:
 
 ---
 
+**Reflexion**
+- Source: `sources/papers/reflexion.md` (verbal feedback converted into a reflection memory for future attempts)
+- Lesson: optional extension for `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: reflection quality depends on feedback quality; not a guarantee of autonomous learning
+
+**Self-Refine**
+- Source: `sources/papers/self-refine.md` (generate, feedback, revise loop using an LLM)
+- Lesson: optional extension for `projects/07-ai-evaluation-framework/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: self-feedback can become vague or self-confirming without external tests
+
+**Tree of Thoughts**
+- Source: `sources/papers/tree-of-thoughts.md` (search over multiple reasoning paths with evaluation and backtracking)
+- Lesson: optional extension for `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: costs more inference and orchestration; reserve for tasks where search matters
+
+**ReWOO / Plan-Execute**
+- Source: `sources/papers/rewoo.md` (decouple planning from observation-heavy tool execution)
+- Lesson: optional extension for `projects/08-ai-agent/source/lesson.agent.md`
+- Known issues: a bad initial plan needs replanning; efficiency trades off against ReAct-style adaptability
+
+---
+
+### Model Context Protocol
+
+**MCP Provider/Consumer Split**
+- Source: `sources/official-docs/mcp-architecture.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`; related to `projects/06-ai-coding-copilot/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`, `projects/09-personal-learning-os/source/lesson.agent.md`
+- Known issues: MCP is an interface protocol, not another agent loop
+
+**MCP Tools**
+- Source: `sources/official-docs/mcp-tools.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`
+- Known issues: tool schemas cross a trust boundary; validate inputs and distinguish protocol errors from tool execution errors
+
+**MCP Resources**
+- Source: `sources/official-docs/mcp-resources.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`
+- Known issues: resources are context data, not actions; hosts decide how to include them
+
+**MCP Prompts**
+- Source: `sources/official-docs/mcp-prompts.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`
+- Known issues: prompts are reusable templates exposed by a server, not private app strings
+
+**MCP Transports**
+- Source: `sources/official-docs/mcp-transports.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`
+- Known issues: stdio logging to stdout can corrupt protocol messages; remote HTTP needs stronger auth
+
+**MCP Security**
+- Source: `sources/official-docs/mcp-security-best-practices.md`
+- Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`; related to Project 06 sandboxing
+- Known issues: local servers run with host privileges unless sandboxed; use least privilege and explicit consent
+
+---
+
 ### Evaluation
 
 **LLM-as-Judge**
@@ -262,6 +318,13 @@ When reasoning about a concept:
 
 ---
 
+**Agent Observability / GenAI Telemetry**
+- Source: `sources/official-docs/opentelemetry-genai-semconv.md` (standard GenAI telemetry attributes and spans)
+- Lesson: `projects/07-ai-evaluation-framework/source/lesson.agent.md`, `projects/08-ai-agent/source/lesson.agent.md`, `projects/09-personal-learning-os/source/lesson.agent.md`
+- Known issues: observability records what happened; evaluation decides whether it was good
+
+---
+
 ### System Design (Project 09 — capstone)
 
 **Augmented LLM as a System**
@@ -285,9 +348,9 @@ When reasoning about a concept:
 - Known issues: provenance must be *returned* in the `Response`, not printed — a printed trail is invisible to callers, tests, and the evaluator
 
 **Knowledge Graphs (personal, tag-linked)**
-- Source: `sources/papers/generative-agents.md` (reflection — linking memories into higher-level structure; the conceptual basis). **No dedicated KG primary source exists yet** — the lightweight tag-linked graph is an engineering construct, not a sourced claim (see `projects/09-personal-learning-os/source/resources.md`); add a KG source here if one is later added to `sources/`
+- Source: `sources/papers/knowledge-graphs-survey.md` (graph-shaped representation of entities and relationships), `sources/papers/generative-agents.md` (reflection as a memory-linking behavior)
 - Lesson: `projects/09-personal-learning-os/source/lesson.agent.md`
-- Known issues: link **incrementally** (not O(N²) full-rebuild), keep edges **symmetric**, and never link a node to itself
+- Known issues: Project 09 is a lightweight tag-linked personal graph, not a full ontology/RDF/SPARQL system; link **incrementally** (not O(N²) full-rebuild), keep edges **symmetric**, and never link a node to itself
 
 **System-Level Evaluation (per-route routing accuracy)**
 - Source: `sources/papers/mt-bench.md` (score with numbers, **per case** — applied to the router, not a single answer)

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anthropic — Tool Use (Function Calling) Overview</title>
+  <style>
+  /* ============================================================================
+     CANONICAL LESSON CSS - source of truth: skills/lesson-generator/templates/lesson.css
+     Stamped inline into each rendered/lesson.html by the lesson-generator skill
+     (kept inline so the page opens standalone, with no server). Edit the template
+     and re-stamp; do NOT hand-edit this <style> block per project.
+     RENDER RULE: never place raw text + inline <code> as direct children of a
+     display:flex element (e.g. .objectives li) - wrap prose in a <span>, or the
+     text collapses to one word per line.
+     ============================================================================ */
+  :root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --surface2: #f3f4f6;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-bg: #eef2ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #d97706;
+    --yellow-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  nav.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .nav-brand {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .nav-project-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  nav.sidebar ul { list-style: none; }
+
+  nav.sidebar ul li a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  nav.sidebar ul li a:hover,
+  nav.sidebar ul li a.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 16px 10px 4px;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 56px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .lesson-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .lesson-tagline {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  section { margin-bottom: 56px; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 28px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* Callout boxes */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid;
+  }
+
+  .callout-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .callout.info { background: var(--accent-bg); border-color: var(--accent); }
+  .callout.info .callout-title { color: var(--accent); }
+
+  .callout.tip { background: var(--green-bg); border-color: var(--green); }
+  .callout.tip .callout-title { color: var(--green); }
+
+  .callout.warning { background: var(--yellow-bg); border-color: var(--yellow); }
+  .callout.warning .callout-title { color: var(--yellow); }
+
+  .callout.danger { background: var(--red-bg); border-color: var(--red); }
+  .callout.danger .callout-title { color: var(--red); }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  pre code { background: none; padding: 0; color: var(--code-text); font-size: 1em; }
+
+  .src {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: var(--surface2); }
+
+  /* Knowledge check */
+  .knowledge-check {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 32px 0;
+  }
+
+  .knowledge-check h4 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .knowledge-check ol { padding-left: 20px; }
+  .knowledge-check li { margin-bottom: 10px; }
+
+  /* Objectives */
+  .objectives { list-style: none; padding: 0; }
+
+  .objectives li {
+    position: relative;
+    padding: 8px 0 8px 32px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+
+  .objectives li:last-child { border-bottom: none; }
+
+  .obj-check {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  /* Milestone steps */
+  .milestones { counter-reset: milestone; }
+
+  .milestone {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .milestone-num {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .milestone-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .milestone-content p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  /* Sources */
+  .source-tier {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .source-tier h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .source-tier ul { list-style: none; padding: 0; }
+
+  .source-tier li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .source-tier li:last-child { border-bottom: none; }
+
+  .source-tier a { color: var(--accent); text-decoration: none; }
+  .source-tier a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav.sidebar { display: none; }
+    main { padding: 32px 24px; }
+  }
+
+
+  .source-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .source-actions a { background:var(--accent-bg); color:var(--accent); padding:7px 11px; border-radius:7px; text-decoration:none; font-size:13px; font-weight:600; }
+  .source-actions a:hover { text-decoration:underline; }
+  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin:18px 0 28px; }
+  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .metadata-item strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:3px; }
+  hr { border:0; border-top:1px solid var(--border); margin:28px 0; }
+  main ul, main ol { margin: 12px 0 18px 24px; }
+  main li { margin-bottom: 8px; }
+
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="nav-brand">AI Engineering Lab</div>
+      <div class="nav-project-title">Anthropic — Tool Use (Function Calling) Overview</div>
+      <ul>
+        <li><a href="#anthropic-tool-use-function-calling-overview">Anthropic — Tool Use (Function Calling) Overview</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#tools-are-defined-by-name-description-and-an-input-schema">Tools are defined by name, description, and an input schema</a></li>
+<li><a href="#the-request-response-flow-client-tools">The request/response flow (client tools)</a></li>
+<li><a href="#the-agentic-loop">The agentic loop</a></li>
+<li><a href="#controlling-whether-the-model-calls-a-tool-tool-choice">Controlling whether the model calls a tool — `tool_choice`</a></li>
+<li><a href="#tools-as-structured-output">Tools as structured output</a></li>
+<li><a href="#missing-parameters">Missing parameters</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
+<li><a href="#notes">Notes</a></li>
+      </ul>
+    </nav>
+    <main id="top">
+      <header class="lesson-header">
+        <div class="lesson-badge">Rendered Source Note</div>
+        <h1>Anthropic — Tool Use (Function Calling) Overview</h1>
+        <p class="lesson-tagline">Generated HTML view. Markdown remains canonical.</p>
+        
+        <div class="source-actions">
+          <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
+          <a href="../../official-docs/anthropic-tool-use.md">Canonical Markdown</a>
+        </div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-doc</div>
+<div class="metadata-item"><strong>Tier</strong>1 (Official Doc)</div>
+<div class="metadata-item"><strong>Author(s)</strong>Anthropic</div>
+<div class="metadata-item"><strong>Date</strong>Accessed 2026-06-01</div>
+<div class="metadata-item"><strong>URL</strong>https://platform.claude.com/docs/en/docs/build-with-claude/tool-use/overview</div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-01</div></div>
+
+      </header>
+      <h1 id="anthropic-tool-use-function-calling-overview">Anthropic — Tool Use (Function Calling) Overview</h1>
+<p><strong>Type:</strong> official-doc <strong>Tier:</strong> 1 (Official Doc) <strong>Author(s):</strong> Anthropic <strong>Date:</strong> Accessed 2026-06-01 <strong>URL:</strong> https://platform.claude.com/docs/en/docs/build-with-claude/tool-use/overview <strong>Accessed:</strong> 2026-06-01</p>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
+<p>This is the primary source for <strong>tool use</strong> — the central learning target of Project 06. Tool use is how an LLM stops being a text-in/text-out function and starts <em>acting</em>: reading a file, searching a codebase, calling an API. The mechanism is a structured request/response protocol — the model emits a structured <strong>call</strong>, your code executes it, you feed the <strong>result</strong> back, and the model continues. That request→execute→feed-back cycle, run in a loop, is the spine of every coding copilot and every agent (Project 08). The lab calls tools through LiteLLM&#x27;s OpenAI-style interface (<code>tools</code> / <code>tool_calls</code>), but the conceptual flow below — defined by Anthropic&#x27;s native API — is identical across providers.</p>
+<h2 id="key-claims">Key Claims</h2>
+<h3 id="tools-are-defined-by-name-description-and-an-input-schema">Tools are defined by name, description, and an input schema</h3>
+<ul>
+<li>A tool definition has a <strong><code>name</code></strong>, a <strong><code>description</code></strong>, and an <strong><code>input_schema</code></strong> (a JSON Schema describing the parameters). &quot;Claude decides when to call a tool based on the user&#x27;s request and the tool&#x27;s description.&quot;</li>
+<li>The description is load-bearing: the model chooses tools <em>from the description alone</em>. Good definitions include &quot;example usage, edge cases, input format requirements, and clear boundaries.&quot;</li>
+</ul>
+<h3 id="the-request-response-flow-client-tools">The request/response flow (client tools)</h3>
+<ul>
+<li><strong>Client tools</strong> &quot;run in your application.&quot; The cycle:</li>
+</ul>
+<ol>
+<li>You send <code>messages</code> plus a <code>tools</code> list to the model.</li>
+<li>If the model decides to use a tool, it responds with <strong><code>stop_reason: &quot;tool_use&quot;</code></strong> and one or more <strong><code>tool_use</code></strong> content blocks. Each <code>tool_use</code> block has an <code>id</code>, a <code>name</code>, and an <code>input</code> object (the arguments, matching your schema). Example:</li>
+</ol>
+<p>``<code>json { &quot;type&quot;: &quot;tool_use&quot;, &quot;id&quot;: &quot;toolu_01A09q...&quot;, &quot;name&quot;: &quot;get_weather&quot;, &quot;input&quot;: { &quot;location&quot;: &quot;New York, NY&quot;, &quot;unit&quot;: &quot;fahrenheit&quot; } } </code>``</p>
+<ol>
+<li><strong>Your code executes the operation</strong> and sends the outcome back as a <strong><code>tool_result</code></strong> content block (a <code>user</code>-role message) carrying the matching <code>tool_use_id</code> and the result content.</li>
+<li>The model reads the result and either calls another tool or returns a final answer with <code>stop_reason: &quot;end_turn&quot;</code>.</li>
+</ol>
+<h3 id="the-agentic-loop">The agentic loop</h3>
+<ul>
+<li>The model may call tools <strong>multiple times</strong> before producing a final answer: read a file → decide it needs another → search → then answer. The application loops &quot;send → if <code>tool_use</code>, execute + return <code>tool_result</code> → repeat&quot; until the model stops requesting tools (<code>stop_reason</code> is no longer <code>&quot;tool_use&quot;</code>). <strong>The loop is the program; the model drives it.</strong></li>
+<li>&quot;Tool access is one of the highest-leverage primitives you can give an agent.&quot; On benchmarks like SWE-bench, &quot;adding even basic tools produces outsized capability gains.&quot;</li>
+</ul>
+<h3 id="controlling-whether-the-model-calls-a-tool-tool-choice">Controlling whether the model calls a tool — <code>tool_choice</code></h3>
+<ul>
+<li>Default is <strong><code>tool_choice: {&quot;type&quot;: &quot;auto&quot;}</code></strong>: &quot;Claude decides on each turn whether to call a tool or respond directly.&quot; It calls a tool &quot;when the request maps to that tool&#x27;s described capability and the answer isn&#x27;t already in context.&quot;</li>
+<li>For a hard guarantee, <code>tool_choice</code> can force tool use (<code>any</code> = must use some tool; <code>tool</code> = must use a specific named tool; <code>none</code> = no tools). Auto behavior is also steerable via the system prompt (&quot;Use the tools to investigate before responding&quot;).</li>
+</ul>
+<h3 id="tools-as-structured-output">Tools as structured output</h3>
+<ul>
+<li>Because a <code>tool_use</code> block is a schema-conforming object, tool use <strong>is</strong> the mechanism for structured output: define a tool whose <code>input_schema</code> is the shape you want, and the model fills it. <code>strict: true</code> &quot;ensures Claude&#x27;s tool calls always match your schema exactly.&quot;</li>
+</ul>
+<h3 id="missing-parameters">Missing parameters</h3>
+<ul>
+<li>If the prompt lacks enough information to fill a required parameter, more capable models &quot;recognize that a parameter is missing and ask for it,&quot; while others &quot;may do its best to infer a reasonable value.&quot; Required-parameter design matters.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>concepts: [tool-use, function-calling, tool-schema, agentic-loop, tool-result, structured-output, tool-choice, react]</li>
+<li>projects: [06-ai-coding-copilot, 08-ai-agent]</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li><strong>The lab calls tools via LiteLLM (OpenAI-style), not the raw Anthropic API</strong>, so it works across Groq/Ollama/Anthropic with one code path. The OpenAI mapping of the same concepts: a tool is <code>{&quot;type&quot;:&quot;function&quot;,&quot;function&quot;:{&quot;name&quot;,&quot;description&quot;,&quot;parameters&quot;:&lt;JSON Schema&gt;}}</code>; the model&#x27;s request arrives at <code>response.choices[0].message.tool_calls</code> (each has <code>id</code> and <code>function.name</code> + <code>function.arguments</code> as a <strong>JSON string</strong>); you append the assistant message, then one <code>{&quot;role&quot;:&quot;tool&quot;,&quot;tool_call_id&quot;:id,&quot;content&quot;:result}</code> message per call; <code>tool_choice=&quot;auto&quot;</code>. The loop ends when <code>message.tool_calls</code> is empty. (Source: <a class="src" href="litellm-completion.html">sources/official-docs/litellm-completion.md</a>.)</li>
+<li><strong><code>arguments</code> is a JSON string in the OpenAI/LiteLLM shape</strong> — you must <code>json.loads</code> it before dispatching. Forgetting this is a common first bug.</li>
+<li><strong>The description is the API.</strong> The model never sees your function body — only <code>name</code> + <code>description</code> + schema. A vague description = the model picks the wrong tool or fills bad args. This is the &quot;agent-computer interface&quot; point from <a class="src" href="../articles/building-effective-agents.html">sources/articles/building-effective-agents.md</a>.</li>
+<li><strong>The loop needs a cap.</strong> A model can request tools indefinitely (or get stuck calling the same one). Always bound the loop (<code>max_steps</code>) — see <a class="src" href="../papers/react-paper.html">sources/papers/react-paper.md</a> for the reasoning-trace structure that makes loops terminate sensibly.</li>
+</ul>
+    </main>
+  </div>
+</body>
+</html>

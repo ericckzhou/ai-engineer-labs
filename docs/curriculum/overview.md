@@ -112,6 +112,27 @@ Nine projects. Each one builds on the last. Each one teaches something that real
 
 ---
 
+## Optional Deepening Sources
+
+The source layer also includes targeted material for MCP, AI observability, agent self-improvement patterns, and knowledge graphs. These sources are not new required projects; they support electives (below) and optional extensions to Projects 6-9.
+
+---
+
+## Electives (off-spine)
+
+Electives go deeper on a focused topic. They are **optional**, not numbered into the spine,
+and gate nothing — take them after their listed prerequisites.
+
+**Elective 1 — MCP Interface Layer.** Wrap Project 5's memory system as a **Model Context
+Protocol server** and consume it from two different hosts. Teaches the **provider/consumer
+split** (M×N → M+N): turning a subsystem into a reusable protocol surface (tools, resources,
+prompts) with a real trust boundary — *not* generic tool use. Builds on Projects 5, 6, and 8.
+
+**Key question:** What's the difference between a *capability* and an *interface to a
+capability* — and why does standardizing the interface matter more than any single tool?
+
+---
+
 ## Curriculum Principles
 
 **Each project is standalone.** You can do them out of order if needed. But the order is designed.

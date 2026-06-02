@@ -1,0 +1,4 @@
+mcp
+litellm
+python-dotenv
+pytest

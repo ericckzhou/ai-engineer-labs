@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elective 01 — MCP Interface Layer</title>
+  <style>
+  /* ============================================================================
+     CANONICAL LESSON CSS - source of truth: skills/lesson-generator/templates/lesson.css
+     Stamped inline into each rendered/lesson.html by the lesson-generator skill
+     (kept inline so the page opens standalone, with no server). Edit the template
+     and re-stamp; do NOT hand-edit this <style> block per project.
+     RENDER RULE: never place raw text + inline <code> as direct children of a
+     display:flex element (e.g. .objectives li) - wrap prose in a <span>, or the
+     text collapses to one word per line.
+     ============================================================================ */
+  :root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --surface2: #f3f4f6;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-bg: #eef2ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #d97706;
+    --yellow-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  nav.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .nav-brand {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .nav-project-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  nav.sidebar ul { list-style: none; }
+
+  nav.sidebar ul li a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  nav.sidebar ul li a:hover,
+  nav.sidebar ul li a.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 16px 10px 4px;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 56px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .lesson-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .lesson-tagline {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  section { margin-bottom: 56px; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 28px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* Callout boxes */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid;
+  }
+
+  .callout-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .callout.info { background: var(--accent-bg); border-color: var(--accent); }
+  .callout.info .callout-title { color: var(--accent); }
+
+  .callout.tip { background: var(--green-bg); border-color: var(--green); }
+  .callout.tip .callout-title { color: var(--green); }
+
+  .callout.warning { background: var(--yellow-bg); border-color: var(--yellow); }
+  .callout.warning .callout-title { color: var(--yellow); }
+
+  .callout.danger { background: var(--red-bg); border-color: var(--red); }
+  .callout.danger .callout-title { color: var(--red); }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  pre code { background: none; padding: 0; color: var(--code-text); font-size: 1em; }
+
+  .src {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: var(--surface2); }
+
+  /* Knowledge check */
+  .knowledge-check {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 32px 0;
+  }
+
+  .knowledge-check h4 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .knowledge-check ol { padding-left: 20px; }
+  .knowledge-check li { margin-bottom: 10px; }
+
+  /* Objectives */
+  .objectives { list-style: none; padding: 0; }
+
+  .objectives li {
+    position: relative;
+    padding: 8px 0 8px 32px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+
+  .objectives li:last-child { border-bottom: none; }
+
+  .obj-check {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  /* Milestone steps */
+  .milestones { counter-reset: milestone; }
+
+  .milestone {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .milestone-num {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .milestone-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .milestone-content p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  /* Sources */
+  .source-tier {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .source-tier h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .source-tier ul { list-style: none; padding: 0; }
+
+  .source-tier li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .source-tier li:last-child { border-bottom: none; }
+
+  .source-tier a { color: var(--accent); text-decoration: none; }
+  .source-tier a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav.sidebar { display: none; }
+    main { padding: 32px 24px; }
+  }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <div class="nav-brand">AI Engineering Lab · Elective</div>
+    <div class="nav-project-title">MCP Interface Layer</div>
+    <ul>
+      <li class="nav-section-label">Lesson</li>
+      <li><a href="#motivation">1. Motivation</a></li>
+      <li><a href="#mental-model">2. Mental Model</a></li>
+      <li><a href="#technical">3. Technical</a></li>
+      <li><a href="#examples">4. Examples</a></li>
+      <li><a href="#reflection">5. Reflection</a></li>
+      <li class="nav-section-label">Project</li>
+      <li><a href="#assignment">6. Assignment</a></li>
+      <li><a href="#milestones">7. Milestones</a></li>
+      <li><a href="#self-eval">8. Self-Evaluation</a></li>
+      <li class="nav-section-label">Reference</li>
+      <li><a href="#mistakes">9. Common Mistakes</a></li>
+      <li><a href="#connections">10. Connections</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- Header -->
+    <header class="lesson-header" style="position:relative;">
+      <div style="position:absolute;top:24px;right:0;text-align:right;font-size:13px;line-height:1.6;color:var(--text-muted);max-width:240px;">
+        <div style="font-weight:700;color:var(--accent);">~10–14 hrs</div>
+        <div>Prereq skills: Projects <a href="../../../05-personal-memory-system/rendered/lesson.html" style="color:var(--accent);">05</a>, <a href="../../../06-ai-coding-copilot/rendered/lesson.html" style="color:var(--accent);">06</a>, <a href="../../../08-ai-agent/rendered/lesson.html" style="color:var(--accent);">08</a></div>
+      </div>
+      <div class="lesson-badge">Elective · Advanced · off-spine</div>
+      <h1>MCP Interface Layer</h1>
+      <p class="lesson-tagline">Stop hand-wiring tools into one loop. Turn a subsystem into a reusable protocol surface that many hosts can consume.</p>
+      <div class="lesson-meta">
+        <span class="meta-chip">&#128214; Read the lesson</span>
+        <span class="meta-chip">&#9997; Fill in understanding</span>
+        <span class="meta-chip">&#128736; Wrap P05 as a server</span>
+        <span class="meta-chip">&#128268; Consume from two hosts</span>
+        <span class="meta-chip">&#128683; Break the trust boundary</span>
+      </div>
+    </header>
+
+    <!-- Learning Objectives -->
+    <section id="objectives">
+      <h2>Learning Objectives</h2>
+      <p>By the end of this elective, you will be able to:</p>
+      <ul class="objectives">
+        <li><div class="obj-check"></div><span>Explain <strong>MCP as an interface protocol, not an agent framework</strong> — it standardizes how an AI app obtains context and actions, and says nothing about the loop, prompt, or model.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish <strong>host, client, and server</strong> ("one client per server") and say where the agent loop now lives.</span></li>
+        <li><div class="obj-check"></div><span>Distinguish <strong>tools vs. resources vs. prompts</strong> by their control model (model- / application- / user-controlled) and pick the right primitive for a capability.</span></li>
+        <li><div class="obj-check"></div><span>Explain <strong>stdio vs. Streamable HTTP</strong> transport conceptually — local single-client vs. remote multi-client + auth — and why the same surface runs over either.</span></li>
+        <li><div class="obj-check"></div><span>Define <strong>JSON input schemas</strong> that are the contract the model sees, and validate against them.</span></li>
+        <li><div class="obj-check"></div><span>Implement <strong>safe handlers</strong> for memory search/save, <strong>expose entries as resources</strong>, and provide <strong>one reusable prompt</strong>.</span></li>
+        <li><div class="obj-check"></div><span><strong>Consume the same server from two hosts</strong> — proving the M×N → M+N decoupling.</span></li>
+        <li><div class="obj-check"></div><span>Analyze the <strong>trust boundary</strong>: untrusted arguments and URIs crossing a process boundary, and the failure modes (URI escape, unbounded inputs, stdout corruption, over-broad capability).</span></li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Motivation -->
+    <section id="motivation">
+      <h2>1. Motivation</h2>
+
+      <h3>Why This Exists</h3>
+      <p>In Projects 06, 08, and 09 you built tools the only way you knew how: a Python function (<code>read_file</code>, <code>search_memory</code>), a hand-written JSON schema beside it, and a dispatch block inside <em>your</em> agent loop. It worked — but every one of those tools is <strong>trapped inside the app that defined it</strong>. Your copilot's <code>search_memory</code> can't be used by your agent without copy-pasting it; neither can be used by Claude Desktop or a teammate's app at all. You've built the same handful of capabilities several times, once per app, because there was no shared way to <em>expose</em> a capability so any AI application could consume it.</p>
+      <p>That missing shared way is the <strong>Model Context Protocol (MCP)</strong>: an open, client-server protocol that standardizes how an AI application ("host") obtains context and actions from an external program ("server"). MCP "focuses solely on the protocol for context exchange — it does not dictate how AI applications use LLMs or manage the provided context" <span class="src">mcp-architecture.md</span>. It is a <strong>plug, not a brain.</strong> This elective's single new idea is the <strong>provider/consumer split</strong>: stop hand-wiring tools <em>into</em> a loop; turn a capability into a <strong>server</strong> behind a standard surface that many <strong>hosts</strong> consume through their own <strong>clients</strong>.</p>
+
+      <div class="callout info">
+        <div class="callout-title">The Core Problem (M×N → M+N)</div>
+        <p>Before a standard, connecting <em>M</em> AI applications to <em>N</em> capabilities is an <em>M×N</em> problem: every app needs a bespoke adapter for every capability. With one protocol, each host speaks MCP <strong>once</strong> and each capability is exposed <strong>once</strong> — the integration surface collapses to <em>M+N</em>. (This is the standard engineering articulation of the documented "any server, any host" property — an interpretation, not a verbatim protocol claim.)</p>
+      </div>
+
+      <h3>What Breaks Without It</h3>
+      <p>Without a protocol you live in the <em>M×N</em> world: capabilities are duplicated per app, drift out of sync, and can't be shared or swapped. A vendor who wants their service usable from "any AI app" must write and maintain one integration per app. And inside a single team, the memory system you spent Project 05 building stays locked to the one script that imported it — the moment a second app wants memory, you copy code.</p>
+
+      <div class="callout tip">
+        <div class="callout-title">Startup Lens — StarcallOS</div>
+        <p>A personal OS is exactly a host that wants to consume many capabilities — memory, calendar, files, search — without re-implementing each. MCP is how StarcallOS would expose its memory <em>once</em> and consume third-party capabilities without bespoke glue. The capability is the commodity; the <strong>reusable, governed interface</strong> is the leverage.</p>
+      </div>
+    </section>
+
+    <!-- Section 2: Mental Model -->
+    <section id="mental-model">
+      <h2>2. Mental Model</h2>
+
+      <h3>Explain Like I'm 12</h3>
+      <p>Imagine every plug and socket in your house was a different shape — the toaster, the lamp, the charger each needed its own special outlet, and buying a new lamp meant rewiring the wall. That's how AI apps used to talk to tools. Then someone invented a <strong>standard plug</strong> (think USB-C): the wall doesn't care what you plug in, the device doesn't care which wall it's in — as long as both speak the standard, they just work. <strong>MCP is that standard plug for AI.</strong> Your memory system becomes a device with the plug; any AI app with the socket can use it, and you added the plug <em>once</em>. The plug carries three things: <strong>buttons the AI can press</strong> (tools), <strong>things the AI can read</strong> (resources), and <strong>ready-made question cards</strong> (prompts). You already built the memory gadget — your job is to put the right plug on it.</p>
+
+      <h3>Explain Like I'm a Software Engineer</h3>
+      <ul>
+        <li>MCP is a <strong>JSON-RPC 2.0</strong> protocol with two layers: the <strong>data layer</strong> (lifecycle/capability negotiation + the primitives tools/resources/prompts) — the surface <em>you</em> design — and the <strong>transport layer</strong> (stdio or Streamable HTTP) — how bytes move. "The transport layer abstracts communication details … enabling the same JSON-RPC 2.0 message format across all transport mechanisms" <span class="src">mcp-architecture.md</span>.</li>
+        <li>Three participants: <strong>host</strong> (the AI app — coordinates clients), <strong>client</strong> (one per server, a dedicated connection), <strong>server</strong> (the program providing context — <em>what you build</em>).</li>
+        <li>A connection opens with an <strong><code>initialize</code></strong> handshake doing <strong>capability negotiation</strong> — each side declares what it supports <em>before</em> any call. Then the client <strong>discovers</strong> with <code>*/list</code> and <strong>executes</strong> with <code>tools/call</code> / reads with <code>resources/read</code>.</li>
+        <li>The shift from P06/P08: you are no longer writing <em>the loop that calls tools</em>. You are writing <em>the tools (and resources and prompts) that any loop can call.</em> The loop is the host's program now.</li>
+      </ul>
+
+      <h3>Real-World Analogy</h3>
+      <div class="callout info">
+        <div class="callout-title">Analogy — the device-driver / USB model</div>
+        <p>Before standardized drivers, every printer shipped bespoke software for every OS — an <em>M×N</em> mess. A <strong>driver model + a bus standard (USB)</strong> inverted it: the OS speaks the bus once; each device ships one driver exposing a standard interface (enumerate, read, write). Map it: <strong>USB/driver contract → MCP</strong>; <strong>operating system → host</strong>; <strong>the USB controller, one per device → client</strong>; <strong>a peripheral → server</strong> (your memory); <strong>device enumeration → capability negotiation + <code>*/list</code></strong>; <strong>plugging a printer into two laptops → consuming one server from two hosts</strong>. The analogy carries the <strong>trust boundary</strong>, too: a USB device can be malicious (BadUSB), so the OS mediates and the user grants access — exactly how a host gates an MCP server's tools.</p>
+      </div>
+
+      <h3>How It Works (Diagram)</h3>
+      <pre> HOST (Claude Desktop / your agent / the smoke-test client)
+   │  owns the loop, the prompt, the model
+   │  creates ONE client per server
+   ▼
+ CLIENT ──── stdio / Streamable HTTP ────►  SERVER  (you build this)
+   │  initialize        (capability negotiation: "I do tools + resources")
+   │  tools/list        (discovery)                 │
+   │  tools/call ───────────────────────────────►  ├─ memory_search / memory_save   (TOOLS, model-controlled)
+   │  resources/read ──────────────────────────►   ├─ memory://entries/{id}         (RESOURCES, app-controlled)
+   │  prompts/get ─────────────────────────────►   └─ reflect_on(topic)             (PROMPT, user-controlled)
+   ▼                                                       │
+   answer                                          MemoryBackend  (Project 05 — the wrapped capability)
+
+ TRUST BOUNDARY = the arrows INTO the server: every argument + URI is untrusted.</pre>
+    </section>
+
+    <!-- Section 3: Technical Explanation -->
+    <section id="technical">
+      <h2>3. Technical Explanation</h2>
+
+      <h3>Formal Definition</h3>
+      <p><strong>MCP</strong> is a client-host-server protocol over <strong>JSON-RPC 2.0</strong> with stateful sessions and <strong>capability negotiation</strong> <span class="src">mcp-architecture.md</span>. A <strong>host</strong> aggregates context and enforces consent/security; it creates one <strong>client</strong> per <strong>server</strong>; a server exposes focused capabilities and "should not see the whole conversation or into other servers." The <strong>data layer</strong> defines the primitives; the <strong>transport layer</strong> (stdio / Streamable HTTP) carries them — the same surface over either.</p>
+
+      <h3>The Three Server Primitives</h3>
+      <table>
+        <thead>
+          <tr><th>Primitive</th><th>What it is</th><th>Who drives it</th><th>MCP methods</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Tool</strong></td><td>An executable function that performs an action</td><td><strong>Model</strong> decides to call (host gates w/ user approval)</td><td><code>tools/list</code>, <code>tools/call</code></td></tr>
+          <tr><td><strong>Resource</strong></td><td>A data source providing context, addressed by URI</td><td><strong>Application</strong> reads it as context</td><td><code>resources/list</code>, <code>resources/read</code></td></tr>
+          <tr><td><strong>Prompt</strong></td><td>A reusable, parameterized message template</td><td><strong>User</strong> invokes it</td><td><code>prompts/list</code>, <code>prompts/get</code></td></tr>
+        </tbody>
+      </table>
+      <p>In this project: <code>memory_search</code>/<code>memory_save</code> are <strong>tools</strong> (the model acts); a stored entry is read-only context, so it's a <strong>resource</strong> (<code>memory://entries/{id}</code>); <code>reflect_on</code> is a <strong>prompt</strong> a user invokes. Choosing the right primitive <em>by its control model</em> is a graded design decision.</p>
+
+      <h3>Transports</h3>
+      <table>
+        <thead><tr><th>Transport</th><th>Where</th><th>Clients</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td><strong>stdio</strong></td><td>local subprocess, stdin/stdout</td><td>typically one</td><td>none (same machine)</td></tr>
+          <tr><td><strong>Streamable HTTP</strong></td><td>remote, HTTP POST + optional SSE</td><td>typically many</td><td>bearer / OAuth</td></tr>
+        </tbody>
+      </table>
+      <p>The same server runs over either with a one-line change (<code>mcp.run(transport="stdio")</code>). <strong>The data/transport split is the spine of the lesson:</strong> what you expose is independent of how it's carried.</p>
+
+      <h3>How It Works Step by Step</h3>
+      <ol>
+        <li><strong>Negotiate.</strong> The host's client sends <code>initialize</code>; the server declares its capabilities (tools, resources, prompts). Unsupported operations are never attempted.</li>
+        <li><strong>Discover.</strong> The client calls <code>tools/list</code> / <code>resources/list</code> / <code>prompts/list</code>. Each tool advertises <code>name</code>, <code>description</code>, and an <code>inputSchema</code> (JSON Schema) — "the description is the API" (Project 06), now portable.</li>
+        <li><strong>Execute.</strong> When the model chooses a tool, the client sends <code>tools/call</code> with <code>arguments</code>; the server validates, runs the handler, returns a <code>content</code> array.</li>
+        <li><strong>Validate at the boundary.</strong> Arguments and URIs come from a model in someone else's host — untrusted. The schema is advisory; the handler (via <code>security.py</code>) enforces bounds and contains URIs, failing closed.</li>
+        <li><strong>Log to stderr.</strong> On stdio the protocol <em>is</em> stdin/stdout; a stray <code>print</code> corrupts the JSON-RPC stream and breaks the server.</li>
+      </ol>
+
+      <div class="callout warning">
+        <div class="callout-title">The #1 footgun</div>
+        <p>"For STDIO-based servers: <strong>Never write to stdout.</strong> Writing to stdout will corrupt the JSON-RPC messages and break your server" <span class="src">mcp-build-server.md</span>. Use <code>print(..., file=sys.stderr)</code> or <code>logging</code> (which defaults to stderr).</p>
+      </div>
+    </section>
+
+    <!-- Section 4: Examples -->
+    <section id="examples">
+      <h2>4. Worked Examples</h2>
+
+      <h3>Simple Case — one tool, one host</h3>
+      <p>Expose <code>memory_search</code> only; connect the programmatic client; <code>initialize</code> → <code>list_tools</code> → <code>call_tool</code>. The client never imports the backend — it learns the tool from discovery and calls it over the protocol. <em>The consumer is fully decoupled from the provider.</em></p>
+      <pre>@mcp.tool()
+def memory_search(query: str, k: int = 5) -> str:
+    """Search the personal memory store; return the top-k most relevant entries."""
+    return memory_tools.handle_search({"query": query, "k": k}, backend)["text"]
+mcp.run(transport="stdio")   # the loop lives in the HOST, not here</pre>
+
+      <h3>Real-World Case — tools + resources + prompt, two hosts</h3>
+      <p>Add <code>memory_save</code>, expose entries as <code>memory://entries/{id}</code> resources, and a <code>reflect_on</code> prompt. Run the same server from (a) the stdio smoke-test client and (b) Claude Desktop or the MCP Inspector. <strong>Save a note in one session; read it as a resource in the other.</strong> One governed surface, multiple independent consumers — the M+N collapse, made concrete.</p>
+      <pre># consumer #1 — a programmatic stdio client
+async with stdio_client(StdioServerParameters(command="python", args=["server.py"])) as (r, w):
+    async with ClientSession(r, w) as session:
+        await session.initialize()                 # capability negotiation
+        print(await session.list_tools())          # discovery
+        await session.call_tool("memory_save", {"text": "demo on June 20"})
+        print(await session.call_tool("memory_search", {"query": "demo"}))</pre>
+      <pre>// consumer #2 — Claude Desktop (claude_desktop_config.json), no code
+{ "mcpServers": { "personal-memory": {
+    "command": "python", "args": ["C:\\ABSOLUTE\\PATH\\TO\\code\\server.py"] } } }</pre>
+
+      <h3>Failure Case — the trust boundary</h3>
+      <p>Send <code>memory_search</code> a <code>k</code> of 10,000,000 and a 5&nbsp;MB <code>text</code> to <code>memory_save</code>; request <code>memory://entries/../../etc/passwd</code> and <code>file:///secret</code>. A naive handler hangs, stores junk, or escapes the namespace. With <code>security.py</code> validating bounds and containing the URI (scheme + id allow-list), each is rejected and <strong>fails closed</strong>. <em>Across a protocol boundary, every input is hostile until validated.</em></p>
+    </section>
+
+    <!-- Section 5: Reflection -->
+    <section id="reflection">
+      <h2>5. Reflection</h2>
+      <p>Answer these in <code>UNDERSTANDING.md</code> <strong>before</strong> writing code (and revisit them after). Write in your own words.</p>
+      <div class="knowledge-check">
+        <h4>Knowledge Check</h4>
+        <ol>
+          <li>Why is "MCP is a protocol, not an agent framework" the most important framing here? What did you <em>stop</em> writing that you wrote in P06/P08?</li>
+          <li>Explain host vs. client vs. server to someone who knows P08 but not MCP. Where did the agent loop go?</li>
+          <li>"The current weather," "my saved notes," "a draft-a-summary template" — which is a tool, which a resource, which a prompt, and why (use the control models)?</li>
+          <li>Why does the same server run unchanged over stdio and Streamable HTTP? What <em>does</em> change, and when would you pick each?</li>
+          <li>Where exactly is the trust boundary in your server? Name two inputs that cross it and the check that guards each.</li>
+          <li>Restate the M×N → M+N argument with your memory server as the example. Who are the M and the N?</li>
+          <li>The schema/description "is the API." How is that claim <em>stronger</em> here than in Project 06?</li>
+          <li>What did wrapping P05 (rather than rebuilding memory) teach you about the difference between a <em>capability</em> and an <em>interface to a capability</em>?</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Section 6: Project Assignment -->
+    <section id="assignment">
+      <h2>6. Project Assignment</h2>
+      <p>See <code>PROJECT.md</code> and <code>source/project.md</code> for the full specification including the file-by-file spec and extended requirements.</p>
+
+      <h3>Core Requirement</h3>
+      <p>Wrap <strong>Project 05's memory system</strong> as an MCP server, in <code>code/</code>. The backend and the SDK/transport wiring are <strong>provided</strong>; the learning target is the protocol surface:</p>
+      <ul>
+        <li><code>memory_tools.py</code> — <code>TOOL_DEFINITIONS</code> (the JSON schemas) + <code>handle_search</code> / <code>handle_save</code> (M1–M2) are the <em>learner core</em>.</li>
+        <li><code>security.py</code> — the three validators (M1–M3): bound every input, contain the resource URI, fail closed.</li>
+        <li><code>memory_resources.py</code> — <code>list_resources</code> + <code>read_resource</code> (M3): expose entries as <code>memory://entries/{id}</code>.</li>
+        <li><code>prompts.py</code> — <code>PROMPT_DEFINITIONS</code> + <code>get_prompt</code> (M4): one reusable <code>reflect_on</code> prompt.</li>
+        <li><code>memory_backend.py</code> — the provided Project 05 memory store being wrapped <em>(reference — complete)</em>.</li>
+        <li><code>server.py</code> / <code>client_smoke_test.py</code> — the provided FastMCP/stdio adapter + consumer #1 <em>(no loop in the server)</em>.</li>
+      </ul>
+      <p><strong>Extended:</strong> run the same server over Streamable HTTP; expose <code>memory://search/{query}</code> as a dynamic resource; flip the backend to real provider embeddings; point your Project 08 agent at the server as a third consumer; add elicitation confirmation on <code>memory_save</code>.</p>
+
+      <div class="callout info">
+        <div class="callout-title">Definition of Done</div>
+        <p>The learner modules are <strong>SDK-agnostic</strong>; <code>memory_search</code>/<code>memory_save</code> have JSON schemas (<code>required</code> + bounds + a <code>kind</code> enum) and the handlers re-validate; entries are exposed as <strong>resources</strong> with URI containment; one <strong>prompt</strong> injects recalled memories; the server logs to <strong>stderr</strong>; <strong>two consumers</strong> of the one server are demonstrated (save in one, read in the other); guiding tests pass offline; <code>UNDERSTANDING.md</code> done before any code; <code>FAILURE_ANALYSIS.md</code> has ≥3 experiments (incl. stdout corruption + a trust-boundary breach); <code>EVALUATION.md</code> records the two-consumer demo; <code>STARCALLOS_REFLECTION.md</code> names ≥1 capability to expose via MCP.</p>
+      </div>
+    </section>
+
+    <!-- Section 7: Milestones -->
+    <section id="milestones">
+      <h2>7. Project Milestones</h2>
+      <p>Work through these in order. Each should produce runnable/inspectable progress before moving on.</p>
+
+      <div class="milestones">
+        <div class="milestone">
+          <div class="milestone-num">1</div>
+          <div class="milestone-content">
+            <h4>M1 — Tool schemas + the search handler</h4>
+            <p>Define the <code>inputSchema</code> for <code>memory_search</code>/<code>memory_save</code> (types, <code>required</code>, bounds, <code>kind</code> enum) and implement <code>handle_search</code> + <code>validate_search_args</code>. <strong>Validation:</strong> <code>tests/test_tools.py</code> + <code>test_security.py</code> search cases pass; a malformed arg is rejected.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">2</div>
+          <div class="milestone-content">
+            <h4>M2 — Save handler + the trust boundary</h4>
+            <p>Implement <code>handle_save</code> and the <code>security.py</code> bounds (clamp <code>k</code>, cap text, range-check <code>importance</code>, whitelist <code>kind</code>). <strong>Validation:</strong> valid + hostile inputs; save→search round-trips (offline).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">3</div>
+          <div class="milestone-content">
+            <h4>M3 — Resources</h4>
+            <p><code>list_resources</code> + <code>read_resource</code> expose entries as <code>memory://entries/{id}</code>, with URI containment. <strong>Validation:</strong> list + read one by URI; a traversal/foreign-scheme URI is rejected (offline).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">4</div>
+          <div class="milestone-content">
+            <h4>M4 — A reusable prompt</h4>
+            <p><code>get_prompt("reflect_on", {topic})</code> returns a parameterized message injecting recalled memories. <strong>Validation:</strong> the message contains the topic and the recalled entries (offline).</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">5</div>
+          <div class="milestone-content">
+            <h4>M5 — Two consumers (Definition of Done)</h4>
+            <p>Run <code>client_smoke_test.py</code> (consumer #1), then connect a second host — Claude Desktop or the MCP Inspector (consumer #2). <strong>Validation:</strong> the same server's tools/resources/prompt work from both; save in one, read in the other.</p>
+          </div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">6</div>
+          <div class="milestone-content">
+            <h4>M6 — Break it</h4>
+            <p>Corrupt the stream with a stdout <code>print</code>; remove a schema bound and send a hostile input; expose <code>save</code> with no validation; classify a read-only entry as a tool. <strong>Validation:</strong> each failure recorded in <code>FAILURE_ANALYSIS.md</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Self-Evaluation -->
+    <section id="self-eval">
+      <h2>8. Self-Evaluation</h2>
+      <p>After building, honestly evaluate your implementation against these criteria. Record your answers in <code>EVALUATION.md</code>.</p>
+
+      <table>
+        <thead>
+          <tr><th>Criterion</th><th>Does your implementation...</th><th>Pass?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SDK-agnostic core</td><td>keep <code>memory_tools</code>/<code>memory_resources</code>/<code>prompts</code>/<code>security</code> free of any <code>import mcp</code>, so they're pure and offline-testable?</td><td>☐</td></tr>
+          <tr><td>Schema as contract</td><td>define JSON schemas with <code>required</code>, bounds, and a <code>kind</code> enum — and <em>re-validate</em> in the handler (the schema is advisory)?</td><td>☐</td></tr>
+          <tr><td>Right primitive</td><td>use <strong>tools</strong> for search/save, a <strong>resource</strong> for entries, a <strong>prompt</strong> for reflect-on — and can you justify each by control model?</td><td>☐</td></tr>
+          <tr><td>URI containment</td><td>reject a foreign scheme and a <code>..</code> traversal, resolving only to a known entry id, failing closed?</td><td>☐</td></tr>
+          <tr><td>Bounded inputs</td><td>clamp <code>k</code>, cap text length, range-check <code>importance</code>, whitelist <code>kind</code>?</td><td>☐</td></tr>
+          <tr><td>stderr only</td><td>log to stderr in the stdio server, never <code>print</code> to stdout?</td><td>☐</td></tr>
+          <tr><td>Two consumers</td><td>demonstrate the one server from two hosts — and round-trip a save in one to a read in the other?</td><td>☐</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout danger">
+        <div class="callout-title">Red Flags</div>
+        <p>Your implementation may have problems if:</p>
+        <ul>
+          <li>You put a planning/looping step in the <em>server</em> — the loop belongs to the host.</li>
+          <li>A learner module imports <code>mcp</code> — the surface is no longer SDK-agnostic or offline-testable.</li>
+          <li>Everything is a <strong>tool</strong> — a read-only entry should be a resource; a user template a prompt.</li>
+          <li>Handlers trust their arguments / resource URIs — across the boundary the caller is untrusted.</li>
+          <li>The stdio server <code>print</code>s to stdout — the JSON-RPC stream is corrupted and the server "breaks."</li>
+          <li>You only demonstrated <em>one</em> consumer — the M+N decoupling is unproven.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 9: Common Mistakes -->
+    <section id="mistakes">
+      <h2>9. Common Mistakes</h2>
+
+      <table>
+        <thead>
+          <tr><th>Mistake</th><th>Why It Happens</th><th>Consequence</th><th>Fix</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Treating MCP as an agent framework ("where's the loop?")</td><td>Coming from P06/P08 where you owned the loop</td><td>You put planning/looping in the server; it belongs in the host</td><td>The server only <em>exposes</em> capabilities; the host owns the loop, prompt, model</td></tr>
+          <tr><td><code>print()</code> to stdout in a stdio server</td><td>Habit; debugging</td><td>Corrupts the JSON-RPC stream — server "breaks" mysteriously</td><td>Log to <strong>stderr</strong> (<code>print(..., file=sys.stderr)</code> or <code>logging</code>)</td></tr>
+          <tr><td>Putting everything in tools</td><td>Tools are the familiar primitive</td><td>A read-only note becomes a model-invoked action; wrong control model</td><td>Data to read = <strong>resource</strong>; an action = <strong>tool</strong>; a template a user runs = <strong>prompt</strong></td></tr>
+          <tr><td>Vague description / loose schema</td><td>"The function name says it all"</td><td>The model mis-calls or can't choose the tool; bad inputs slip through</td><td>The description + JSON schema <strong>are the API</strong>; be precise — <code>required</code>, bounds, <code>enum</code></td></tr>
+          <tr><td>Trusting tool args / resource URIs</td><td>In-process habit — callers were trusted</td><td>Untrusted input reaches your store; URI escapes the namespace</td><td>Validate every argument; contain the URI (scheme + id allow-list), fail closed</td></tr>
+          <tr><td>Unbounded inputs</td><td>No limits on <code>k</code>, <code>text</code>, importance</td><td>A huge <code>k</code> or megabyte <code>text</code> exhausts memory/latency</td><td>Clamp <code>k</code>, cap text, range-check importance — in <code>security.py</code></td></tr>
+          <tr><td>Hardcoding a transport assumption</td><td>Only ever ran stdio</td><td>Can't move the capability off-box without a rewrite</td><td>Keep handlers transport-agnostic; transport is a one-line <code>mcp.run(...)</code> choice</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 10: Connections -->
+    <section id="connections">
+      <h2>10. Connections</h2>
+
+      <h3>Builds On</h3>
+      <p>This elective generalizes the hand-wired tool use of <strong>Projects 06 and 08</strong> into a portable protocol, and wraps the memory system of <strong>Project 05</strong> as the concrete capability. The schema/description discipline is Project 06's agent-computer interface ("the description is the API"), now the contract <em>every</em> host's model sees. The URI containment is Project 06's path-sandboxing lesson, lifted across a <em>process</em> boundary. Nothing here re-teaches memory — the backend is <em>provided</em> precisely because you already built it.</p>
+
+      <h3>Enables</h3>
+      <p>Once a capability is an MCP server, it's consumable by your agent (P08 as a <em>host</em>), the Learning OS (P09 could route to MCP servers instead of in-process workers), Claude Desktop, the MCP Inspector, and a teammate's app — without any of them importing your code. The pattern you build — a governed surface of tools/resources/prompts behind a negotiated, transport-independent protocol — is how real AI products integrate external capabilities.</p>
+
+      <h3>Production Patterns</h3>
+      <p>Hosts (Claude Desktop, VS Code, Claude Code) launch/connect to servers and merge their tools into the model's toolset. Local servers use <strong>stdio</strong> (e.g. the reference filesystem server); remote servers use <strong>Streamable HTTP</strong> with OAuth/bearer (e.g. the hosted Sentry server). The <strong>MCP Inspector</strong> exercises a server with no client code; official SDKs (Python <code>mcp</code>, TypeScript <code>@modelcontextprotocol/sdk</code>) and reference servers model the shape. What separates MCP from a plain REST API is that it's <em>AI-native</em>: capability negotiation, the tool/resource/prompt control models, an LLM-friendly content format, and client primitives (sampling, elicitation) that let a server stay model-independent.</p>
+
+      <h3>StarcallOS Relevance</h3>
+      <div class="callout info">
+        <div class="callout-title">StarcallOS Connection</div>
+        <p>StarcallOS is a personal OS — a host that wants many capabilities behind one surface. MCP is how it would <strong>expose its own memory once</strong> as a server (reusable by any host, including third-party AI apps) and <strong>consume external capabilities</strong> (files, calendar, search) without writing a bespoke integration for each. The protocol surface is StarcallOS's plug standard; the trust boundary is its governance layer (untrusted inputs in, least-privilege capability out); the transport choice is per deployment (stdio for a local capability, Streamable HTTP for a hosted one). Wrap your memory system here and you've prototyped the integration spine StarcallOS grows on.</p>
+      </div>
+    </section>
+
+    <!-- Sources -->
+    <section id="sources">
+      <h2>Sources</h2>
+      <p>See <code>source/resources.md</code> for the complete annotated source list.</p>
+
+      <div class="source-tier">
+        <h4>Tier 1 — Official Documentation / Engineering Guidance</h4>
+        <ul>
+          <li><code>sources/official-docs/mcp-architecture.md</code> — MCP architecture: client-host-server (one client per server), JSON-RPC + stateful sessions with capability negotiation, the data/transport layers, stdio vs Streamable HTTP, and the three server primitives (tools/resources/prompts) with their control models. The conceptual spine; the basis for "a protocol, not an agent framework."</li>
+          <li><code>sources/official-docs/mcp-build-server.md</code> — building a server in Python with the <code>mcp</code> SDK / FastMCP (type hints + docstrings → tool definition), registering tools/resources/prompts, running over stdio, the stdout-corruption hazard, and configuring a host (Claude Desktop <code>mcpServers</code>). The implementation scaffolding the project provides and you fill in.</li>
+          <li><code>sources/official-docs/anthropic-tool-use.md</code> — the hand-wired tool loop (tool = name + description + JSON-schema input; <code>tool_use</code> → execute → <code>tool_result</code>) that this elective generalizes into a protocol. (Carried from P06/P08.)</li>
+          <li><code>sources/articles/building-effective-agents.md</code> — the augmented LLM and the agent-computer interface ("the description is the API"). MCP makes the ACI portable. (Carried from P06.)</li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 2 — Foundational Papers</h4>
+        <ul>
+          <li>None new — MCP is a protocol/engineering standard, not a research result. The wrapped capability (memory) is grounded in Project 05's papers (<code>generative-agents.md</code>, <code>memory-systems-taxonomy.md</code>, <code>memgpt.md</code>), carried over rather than re-taught.</li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 3 — Engineering Guides</h4>
+        <ul>
+          <li>The <strong>MCP Inspector</strong> (github.com/modelcontextprotocol/inspector) and official <strong>reference servers</strong> (github.com/modelcontextprotocol/servers) — practical references for exercising and modeling a server.</li>
+        </ul>
+      </div>
+
+      <div class="source-tier">
+        <h4>Tier 4 — Educational Sources</h4>
+        <ul>
+          <li>The prior projects are the prerequisites: Project 05 built the memory system you wrap; Projects 06 and 08 built the hand-wired tool loops MCP generalizes.</li>
+          <li><strong>Note:</strong> the <strong>M×N → M+N</strong> framing is the standard engineering interpretation of the documented "any server, any host" property, not a verbatim protocol claim (see <code>source/resources.md</code>). No source is invented for it.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

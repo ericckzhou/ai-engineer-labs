@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Source Map</title>
+  <style>
+  /* ============================================================================
+     CANONICAL LESSON CSS - source of truth: skills/lesson-generator/templates/lesson.css
+     Stamped inline into each rendered/lesson.html by the lesson-generator skill
+     (kept inline so the page opens standalone, with no server). Edit the template
+     and re-stamp; do NOT hand-edit this <style> block per project.
+     RENDER RULE: never place raw text + inline <code> as direct children of a
+     display:flex element (e.g. .objectives li) - wrap prose in a <span>, or the
+     text collapses to one word per line.
+     ============================================================================ */
+  :root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --surface2: #f3f4f6;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-bg: #eef2ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #d97706;
+    --yellow-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  nav.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .nav-brand {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .nav-project-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  nav.sidebar ul { list-style: none; }
+
+  nav.sidebar ul li a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  nav.sidebar ul li a:hover,
+  nav.sidebar ul li a.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 16px 10px 4px;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 56px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .lesson-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .lesson-tagline {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  section { margin-bottom: 56px; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 28px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* Callout boxes */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid;
+  }
+
+  .callout-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .callout.info { background: var(--accent-bg); border-color: var(--accent); }
+  .callout.info .callout-title { color: var(--accent); }
+
+  .callout.tip { background: var(--green-bg); border-color: var(--green); }
+  .callout.tip .callout-title { color: var(--green); }
+
+  .callout.warning { background: var(--yellow-bg); border-color: var(--yellow); }
+  .callout.warning .callout-title { color: var(--yellow); }
+
+  .callout.danger { background: var(--red-bg); border-color: var(--red); }
+  .callout.danger .callout-title { color: var(--red); }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  pre code { background: none; padding: 0; color: var(--code-text); font-size: 1em; }
+
+  .src {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: var(--surface2); }
+
+  /* Knowledge check */
+  .knowledge-check {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 32px 0;
+  }
+
+  .knowledge-check h4 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .knowledge-check ol { padding-left: 20px; }
+  .knowledge-check li { margin-bottom: 10px; }
+
+  /* Objectives */
+  .objectives { list-style: none; padding: 0; }
+
+  .objectives li {
+    position: relative;
+    padding: 8px 0 8px 32px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+
+  .objectives li:last-child { border-bottom: none; }
+
+  .obj-check {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  /* Milestone steps */
+  .milestones { counter-reset: milestone; }
+
+  .milestone {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .milestone-num {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .milestone-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .milestone-content p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  /* Sources */
+  .source-tier {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .source-tier h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .source-tier ul { list-style: none; padding: 0; }
+
+  .source-tier li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .source-tier li:last-child { border-bottom: none; }
+
+  .source-tier a { color: var(--accent); text-decoration: none; }
+  .source-tier a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav.sidebar { display: none; }
+    main { padding: 32px 24px; }
+  }
+
+
+  .source-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .source-actions a { background:var(--accent-bg); color:var(--accent); padding:7px 11px; border-radius:7px; text-decoration:none; font-size:13px; font-weight:600; }
+  .source-actions a:hover { text-decoration:underline; }
+  .metadata-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px; margin:18px 0 28px; }
+  .metadata-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .metadata-item strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:3px; }
+  hr { border:0; border-top:1px solid var(--border); margin:28px 0; }
+  main ul, main ol { margin: 12px 0 18px 24px; }
+  main li { margin-bottom: 8px; }
+
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="nav-brand">AI Engineering Lab</div>
+      <div class="nav-project-title">Source Map</div>
+      <ul>
+        <li><a href="#format">Format</a></li>
+<li><a href="#llm-apis-chat-completions">LLM APIs &amp; Chat Completions</a></li>
+<li><a href="#token-cost-pricing">Token Cost &amp; Pricing</a></li>
+<li><a href="#tokenization">Tokenization</a></li>
+<li><a href="#embeddings">Embeddings</a></li>
+<li><a href="#cosine-similarity-vector-math">Cosine Similarity &amp; Vector Math</a></li>
+<li><a href="#vector-databases-approximate-nearest-neighbor">Vector Databases &amp; Approximate Nearest Neighbor</a></li>
+<li><a href="#re-ranking-two-stage-retrieval">Re-Ranking / Two-Stage Retrieval</a></li>
+<li><a href="#rag-retrieval-augmented-generation">RAG (Retrieval-Augmented Generation)</a></li>
+<li><a href="#chunking">Chunking</a></li>
+<li><a href="#memory-systems">Memory Systems</a></li>
+<li><a href="#tool-use-agents">Tool Use / Agents</a></li>
+<li><a href="#agent-reliability-project-08">Agent Reliability (Project 08)</a></li>
+<li><a href="#evaluation">Evaluation</a></li>
+<li><a href="#system-design-orchestration-project-09-capstone">System Design / Orchestration (Project 09 — capstone)</a></li>
+<li><a href="#model-context-protocol-mcp">Model Context Protocol (MCP)</a></li>
+<li><a href="#ai-observability">AI Observability</a></li>
+<li><a href="#agent-self-improvement-patterns">Agent Self-Improvement Patterns</a></li>
+<li><a href="#knowledge-graphs">Knowledge Graphs</a></li>
+      </ul>
+    </nav>
+    <main id="top">
+      <header class="lesson-header">
+        <div class="lesson-badge">Rendered Catalog</div>
+        <h1>Source Map</h1>
+        <p class="lesson-tagline">Generated HTML view. Markdown remains canonical.</p>
+        <div class="source-actions"><a href="../../catalogs/source-map.md">Canonical Markdown</a></div>
+      </header>
+      <p>﻿# Source Map</p>
+<p>Maps topics to source material by tier. Navigation only — truth lives in <code>sources/</code>.</p>
+<p>Rendered HTML for humans is generated at <code>catalogs/rendered/source-map.html</code> by <code>scripts/render_sources.py</code>. This Markdown file remains canonical.</p>
+<h2 id="format">Format</h2>
+<pre><code>## [Topic]
+Tier 1 (Official Docs): sources/official-docs/...
+Tier 2 (Papers): sources/papers/...
+Tier 3 (Engineering Blogs): sources/articles/...
+Tier 4 (Educational): sources/videos/... or books/...</code></pre>
+<hr>
+<h2 id="llm-apis-chat-completions">LLM APIs &amp; Chat Completions</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-messages-api.html">sources/official-docs/anthropic-messages-api.md</a> — Messages API: request/response, stateless multi-turn, stop reasons, token usage</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-streaming.html">sources/official-docs/anthropic-streaming.md</a> — Streaming (SSE) event protocol</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/litellm-completion.html">sources/official-docs/litellm-completion.md</a> — Provider-agnostic <code>completion()</code> interface</li>
+<li>Tier 4: <a class="src" href="../../sources/rendered/videos/hf-llm-course-intro.html">sources/videos/hf-llm-course-intro.md</a> — NLP vs. LLM framing</li>
+<li>Tier 4: <a class="src" href="../../sources/rendered/articles/mlabonne-llm-course.html">sources/articles/mlabonne-llm-course.md</a> — &quot;Running LLMs&quot; as the foundational step</li>
+</ul>
+<h2 id="token-cost-pricing">Token Cost &amp; Pricing</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> — Per-MTok pricing, cost formula, token estimation, prompt caching</li>
+</ul>
+<h2 id="tokenization">Tokenization</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/tiktoken-bpe.html">sources/official-docs/tiktoken-bpe.md</a> — OpenAI&#x27;s BPE tokenizer: encode/decode API, token counting, byte-level BPE, ~4 bytes/token</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/hf-tokenization-algorithms.html">sources/official-docs/hf-tokenization-algorithms.md</a> — BPE/WordPiece/Unigram mechanics, word vs char vs subword tradeoff, worked BPE merge example</li>
+</ul>
+<h2 id="embeddings">Embeddings</h2>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/word2vec.html">sources/papers/word2vec.md</a> — Mikolov et al. 2013: continuous word vectors, CBOW/Skip-gram, &quot;king − man + woman ≈ queen&quot; vector arithmetic</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/sentence-bert.html">sources/papers/sentence-bert.md</a> — Reimers &amp; Gurevych 2019: sentence embeddings via siamese BERT, encode-once/compare-many, bi- vs cross-encoder</li>
+</ul>
+<h2 id="cosine-similarity-vector-math">Cosine Similarity &amp; Vector Math</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/scikit-learn-cosine-similarity.html">sources/official-docs/scikit-learn-cosine-similarity.md</a> — formula <code>x·y / (‖x‖‖y‖)</code>, cosine of the angle, magnitude-invariance, range [−1, 1]</li>
+</ul>
+<h2 id="vector-databases-approximate-nearest-neighbor">Vector Databases &amp; Approximate Nearest Neighbor</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/chromadb.html">sources/official-docs/chromadb.md</a> — Chroma vector DB: collections/documents/embeddings/metadata/ids, <code>collection.query()</code>, HNSW index, <code>space</code> = l2 (default)/cosine/ip, returns <em>distances</em> (lower = closer), <code>ef_search</code>/<code>ef_construction</code>/<code>max_neighbors</code>, persistent vs in-memory</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/hnsw.html">sources/papers/hnsw.md</a> — Malkov &amp; Yashunin 2016: hierarchical navigable small-world graphs, greedy multi-layer routing, ~O(log N) ANN search vs O(N) brute force, approximate-not-exact tradeoff</li>
+</ul>
+<h2 id="re-ranking-two-stage-retrieval">Re-Ranking / Two-Stage Retrieval</h2>
+<ul>
+<li>Tier 3: <a class="src" href="../../sources/rendered/articles/sbert-retrieve-rerank.html">sources/articles/sbert-retrieve-rerank.md</a> — retrieve with bi-encoder (fast, scalable) then re-rank top-k with cross-encoder (accurate); why cross-encoder alone can&#x27;t scale</li>
+</ul>
+<h2 id="rag-retrieval-augmented-generation">RAG (Retrieval-Augmented Generation)</h2>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/rag-paper.html">sources/papers/rag-paper.md</a> — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-citations.html">sources/official-docs/anthropic-citations.md</a> — claim → source location (<code>char_location</code>/<code>page_location</code>/<code>content_block_location</code>), <code>cited_text</code>, sentence-level citation chunking, verifiable pointers</li>
+</ul>
+<h2 id="chunking">Chunking</h2>
+<ul>
+<li>Tier 3: <a class="src" href="../../sources/rendered/articles/chunking-strategies.html">sources/articles/chunking-strategies.md</a> — Pinecone: chunk-size = precision vs context tradeoff, overlap, fixed-size (default) vs recursive vs semantic chunking, chunk expansion</li>
+</ul>
+<h2 id="memory-systems">Memory Systems</h2>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/generative-agents.html">sources/papers/generative-agents.md</a> — Park et al. 2023: memory stream; retrieval score = relevance (cosine) + recency (exponential decay <code>0.995^hours</code> from last access) + importance (LLM-rated 1–10); reflection</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/memgpt.html">sources/papers/memgpt.md</a> — Packer et al. 2023: LLMs as operating systems; memory hierarchy (main vs external context), virtual context management, paging, self-editing memory via tools</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/memory-systems-taxonomy.html">sources/papers/memory-systems-taxonomy.md</a> — Tulving 1972/1985, Squire: episodic (events, dated) vs semantic (durable facts) vs procedural (skills); declarative vs non-declarative; kind-aware decay</li>
+</ul>
+<h2 id="tool-use-agents">Tool Use / Agents</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-tool-use.html">sources/official-docs/anthropic-tool-use.md</a> — Anthropic tool use: tool = name + description + JSON-schema input; model returns <code>stop_reason:&quot;tool_use&quot;</code> with <code>tool_use</code> blocks → execute → return <code>tool_result</code>; the agentic loop; <code>tool_choice</code> (auto/any/tool/none); tools as structured output</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/articles/building-effective-agents.html">sources/articles/building-effective-agents.md</a> — Anthropic engineering: agent = &quot;LLMs using tools based on environmental feedback in a loop&quot;; workflows vs. agents; the augmented LLM (retrieval + tools + memory); the agent-computer interface (ACI)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/react-paper.html">sources/papers/react-paper.md</a> — Yao et al. 2022: ReAct — interleave reasoning traces and actions (Thought→Action→Observation); acting overcomes chain-of-thought hallucination; more interpretable trajectories; &quot;reasoning traces help the model … handle exceptions&quot; (the basis for tool-error recovery in P08)</li>
+</ul>
+<h2 id="agent-reliability-project-08">Agent Reliability (Project 08)</h2>
+<div class="callout info"><p>Making an autonomous loop safe to leave running. Same agent sources as above, emphasis shifted to <em>when</em> to use an agent and <em>how</em> to bound it. No new sources — these carry over.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/articles/building-effective-agents.html">sources/articles/building-effective-agents.md</a> — workflows vs. agents; &quot;the most successful implementations use simple, composable patterns&quot;; &quot;add complexity only when it demonstrably improves outcomes&quot; (when <em>not</em> to use an agent); orchestrator-workers, evaluator-optimizer patterns</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> — per-MTok pricing for a real cost budget (don&#x27;t invent token prices)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/mt-bench.html">sources/papers/mt-bench.md</a> — evaluating with numbers, applied to <em>runs</em> (completion + efficiency), not single answers</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/generative-agents.html">sources/papers/generative-agents.md</a> — reflection (synthesize a higher-level judgment from raw steps) for the optional reflection/evaluator-optimizer loop</li>
+</ul>
+<h2 id="evaluation">Evaluation</h2>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/ragas.html">sources/papers/ragas.md</a> — Es et al. 2023: reference-free RAG eval; faithfulness <code>F = |V|/|S|</code> (hallucination metric), answer relevance, context relevance</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/mt-bench.html">sources/papers/mt-bench.md</a> — Zheng et al. 2023: LLM-as-a-judge — ~80% human agreement; biases (position/verbosity/self-enhancement); mitigations (reasoning-before-score, reference-guided, position-swap); MT-Bench + Chatbot Arena</li>
+</ul>
+<h2 id="system-design-orchestration-project-09-capstone">System Design / Orchestration (Project 09 — capstone)</h2>
+<div class="callout info"><p>Composing the prior subsystems into one system. No new sources — these carry over, with the emphasis on <em>routing</em>, <em>orchestration</em>, <em>provenance</em>, and <em>system-level evaluation</em>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/articles/building-effective-agents.html">sources/articles/building-effective-agents.md</a> — the <strong>augmented LLM</strong> (retrieval + tools + memory) as the building block; <strong>routing</strong> (&quot;classifies an input and directs it to a specialized followup task&quot;; &quot;separation of concerns&quot;); <strong>orchestrator-workers</strong> (&quot;dynamically breaks down tasks, delegates … and synthesizes their results&quot;); &quot;add complexity only when it demonstrably improves outcomes&quot; as a <em>routing</em> rule</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-citations.html">sources/official-docs/anthropic-citations.md</a> — claim → source location; the production form of the provenance the orchestrator returns (carried from Project 04)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/rag-paper.html">sources/papers/rag-paper.md</a> — provenance: an answer should carry a verifiable pointer to what produced it (applied to the orchestrator&#x27;s <code>Response</code>)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/generative-agents.html">sources/papers/generative-agents.md</a> — reflection (linking memories into higher-level structure): the conceptual basis for linking memories into higher-order concepts</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/knowledge-graphs-survey.html">sources/papers/knowledge-graphs-survey.md</a> — knowledge graphs as graph-shaped representations of entities and relationships; grounds the lightweight personal graph concept without claiming a full KG implementation</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/mt-bench.html">sources/papers/mt-bench.md</a> — evaluate with numbers, <strong>per case</strong> — applied to the router (per-route accuracy, not just an overall mean)</li>
+</ul>
+<h2 id="model-context-protocol-mcp">Model Context Protocol (MCP)</h2>
+<div class="callout info"><p>Protocol surface for provider/consumer decoupling. The source base for the <strong>MCP Interface Layer elective</strong> (<code>projects/electives/01-mcp-interface-layer/</code>) and for comparing hand-wired tools (Projects 06/08/09) with reusable protocol-exposed capabilities.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-architecture.html">sources/official-docs/mcp-architecture.md</a> — client-host-server architecture, JSON-RPC, stateful sessions, capability negotiation, composable isolated servers</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-tools.html">sources/official-docs/mcp-tools.md</a> — tool discovery/calling, <code>inputSchema</code>, optional <code>outputSchema</code>, structured results, protocol vs execution errors, tool security</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-resources.html">sources/official-docs/mcp-resources.md</a> — resource URIs, application-controlled context data, listing/reading resources, memory/corpus/resource surfaces</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-prompts.html">sources/official-docs/mcp-prompts.md</a> — reusable prompt templates with arguments, host/user-selected prompts</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-transports.html">sources/official-docs/mcp-transports.md</a> — data layer vs transport layer, stdio vs Streamable HTTP, local vs remote operational constraints</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-security-best-practices.html">sources/official-docs/mcp-security-best-practices.md</a> — local server execution risk, consent, sandboxing, least privilege, token/session risks</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-build-server.html">sources/official-docs/mcp-build-server.md</a> — practical server scaffolding, FastMCP, stdio logging caveat, host configuration</li>
+</ul>
+<h2 id="ai-observability">AI Observability</h2>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/opentelemetry-genai-semconv.html">sources/official-docs/opentelemetry-genai-semconv.md</a> — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces</li>
+</ul>
+<h2 id="agent-self-improvement-patterns">Agent Self-Improvement Patterns</h2>
+<div class="callout info"><p>Optional extensions for Project 08. These are architecture comparisons, not required base-agent behavior.</p></div>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/reflexion.html">sources/papers/reflexion.md</a> — verbal reflection from feedback stored in memory for future attempts</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/self-refine.html">sources/papers/self-refine.md</a> — generate, critique, revise loop without weight updates</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/tree-of-thoughts.html">sources/papers/tree-of-thoughts.md</a> — search over multiple reasoning paths with generation, evaluation, selection, and backtracking</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/rewoo.html">sources/papers/rewoo.md</a> — plan first, execute tool calls, then solve; efficiency tradeoff versus adaptive ReAct loops</li>
+</ul>
+<h2 id="knowledge-graphs">Knowledge Graphs</h2>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/knowledge-graphs-survey.html">sources/papers/knowledge-graphs-survey.md</a> — graph-shaped representation of entities and relationships; grounds Project 09&#x27;s lightweight personal knowledge graph concept</li>
+</ul>
+    </main>
+  </div>
+</body>
+</html>
