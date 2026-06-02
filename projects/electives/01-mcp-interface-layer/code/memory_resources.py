@@ -16,7 +16,7 @@ Run:  python -m pytest tests/test_resources.py
 from __future__ import annotations
 
 from config import load_config
-from security import validate_resource_uri
+from security import SecurityError, validate_resource_uri
 
 cfg = load_config()
 
@@ -41,7 +41,15 @@ def list_resources(backend) -> list[dict]:
         -> [{"uri": "memory://entries/m0", "name": "Memory m0", ... "mimeType": "text/plain"},
             {"uri": "memory://entries/m1", "name": "Memory m1", ... "mimeType": "text/plain"}]
     """
-    raise NotImplementedError("M3: list each entry as a resource descriptor")
+    return [
+        {
+            "uri": _uri_for(m.id),
+            "name": f"Memory {m.id}",
+            "description": m.kind,
+            "mimeType": "text/plain",
+        }
+        for m in backend.all_entries()
+    ]
 
 
 def read_resource(uri: str, backend) -> dict:
@@ -59,4 +67,8 @@ def read_resource(uri: str, backend) -> dict:
                                                         "text": "the demo is on June 20", ...}
       read_resource("file:///etc/passwd", backend)  -> raises SecurityError
     """
-    raise NotImplementedError("M3: validate the URI and read the entry")
+    entry_id = validate_resource_uri(uri)
+    entry = backend.get(entry_id)
+    if entry is None:
+        raise SecurityError(f"no such entry: {entry_id}")
+    return {"uri": uri, "text": entry.text, "mimeType": "text/plain"}

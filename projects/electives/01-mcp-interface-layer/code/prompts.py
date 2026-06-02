@@ -21,7 +21,15 @@ cfg = load_config()
 # [learner] M4 — the prompt contracts the host surfaces. Fill with one dict per prompt:
 #   {"name": "reflect_on", "description": <what it does>,
 #    "arguments": [{"name": "topic", "description": "...", "required": True}]}
-PROMPT_DEFINITIONS: list[dict] = []  # TODO(learner): define the reflect_on prompt
+PROMPT_DEFINITIONS: list[dict] = [
+    {
+        "name": "reflect_on",
+        "description": "Pull recalled memories about a topic into a ready-to-send reflection prompt.",
+        "arguments": [
+            {"name": "topic", "description": "The topic to reflect on.", "required": True},
+        ],
+    },
+]
 
 
 def get_prompt(name: str, args: dict, backend) -> dict:
@@ -42,4 +50,21 @@ def get_prompt(name: str, args: dict, backend) -> dict:
         -> {"description": "Reflect on StarcallOS",
             "text": "...StarcallOS... the StarcallOS demo is on June 20 ..."}  # topic + recalled text present
     """
-    raise NotImplementedError("M4: assemble the reflect_on prompt with recalled memories")
+    if name != "reflect_on":
+        raise KeyError(f"unknown prompt: {name!r}")
+    topic = args.get("topic")
+    if not isinstance(topic, str) or not topic.strip():
+        raise ValueError("topic must be a non-empty string")
+    topic = topic.strip()
+
+    hits = backend.search(topic, k=cfg.default_k)
+    if hits:
+        recalled = "\n".join(f"- {m.text}" for m in hits)
+    else:
+        recalled = "(no saved memories found)"
+    text = (
+        f"Reflect on what I know about {topic}.\n\n"
+        f"Recalled memories:\n{recalled}\n\n"
+        f"Summarize what is known about {topic} and note any gaps."
+    )
+    return {"description": f"Reflect on {topic}", "text": text}

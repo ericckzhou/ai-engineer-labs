@@ -42,7 +42,20 @@ def validate_search_args(args: dict) -> tuple[str, int]:
       validate_search_args({"query": ""})                  -> raises SecurityError
       validate_search_args({"k": 3})                       -> raises SecurityError  # no query
     """
-    raise NotImplementedError("M1: validate and clamp the search arguments")
+    query = args.get("query")
+    if not isinstance(query, str) or not query.strip():
+        raise SecurityError("query must be a non-empty string")
+    query = query.strip()
+
+    raw_k = args.get("k", cfg.default_k)
+    try:
+        k = int(raw_k)
+    except (TypeError, ValueError):
+        raise SecurityError(f"k must be an integer, got {raw_k!r}")
+    if k <= 0:
+        raise SecurityError(f"k must be positive, got {k}")
+    k = min(k, cfg.max_k)  # clamp to ceiling (friendlier than rejecting)
+    return query, k
 
 
 def validate_save_args(args: dict) -> tuple[str, str, float]:
@@ -63,7 +76,25 @@ def validate_save_args(args: dict) -> tuple[str, str, float]:
       validate_save_args({"text": "x", "kind": "rumor"})            -> raises SecurityError
       validate_save_args({"text": "z"*5000})                        -> raises SecurityError  # too long
     """
-    raise NotImplementedError("M2: validate and bound the save arguments")
+    text = args.get("text")
+    if not isinstance(text, str) or not text.strip():
+        raise SecurityError("text must be a non-empty string")
+    if len(text) > cfg.max_text_chars:
+        raise SecurityError(f"text exceeds {cfg.max_text_chars} chars")
+
+    kind = args.get("kind", "episodic")
+    if kind not in cfg.allowed_kinds:
+        raise SecurityError(f"kind must be one of {cfg.allowed_kinds}, got {kind!r}")
+
+    raw_imp = args.get("importance", 5.0)
+    try:
+        importance = float(raw_imp)
+    except (TypeError, ValueError):
+        raise SecurityError(f"importance must be a number, got {raw_imp!r}")
+    if not (cfg.min_importance <= importance <= cfg.max_importance):
+        raise SecurityError(
+            f"importance must be in [{cfg.min_importance}, {cfg.max_importance}], got {importance}")
+    return text, kind, importance
 
 
 def validate_resource_uri(uri: str) -> str:
@@ -86,4 +117,10 @@ def validate_resource_uri(uri: str) -> str:
       validate_resource_uri("file:///etc/passwd")            -> raises SecurityError  # foreign scheme
       validate_resource_uri("memory://entries/")             -> raises SecurityError  # empty id
     """
-    raise NotImplementedError("M3: parse and contain the resource URI")
+    prefix = f"{cfg.resource_scheme}://entries/"
+    if not isinstance(uri, str) or not uri.startswith(prefix):
+        raise SecurityError(f"uri must start with {prefix!r}, got {uri!r}")
+    entry_id = uri[len(prefix):]
+    if not entry_id or "/" in entry_id or ".." in entry_id or any(c.isspace() for c in entry_id):
+        raise SecurityError(f"invalid entry id in uri: {uri!r}")
+    return entry_id

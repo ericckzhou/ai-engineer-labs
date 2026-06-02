@@ -28,7 +28,43 @@ from security import validate_save_args, validate_search_args
 #   - memory_save: property "text" (string, required); "kind" (string, enum of the three
 #     memory kinds, optional); "importance" (number, optional, with min/max).
 # The description is the part the model reads to decide WHEN to use the tool — write it well.
-TOOL_DEFINITIONS: list[dict] = []  # TODO(learner): define memory_search + memory_save schemas
+TOOL_DEFINITIONS: list[dict] = [
+    {
+        "name": "memory_search",
+        "description": (
+            "Search the user's saved personal memories and return the most relevant entries, "
+            "ranked. Use this when the user asks what they previously saved, noted, or learned "
+            "about a topic."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "What to search the memories for."},
+                "k": {"type": "integer", "description": "Max results to return.",
+                      "minimum": 1, "maximum": 50},
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "memory_save",
+        "description": (
+            "Save a new personal memory for the user. Use this when the user asks to remember, "
+            "note, or store a fact or event."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "The memory text to store."},
+                "kind": {"type": "string", "description": "The kind of memory.",
+                         "enum": ["episodic", "semantic", "procedural"]},
+                "importance": {"type": "number", "description": "Salience 1-10.",
+                               "minimum": 1, "maximum": 10},
+            },
+            "required": ["text"],
+        },
+    },
+]
 
 
 def handle_search(args: dict, backend) -> dict:
@@ -49,7 +85,12 @@ def handle_search(args: dict, backend) -> dict:
       handle_search({"query": "kangaroo"}, backend)
         -> {"text": "No matching memories."}
     """
-    raise NotImplementedError("M1: validate, search, and format the results")
+    query, k = validate_search_args(args)
+    hits = backend.search(query, k=k)
+    if not hits:
+        return {"text": "No matching memories."}
+    lines = [f"[{m.id}] ({m.kind}) {m.text}" for m in hits]
+    return {"text": "\n".join(lines)}
 
 
 def handle_save(args: dict, backend) -> dict:
@@ -64,7 +105,9 @@ def handle_save(args: dict, backend) -> dict:
       handle_save({"text": "the demo is on June 20"}, backend)  -> {"text": "Saved m0."}
       # afterwards handle_search({"query": "demo"}, backend) finds it.
     """
-    raise NotImplementedError("M2: validate and save the entry")
+    text, kind, importance = validate_save_args(args)
+    mem = backend.save(text, kind=kind, importance=importance)
+    return {"text": f"Saved {mem.id}."}
 
 
 # [provided] Plumbing — name → handler. server.py registers MCP tools that route here.
