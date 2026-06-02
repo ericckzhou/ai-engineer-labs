@@ -109,19 +109,34 @@ When reasoning about a concept:
 ### RAG
 
 **Retrieval-Augmented Generation (RAG)**
+- Source: `sources/papers/rag-paper.md` (Lewis et al. 2020: parametric + non-parametric memory, provenance, updatable knowledge)
+- Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
+- Known issues: —
+
+**Parametric vs. Non-Parametric Memory**
 - Source: `sources/papers/rag-paper.md`
 - Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
 - Known issues: —
 
 **Chunking Strategies**
-- Source: `sources/articles/`
+- Source: `sources/articles/chunking-strategies.md` (Pinecone: size = precision/context tradeoff, overlap, fixed/recursive/semantic)
 - Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
 - Known issues: —
 
+**Grounding / Refusal**
+- Source: `sources/papers/rag-paper.md`, `sources/papers/ragas.md`
+- Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
+- Known issues: silent failure — model answers from parametric memory while ignoring context; detect via faithfulness
+
 **Faithfulness / Hallucination Detection**
-- Source: `sources/papers/` (RAGAS, TruLens)
+- Source: `sources/papers/ragas.md` (Es et al. 2023: `F = |V|/|S|`, answer relevance, context relevance; reference-free LLM-as-judge)
 - Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
 - Known issues: —
+
+**Citations / Provenance**
+- Source: `sources/official-docs/anthropic-citations.md` (claim → char/page/block location; `cited_text`; verifiable pointers)
+- Lesson: `projects/04-pdf-research-assistant/source/lesson.agent.md`
+- Known issues: incompatible with strict Structured Outputs (interleaved citation blocks)
 
 ---
 

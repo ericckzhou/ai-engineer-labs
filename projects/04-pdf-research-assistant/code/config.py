@@ -73,10 +73,16 @@ def default_embedding_model() -> str:
 
 @dataclass(frozen=True)
 class Config:
-    # PER-PROJECT: adjust these fields for what this project actually needs.
+    # PER-PROJECT (Project 04 — RAG): chat + retrieval + chunking knobs.
     model: str = field(default_factory=default_model)
-    temperature: float = field(default_factory=lambda: float(os.getenv("CHATBOT_TEMPERATURE", "0.7")))
+    # Grounded answering wants faithful extraction, not creativity → low temperature by default.
+    temperature: float = field(default_factory=lambda: float(os.getenv("RAG_TEMPERATURE", "0.0")))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("CHATBOT_MAX_TOKENS", "1024")))
+    # Chunking: fixed-size with overlap is the sane default (see sources/articles/chunking-strategies.md).
+    chunk_size: int = field(default_factory=lambda: int(os.getenv("RAG_CHUNK_SIZE", "500")))
+    chunk_overlap: int = field(default_factory=lambda: int(os.getenv("RAG_CHUNK_OVERLAP", "80")))
+    # Retrieval: how many chunks to pull into the prompt as context.
+    top_k: int = field(default_factory=lambda: int(os.getenv("RAG_TOP_K", "4")))
 
 
 def load_config() -> Config:
