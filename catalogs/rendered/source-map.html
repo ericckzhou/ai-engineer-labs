@@ -424,6 +424,7 @@
 <li><a href="#vector-databases-approximate-nearest-neighbor">Vector Databases &amp; Approximate Nearest Neighbor</a></li>
 <li><a href="#re-ranking-two-stage-retrieval">Re-Ranking / Two-Stage Retrieval</a></li>
 <li><a href="#rag-retrieval-augmented-generation">RAG (Retrieval-Augmented Generation)</a></li>
+<li><a href="#advanced-rag-query-engineering-elective-05-production-hardening-track">Advanced RAG / Query Engineering (Elective 05 — Production &amp; Hardening track)</a></li>
 <li><a href="#chunking">Chunking</a></li>
 <li><a href="#memory-systems">Memory Systems</a></li>
 <li><a href="#tool-use-agents">Tool Use / Agents</a></li>
@@ -494,6 +495,15 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <ul>
 <li>Tier 2: <a class="src" href="../../sources/rendered/papers/rag-paper.html">sources/papers/rag-paper.md</a> — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token</li>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-citations.html">sources/official-docs/anthropic-citations.md</a> — claim → source location (<code>char_location</code>/<code>page_location</code>/<code>content_block_location</code>), <code>cited_text</code>, sentence-level citation chunking, verifiable pointers</li>
+</ul>
+<h2 id="advanced-rag-query-engineering-elective-05-production-hardening-track">Advanced RAG / Query Engineering (Elective 05 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Extending P04&#x27;s naive retrieve-then-read with a query-transformation stage — measured against P04&#x27;s faithfulness eval. Source base for <code>projects/electives/05-advanced-rag-query-engineering/</code>.</p></div>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/query-rewriting-rag.html">sources/papers/query-rewriting-rag.md</a> — Ma et al. 2023 (EMNLP): Rewrite-Retrieve-Read; the question↔query gap; reformulate the query BEFORE retrieval (LLM rewriter or RL-trained small LM from reader feedback)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/hyde.html">sources/papers/hyde.md</a> — Gao et al. 2022: Hypothetical Document Embeddings; generate a hypothetical answer, embed THAT (not the query); the dense bottleneck filters hallucinations; zero-shot</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/self-rag.html">sources/papers/self-rag.md</a> — Asai et al. 2023: adaptive retrieve-or-NOT + self-critique (relevance + support) via reflection tokens; the advanced move is sometimes not retrieving, always critiquing what you retrieved</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/ragas.html">sources/papers/ragas.md</a> — the faithfulness/answer-relevance gate (already in repo) every transform is measured against</li>
+<li>Tier 3: <a class="src" href="../../sources/rendered/articles/sbert-retrieve-rerank.html">sources/articles/sbert-retrieve-rerank.md</a> — re-ranking (already learned in P03; PROVIDED here, not the target)</li>
 </ul>
 <h2 id="chunking">Chunking</h2>
 <ul>

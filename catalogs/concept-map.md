@@ -140,6 +140,35 @@ When reasoning about a concept:
 
 ---
 
+### Advanced RAG / Query Engineering (Elective 05 — Production & Hardening track)
+
+**Query Rewriting (Rewrite-Retrieve-Read)**
+- Source: `sources/papers/query-rewriting-rag.md` (Ma et al. 2023)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: a rewrite can DRIFT off the user's intent and retrieve the wrong thing — gate on faithfulness; the user's words are an input to engineer, not a fixed query
+
+**HyDE (Hypothetical Document Embeddings)**
+- Source: `sources/papers/hyde.md` (Gao et al. 2022)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: embed a hypothetical ANSWER, not the query; can HURT on short factual lookups (the hypothetical adds noise); costs a generation per query; never surface the hypothetical as the answer
+
+**Multi-hop Decomposition + Fusion**
+- Source: `sources/papers/query-rewriting-rag.md`, `sources/papers/rag-paper.md`
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: naively concatenating per-sub-question contexts blows the budget and dilutes relevance — dedupe + re-rank the union; re-ranking is from P03 (provided)
+
+**Adaptive Retrieval / Self-Critique (Self-RAG)**
+- Source: `sources/papers/self-rag.md` (Asai et al. 2023)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md` (M5/extension)
+- Known issues: the advanced move is sometimes NOT to retrieve, and always to critique relevance/support; a wrong skip loses grounding — measure on the eval; the critique is itself fallible + a cost
+
+**Transforms Must Justify Themselves (eval-gated)**
+- Source: `sources/papers/ragas.md`, `sources/papers/hyde.md`
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: not every transform helps — a transform that retrieves more but lowers faithfulness (more distractors) is a regression; report per-transform, honestly
+
+---
+
 ### Memory
 
 **Memory Stream**

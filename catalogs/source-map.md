@@ -57,6 +57,17 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 2: `sources/papers/rag-paper.md` — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token
 - Tier 1: `sources/official-docs/anthropic-citations.md` — claim → source location (`char_location`/`page_location`/`content_block_location`), `cited_text`, sentence-level citation chunking, verifiable pointers
 
+## Advanced RAG / Query Engineering (Elective 05 — Production & Hardening track)
+
+> Extending P04's naive retrieve-then-read with a query-transformation stage — measured against
+> P04's faithfulness eval. Source base for `projects/electives/05-advanced-rag-query-engineering/`.
+
+- Tier 2: `sources/papers/query-rewriting-rag.md` — Ma et al. 2023 (EMNLP): Rewrite-Retrieve-Read; the question↔query gap; reformulate the query BEFORE retrieval (LLM rewriter or RL-trained small LM from reader feedback)
+- Tier 2: `sources/papers/hyde.md` — Gao et al. 2022: Hypothetical Document Embeddings; generate a hypothetical answer, embed THAT (not the query); the dense bottleneck filters hallucinations; zero-shot
+- Tier 2: `sources/papers/self-rag.md` — Asai et al. 2023: adaptive retrieve-or-NOT + self-critique (relevance + support) via reflection tokens; the advanced move is sometimes not retrieving, always critiquing what you retrieved
+- Tier 2: `sources/papers/ragas.md` — the faithfulness/answer-relevance gate (already in repo) every transform is measured against
+- Tier 3: `sources/articles/sbert-retrieve-rerank.md` — re-ranking (already learned in P03; PROVIDED here, not the target)
+
 ## Chunking
 
 - Tier 3: `sources/articles/chunking-strategies.md` — Pinecone: chunk-size = precision vs context tradeoff, overlap, fixed-size (default) vs recursive vs semantic chunking, chunk expansion

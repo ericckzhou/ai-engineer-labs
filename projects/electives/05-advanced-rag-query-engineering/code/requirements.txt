@@ -1,0 +1,7 @@
+# Elective 05 — Advanced RAG / Query Engineering
+# The CORE is pure-Python (stdlib only) + pytest + python-dotenv.
+python-dotenv>=1.0.0
+pytest>=8.0.0
+
+# Live extensions only (LLM transforms / Self-RAG critique):
+# litellm>=1.40.0

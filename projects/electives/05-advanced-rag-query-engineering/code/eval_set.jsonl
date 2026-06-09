@@ -1,0 +1,3 @@
+{"query": "how do I get my money back?", "gold_ids": ["c1"], "answer_keywords": ["30 days"], "kind": "paraphrase"}
+{"query": "what year was the company founded?", "gold_ids": ["c3"], "answer_keywords": ["2011"], "kind": "factual"}
+{"query": "Did any founder attend the same school as our chief technology officer?", "gold_ids": ["c5", "c6", "c7"], "answer_keywords": ["alex"], "kind": "multihop"}
