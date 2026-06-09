@@ -110,6 +110,17 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 1: `sources/official-docs/mcp-security-best-practices.md` — local server execution risk, consent, sandboxing, least privilege, token/session risks
 - Tier 1: `sources/official-docs/mcp-build-server.md` — practical server scaffolding, FastMCP, stdio logging caveat, host configuration
 
+## Guardrails & Safety (Elective 02 — Production & Hardening track)
+
+> Hardening an existing capability (P08 agent / P04 RAG) against untrusted input: prompt-injection
+> detection, PII/sensitive-info redaction, and fail-closed output policy. The source base for
+> `projects/electives/02-guardrails-safety-layer/`.
+
+- Tier 1: `sources/official-docs/owasp-llm-top10-2025.md` — OWASP Top 10 for LLMs (2025): LLM01 Prompt Injection (direct vs indirect; system-prompt defenses are bypassable), LLM02 Sensitive Information Disclosure (automated detection + redaction of PII)
+- Tier 1: `sources/official-docs/presidio-pii.md` — Microsoft Presidio: two-stage PII de-identification (Analyzer = regex/NER/context/checksum recognizers → Anonymizer = replace/mask/redact/hash/encrypt); "no guarantee it finds all" — risk reduction, not a fix
+- Tier 2: `sources/papers/llama-guard.md` — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool
+- Tier 2: `sources/papers/indirect-prompt-injection.md` — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on *retrieved* content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)
+
 ## AI Observability
 
 - Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces

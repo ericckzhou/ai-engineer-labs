@@ -431,6 +431,7 @@
 <li><a href="#evaluation">Evaluation</a></li>
 <li><a href="#system-design-orchestration-project-09-capstone">System Design / Orchestration (Project 09 — capstone)</a></li>
 <li><a href="#model-context-protocol-mcp">Model Context Protocol (MCP)</a></li>
+<li><a href="#guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</a></li>
 <li><a href="#ai-observability">AI Observability</a></li>
 <li><a href="#agent-self-improvement-patterns">Agent Self-Improvement Patterns</a></li>
 <li><a href="#knowledge-graphs">Knowledge Graphs</a></li>
@@ -542,6 +543,14 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-transports.html">sources/official-docs/mcp-transports.md</a> — data layer vs transport layer, stdio vs Streamable HTTP, local vs remote operational constraints</li>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-security-best-practices.html">sources/official-docs/mcp-security-best-practices.md</a> — local server execution risk, consent, sandboxing, least privilege, token/session risks</li>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-build-server.html">sources/official-docs/mcp-build-server.md</a> — practical server scaffolding, FastMCP, stdio logging caveat, host configuration</li>
+</ul>
+<h2 id="guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Hardening an existing capability (P08 agent / P04 RAG) against untrusted input: prompt-injection detection, PII/sensitive-info redaction, and fail-closed output policy. The source base for <code>projects/electives/02-guardrails-safety-layer/</code>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/owasp-llm-top10-2025.html">sources/official-docs/owasp-llm-top10-2025.md</a> — OWASP Top 10 for LLMs (2025): LLM01 Prompt Injection (direct vs indirect; system-prompt defenses are bypassable), LLM02 Sensitive Information Disclosure (automated detection + redaction of PII)</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/presidio-pii.html">sources/official-docs/presidio-pii.md</a> — Microsoft Presidio: two-stage PII de-identification (Analyzer = regex/NER/context/checksum recognizers → Anonymizer = replace/mask/redact/hash/encrypt); &quot;no guarantee it finds all&quot; — risk reduction, not a fix</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/llama-guard.html">sources/papers/llama-guard.md</a> — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/indirect-prompt-injection.html">sources/papers/indirect-prompt-injection.md</a> — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on <em>retrieved</em> content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)</li>
 </ul>
 <h2 id="ai-observability">AI Observability</h2>
 <ul>

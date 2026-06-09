@@ -1,0 +1,12 @@
+# Elective 02 — Guardrails & Safety Layer
+# The CORE is pure-Python (stdlib re) and needs only pytest + python-dotenv.
+python-dotenv>=1.0.0
+pytest>=8.0.0
+
+# Provider SDK — only needed for the live-agent / LLM-as-classifier extensions.
+litellm>=1.40.0
+
+# OPTIONAL extension — swap the regex PII recognizers for Microsoft Presidio (NER-based).
+# Uncomment to do the Presidio extension; not required for the core.
+# presidio-analyzer>=2.2.0
+# presidio-anonymizer>=2.2.0

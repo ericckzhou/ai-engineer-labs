@@ -289,6 +289,30 @@ When reasoning about a concept:
 
 ---
 
+### Guardrails & Safety (Elective 02 — Production & Hardening track)
+
+**Prompt Injection (direct / indirect)**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md` (LLM01:2025), `sources/papers/indirect-prompt-injection.md` (Greshake et al. 2023)
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: scanning only the *user prompt* misses indirect injection riding in on retrieved content (ties to P04); system-prompt restrictions are bypassable — needs an external, fail-closed guard
+
+**PII / Sensitive Information Redaction**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md` (LLM02:2025), `sources/official-docs/presidio-pii.md`
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: detect→transform decomposition (recognizers → operators); masking inside JSON/tool args corrupts structure — redact at the right layer; no detector finds everything (risk reduction, not a fix)
+
+**Output Policy / Fail-Closed Enforcement**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md`, `sources/papers/llama-guard.md`
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: a guard that errors-open is worse than no guard; the precision/recall (attack-catch vs benign-false-positive) tradeoff is the lesson — a guard that blocks everything is useless
+
+**LLM-as-Guard (classifier)**
+- Source: `sources/papers/llama-guard.md` (Inan et al. 2023)
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md` (M5 / extension)
+- Known issues: slower/costlier than heuristics and itself injectable; a guard only catches what its taxonomy names; verdict should be categorized (decision + reason), not a bare bool
+
+---
+
 ### Evaluation
 
 **LLM-as-Judge**
