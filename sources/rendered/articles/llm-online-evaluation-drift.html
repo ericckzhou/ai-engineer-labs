@@ -422,7 +422,9 @@
 <li><a href="#what-a-trace-contains-the-unit-of-monitoring">What a trace contains (the unit of monitoring)</a></li>
 <li><a href="#drift-detection-strategies">Drift detection strategies</a></li>
 <li><a href="#the-monitoring-principle-that-mirrors-p09">The monitoring principle that mirrors P09</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -436,11 +438,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../articles/llm-online-evaluation-drift.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>article (synthesized industry best-practice; multiple practitioner sources)</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>article (synthesized industry best-practice; multiple practitioner sources)</div>
+<div class="metadata-item"><strong>Tier</strong>3 (Engineering Guide)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges">https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="online-evaluation-drift-monitoring-for-llm-systems-industry-practice">Online Evaluation &amp; Drift Monitoring for LLM Systems (industry practice)</h1>
-<p><strong>Type:</strong> article (synthesized industry best-practice; multiple practitioner sources) <strong>Primary references:</strong></p>
+<p><strong>Type:</strong> article (synthesized industry best-practice; multiple practitioner sources) <strong>Tier:</strong> 3 (Engineering Guide) <strong>URL:</strong> https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges <strong>Accessed:</strong> 2026-06-09 <strong>Primary references:</strong></p>
 <ul>
 <li>Langfuse — &quot;LLM Evaluation 101: Best Practices and Challenges&quot; — https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges</li>
 <li>Databricks — &quot;Best Practices and Methods for LLM Evaluation&quot; — https://www.databricks.com/blog/best-practices-and-methods-llm-evaluation</li>
@@ -480,8 +485,19 @@
 <p>coverage — queries arriving that the system was never evaluated on — often <em>before</em> failure rates climb.</p>
 <h2 id="the-monitoring-principle-that-mirrors-p09">The monitoring principle that mirrors P09</h2>
 <p>Aggregate <strong>per route / per operation, not as one global mean.</strong> A healthy overall average can hide a single route that has silently gone to a 0% pass-rate or a 10× latency — the same trap Project 09 names for routing accuracy. Drift detection must be per-segment.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It is the &quot;decide whether it was good, continuously&quot; half that the OTel telemetry (&quot;record what happened&quot;) cannot provide alone. The learner builds a monitor that aggregates spans per route and flags the route that regressed against a baseline — the smallest real online-eval loop.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>Observability records what happened; evaluation decides whether it was good — production needs both: cheap telemetry on every request plus sampled quality evaluation.</li>
+<li>Online evaluation runs a background LLM judge over ~5–10% sampled traffic against the <em>same</em> offline rubric; it must not run synchronously on the request path (doubles latency and cost).</li>
+<li>Drift is operational (error/latency/cost), behavioral (refusal spikes, retry storms, malformed output), and distributional (input-embedding shift) — and must be aggregated per route, never as one global mean that hides a regressed segment.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 04 — Observability &amp; Ops (the online-evaluation / drift-monitor half).</li>
+<li>Related: opentelemetry-genai-semconv.md (the telemetry vocabulary), mt-bench.md (scoring with numbers over a live window), Project 07 (offline eval), Project 09 (per-route aggregation).</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>A synchronous production judge is an anti-pattern (latency/cost); sample asynchronously.</li>

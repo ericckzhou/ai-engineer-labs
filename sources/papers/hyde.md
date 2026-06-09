@@ -1,6 +1,9 @@
 # HyDE: Precise Zero-Shot Dense Retrieval without Relevance Labels
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2212.10496
+**Accessed:** 2026-06-09
 **Authors:** Luyu Gao, Xueguang Ma, Jimmy Lin, Jamie Callan (CMU / Waterloo)
 **Year:** 2022
 **arXiv:** 2212.10496 — https://arxiv.org/abs/2212.10496
@@ -35,12 +38,23 @@ labels, no fine-tuning.
 HyDE substantially beats unsupervised dense retrievers and approaches fine-tuned systems, across
 languages and tasks — entirely zero-shot.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is a query-transformation lever: change *what you embed* to fix retrieval. But it is not free —
 it costs a generation per query and can *hurt* on short factual lookups (the hypothetical adds
 noise). That is exactly why the elective measures each transform against the eval rather than
 assuming it helps.
+
+## Key Claims
+
+- A bare query and a relevant document live in different regions of embedding space, so embedding the *question* retrieves poorly.
+- HyDE instructs an LLM to write a *hypothetical answer document*, embeds that document (not the query), and retrieves the real documents nearest it.
+- The encoder's dense bottleneck filters out the hypothetical's hallucinated specifics — it keeps the *shape* of a good answer — and beats unsupervised dense retrievers zero-shot, approaching fine-tuned systems.
+
+## Relevant To
+
+- Elective 05 — Advanced RAG / Query Engineering (the HyDE transform, M2).
+- Related: query-rewriting-rag.md (rewrite the query text vs. embed a hypothetical answer); Elective 03 (the extra generation per query is a cost/latency lever).
 
 ## Known issues / cautions
 

@@ -1,6 +1,9 @@
 # Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2310.11511
+**Accessed:** 2026-06-09
 **Authors:** Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, Hannaneh Hajishirzi (UW / AI2 / IBM)
 **Year:** 2023
 **arXiv:** 2310.11511 — https://arxiv.org/abs/2310.11511
@@ -33,13 +36,24 @@ at inference (tune how aggressively to retrieve).
 7B/13B Self-RAG models outperformed ChatGPT and retrieval-augmented Llama2-chat on multiple
 benchmarks.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the capstone idea of query engineering: the most advanced move is sometimes **not to
 retrieve**, and always to **critique what you retrieved** rather than trust it. It reframes the
 faithfulness metric (Project 04 / RAGAS) as an *inline* decision, not just a post-hoc score —
 "is this supported?" asked during generation. In this elective it is the extension: a
 retrieve-or-not gate plus a relevance/support check over the transformed pipeline.
+
+## Key Claims
+
+- Standard RAG always retrieves a fixed number of passages and stuffs them in; Self-RAG makes retrieval adaptive and self-critiqued via special reflection tokens.
+- Three decisions: retrieve-or-not (skip retrieval when unneeded), critique each passage's relevance, and critique whether the answer is *supported* by the passages.
+- Selective, critiqued retrieval keeps factuality up and avoids degradation from forcing irrelevant context; 7B/13B Self-RAG models beat ChatGPT and retrieval-augmented Llama2-chat on several benchmarks.
+
+## Relevant To
+
+- Elective 05 — Advanced RAG / Query Engineering (retrieve-or-not gate + self-critique, M5/extension).
+- Related: Project 04 / RAGAS faithfulness, reframed as an *inline* "is this supported?" decision; Elective 03 (the critique is an extra LLM cost).
 
 ## Known issues / cautions
 

@@ -1,6 +1,9 @@
 # FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2305.05176
+**Accessed:** 2026-06-09
 **Authors:** Lingjiao Chen, Matei Zaharia, James Zou (Stanford)
 **Year:** 2023
 **arXiv:** 2305.05176 — https://arxiv.org/abs/2305.05176
@@ -36,11 +39,22 @@ FrugalGPT can **match the best individual LLM (e.g. GPT-4) with up to ~98% cost 
 improve accuracy at the same cost — by routing most queries to cheap models and escalating only
 the hard ones.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the cost lever with a *quality risk*: unlike caching, a cascade can return a worse (cheap)
 answer. That is exactly why this elective comes after Project 07 — the **eval is the gate** that
 proves the cheap path didn't regress quality before you ship the savings.
+
+## Key Claims
+
+- You need not send every query to the most expensive model; three levers: prompt adaptation, LLM approximation/caching, and the LLM cascade.
+- The cascade queries a cheap model first and escalates to a stronger one only when a scoring/reliability function distrusts the cheap answer — the escalation signal is the hard design choice.
+- Reported up to ~98% cost reduction while matching GPT-4-level quality (or higher accuracy at equal cost) — workload-dependent, measure on your own set.
+
+## Relevant To
+
+- Elective 03 — Cost & Latency Engineering (the model-cascade lever, M3).
+- Related: anthropic-pricing.md (real per-MTok prices for the savings math); Project 07 (the eval that gates the cheap path before shipping savings).
 
 ## Known issues / cautions
 

@@ -419,7 +419,9 @@
 <li><a href="#what-it-is">What it is</a></li>
 <li><a href="#architecture-two-stages">Architecture — two stages</a></li>
 <li><a href="#supported-entity-types-examples">Supported entity types (examples)</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -433,11 +435,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../official-docs/presidio-pii.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (open-source SDK)</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (open-source SDK)</div>
+<div class="metadata-item"><strong>Tier</strong>1 (Official Doc)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://microsoft.github.io/presidio/">https://microsoft.github.io/presidio/</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="microsoft-presidio-pii-detection-and-de-identification">Microsoft Presidio — PII Detection and De-identification</h1>
-<p><strong>Type:</strong> official-docs (open-source SDK) <strong>Publisher:</strong> Microsoft <strong>Link:</strong> https://microsoft.github.io/presidio/ <strong>Repo:</strong> https://github.com/microsoft/presidio</p>
+<p><strong>Type:</strong> official-docs (open-source SDK) <strong>Tier:</strong> 1 (Official Doc) <strong>URL:</strong> https://microsoft.github.io/presidio/ <strong>Accessed:</strong> 2026-06-09 <strong>Publisher:</strong> Microsoft <strong>Link:</strong> https://microsoft.github.io/presidio/ <strong>Repo:</strong> https://github.com/microsoft/presidio</p>
 <div class="callout info"><p>Primary source for <strong>Elective 02 — Guardrails &amp; Safety Layer</strong> (the PII-redaction component, M2). Concrete, production-grade reference for <em>how</em> redaction is structured.</p></div>
 <hr>
 <h2 id="what-it-is">What it is</h2>
@@ -460,8 +465,19 @@
 </ul>
 <h2 id="supported-entity-types-examples">Supported entity types (examples)</h2>
 <p>Names, locations, credit-card numbers, SSNs, phone numbers, crypto wallet addresses, financial data — and <strong>custom recognizers</strong> for domain-specific PII.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It models the right decomposition for <code>redact_output</code>: <strong>detect (recognizers) → transform (operators)</strong>, with the entity list and operator choice driven by config — not a single hardcoded regex. The learner&#x27;s offline core can be regex + checksum recognizers with a <code>mask</code> operator; the extension swaps in Presidio for NER-based detection.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>Two-stage pipeline: an Analyzer detects PII (regex patterns, NER, context-word boosting, checksum validation) and an Anonymizer transforms it (replace, mask, redact, hash, encrypt).</li>
+<li>Entity list and operator choice are config-driven, not a single hardcoded regex; custom recognizers extend it to domain-specific PII.</li>
+<li>Microsoft states plainly there is no guarantee Presidio finds all sensitive information — redaction is risk reduction, not a guarantee.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 02 — Guardrails &amp; Safety Layer (the PII-redaction component, M2).</li>
+<li>Related: owasp-llm-top10-2025.md (LLM02). The learner&#x27;s offline core is regex + checksum recognizers with a mask operator; Presidio NER is the extension backend.</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>Microsoft states plainly: &quot;because it is using automated detection mechanisms, there is **no</li>

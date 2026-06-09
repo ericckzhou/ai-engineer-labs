@@ -1,6 +1,9 @@
 # GPTCache — Semantic Caching for LLMs
 
 **Type:** official-docs (open-source library)
+**Tier:** 1 (Official Doc)
+**URL:** https://github.com/zilliztech/GPTCache
+**Accessed:** 2026-06-09
 **Publisher:** Zilliz
 **Link:** https://github.com/zilliztech/GPTCache
 
@@ -46,11 +49,22 @@ store the result.
 exactly like a guard's — and the eval (Project 07's set) is what catches a false hit. Hit *rate*
 alone is a vanity metric; correctness-under-hits is the real one.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It connects Projects 02 (embeddings) and 03 (ANN) to a production cost lever, and it has a
 quality risk (the false hit) that the eval must police — reinforcing the elective's thesis that
 cost optimization is only safe behind an eval.
+
+## Key Claims
+
+- A semantic cache returns a stored answer when a *semantically similar* query was seen before, so hit rates far exceed exact-match caching ("what is GitHub" ≈ "can you explain GitHub").
+- Components: embedding generation, vector store + similarity search, cache storage, a similarity evaluator + threshold, and an eviction manager.
+- The threshold is a precision/recall dial: too loose returns a confidently wrong answer for a different question, and only the eval catches a false hit — hit *rate* alone is a vanity metric.
+
+## Relevant To
+
+- Elective 03 — Cost & Latency Engineering (the semantic-cache lever, M2).
+- Related: Project 02 (same embedder for store and query), Project 03 (ANN search), Project 07 (the eval that polices false hits).
 
 ## Known issues / cautions
 

@@ -100,15 +100,31 @@ def check_required_files(errors: list[str]) -> None:
     _check_files_in(elective_dirs(), errors, "elective")
 
 
+# Vendored / generated directories that live inside project trees (per-project code/.venv,
+# bytecode caches, node deps). They are gitignored and not curriculum content, so the validator
+# must not descend into them — site-packages ships intentionally non-UTF-8 fixtures that would
+# otherwise crash the UTF-8 reads below.
+EXCLUDED_DIR_PARTS = {".venv", "venv", "site-packages", "__pycache__", "node_modules", ".git"}
+
+
+def _is_curriculum_path(path: Path) -> bool:
+    """True unless the path lives under a vendored/generated directory we must skip."""
+    return EXCLUDED_DIR_PARTS.isdisjoint(path.parts)
+
+
 def check_mojibake(errors: list[str]) -> None:
     text_files = [
-        *ROOT.glob("*.md"),
-        *(ROOT / "catalogs").rglob("*.md"),
-        *(ROOT / "docs").rglob("*.md"),
-        *PROJECTS.rglob("*.md"),
-        *PROJECTS.rglob("*.html"),
-        *PROJECTS.rglob("*.py"),
-        *SOURCES.rglob("*.md"),
+        path
+        for path in (
+            *ROOT.glob("*.md"),
+            *(ROOT / "catalogs").rglob("*.md"),
+            *(ROOT / "docs").rglob("*.md"),
+            *PROJECTS.rglob("*.md"),
+            *PROJECTS.rglob("*.html"),
+            *PROJECTS.rglob("*.py"),
+            *SOURCES.rglob("*.md"),
+        )
+        if _is_curriculum_path(path)
     ]
     for path in text_files:
         text = path.read_text(encoding="utf-8")

@@ -419,7 +419,9 @@
 <li><a href="#core-idea">Core idea</a></li>
 <li><a href="#why-it-beats-always-retrieve-rag">Why it beats always-retrieve RAG</a></li>
 <li><a href="#result">Result</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -433,11 +435,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../papers/self-rag.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div>
+<div class="metadata-item"><strong>Tier</strong>2 (Foundational Paper)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://arxiv.org/abs/2310.11511">https://arxiv.org/abs/2310.11511</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="self-rag-learning-to-retrieve-generate-and-critique-through-self-reflection">Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection</h1>
-<p><strong>Type:</strong> paper <strong>Authors:</strong> Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, Hannaneh Hajishirzi (UW / AI2 / IBM) <strong>Year:</strong> 2023 <strong>arXiv:</strong> 2310.11511 — https://arxiv.org/abs/2310.11511</p>
+<p><strong>Type:</strong> paper <strong>Tier:</strong> 2 (Foundational Paper) <strong>URL:</strong> https://arxiv.org/abs/2310.11511 <strong>Accessed:</strong> 2026-06-09 <strong>Authors:</strong> Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, Hannaneh Hajishirzi (UW / AI2 / IBM) <strong>Year:</strong> 2023 <strong>arXiv:</strong> 2310.11511 — https://arxiv.org/abs/2310.11511</p>
 <div class="callout info"><p>Primary source for <strong>Elective 05 — Advanced RAG / Query Engineering</strong> (the retrieve-or-not gate + self-critique; the M5/extension). Faithful summary; arXiv PDF is canonical.</p></div>
 <hr>
 <h2 id="core-idea">Core idea</h2>
@@ -454,8 +459,19 @@
 <p>Indiscriminately adding a fixed number of passages &quot;diminishes LM versatility or can lead to unhelpful response generation.&quot; Selective, critiqued retrieval keeps factuality up <em>and</em> avoids the degradation of forcing irrelevant context into the answer. It also makes behavior controllable at inference (tune how aggressively to retrieve).</p>
 <h2 id="result">Result</h2>
 <p>7B/13B Self-RAG models outperformed ChatGPT and retrieval-augmented Llama2-chat on multiple benchmarks.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It is the capstone idea of query engineering: the most advanced move is sometimes <strong>not to retrieve</strong>, and always to <strong>critique what you retrieved</strong> rather than trust it. It reframes the faithfulness metric (Project 04 / RAGAS) as an <em>inline</em> decision, not just a post-hoc score — &quot;is this supported?&quot; asked during generation. In this elective it is the extension: a retrieve-or-not gate plus a relevance/support check over the transformed pipeline.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>Standard RAG always retrieves a fixed number of passages and stuffs them in; Self-RAG makes retrieval adaptive and self-critiqued via special reflection tokens.</li>
+<li>Three decisions: retrieve-or-not (skip retrieval when unneeded), critique each passage&#x27;s relevance, and critique whether the answer is <em>supported</em> by the passages.</li>
+<li>Selective, critiqued retrieval keeps factuality up and avoids degradation from forcing irrelevant context; 7B/13B Self-RAG models beat ChatGPT and retrieval-augmented Llama2-chat on several benchmarks.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 05 — Advanced RAG / Query Engineering (retrieve-or-not gate + self-critique, M5/extension).</li>
+<li>Related: Project 04 / RAGAS faithfulness, reframed as an <em>inline</em> &quot;is this supported?&quot; decision; Elective 03 (the critique is an extra LLM cost).</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>Full Self-RAG trains reflection tokens; the elective approximates the <em>behavior</em> (a retrieve-or-</li>

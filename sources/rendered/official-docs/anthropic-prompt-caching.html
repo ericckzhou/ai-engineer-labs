@@ -421,7 +421,9 @@
 <li><a href="#cost-mechanics-the-reason-it-s-a-cost-lever">Cost mechanics (the reason it&#x27;s a cost lever)</a></li>
 <li><a href="#ttl">TTL</a></li>
 <li><a href="#minimums-and-verification">Minimums and verification</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -435,11 +437,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../official-docs/anthropic-prompt-caching.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs</div>
+<div class="metadata-item"><strong>Tier</strong>1 (Official Doc)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching">https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="anthropic-prompt-caching">Anthropic Prompt Caching</h1>
-<p><strong>Type:</strong> official-docs <strong>Publisher:</strong> Anthropic <strong>Link:</strong> https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching <strong>Related (in repo):</strong> <a class="src" href="anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> (the per-MTok base prices the multipliers below apply to)</p>
+<p><strong>Type:</strong> official-docs <strong>Tier:</strong> 1 (Official Doc) <strong>URL:</strong> https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching <strong>Accessed:</strong> 2026-06-09 <strong>Publisher:</strong> Anthropic <strong>Link:</strong> https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching <strong>Related (in repo):</strong> <a class="src" href="anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> (the per-MTok base prices the multipliers below apply to)</p>
 <div class="callout info"><p>Primary source for <strong>Elective 03 — Cost &amp; Latency Engineering</strong> (the prompt-caching lever, M1). Faithful summary of the mechanics; the canonical doc above governs exact thresholds, which change by model — do not hardcode a model&#x27;s minimum or invent prices.</p></div>
 <hr>
 <h2 id="what-it-caches">What it caches</h2>
@@ -454,8 +459,19 @@
 <p>Default <strong>5-minute</strong> ephemeral cache (refreshed free on each hit). Optional <strong>1-hour</strong> TTL at the higher write multiplier — for prompts reused less than every 5 min, or agentic steps that take longer than 5 min between calls.</p>
 <h2 id="minimums-and-verification">Minimums and verification</h2>
 <p>There is a <strong>minimum cacheable prefix length</strong> (on the order of ~1k tokens, model-dependent; check the doc for the current number per model). Shorter prefixes silently don&#x27;t cache. Verify caching actually happened via the response <code>usage</code>: <code>total_input = cache_read_input_tokens + cache_creation_input_tokens + input_tokens</code>.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It is the first, cheapest cost lever: no quality change at all (same model, same output), pure input-cost reduction on a reused prefix. The learner measures <code>cache_read_input_tokens</code> to prove the saving — and learns that caching a <em>variable</em> prefix saves nothing (the common mistake).</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>Caching reuses a stable prompt prefix (tool definitions, system prompt, long documents, few-shot examples, prior turns) marked with a <code>cache_control</code> breakpoint.</li>
+<li>The cached prefix must be identical and come <em>before</em> variable content; a breakpoint on per-request content (timestamp, incoming message) caches nothing useful.</li>
+<li>Cost mechanics make it a real tradeoff: cache write ~1.25× (5-min) / ~2× (1-hour) base input, cache read ~0.1×; it pays off only once the prefix is reused enough to amortize the write — verify via <code>usage.cache_read_input_tokens</code>.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 03 — Cost &amp; Latency Engineering (the prompt-caching lever, M1).</li>
+<li>Related: anthropic-pricing.md (the base per-MTok prices the multipliers apply to). Minimums and exact multipliers are model-specific — read the live doc, don&#x27;t hardcode.</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>Cache writes cost more than uncached input — a prefix reused only once is a net loss.</li>

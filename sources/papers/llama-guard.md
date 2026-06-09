@@ -1,6 +1,9 @@
 # Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2312.06674
+**Accessed:** 2026-06-09
 **Authors:** Inan, Upasani, Chi, Rungta, Iyer, Mao, Tontchev, Hu, Fuller, Testuggine, Khabsa (Meta)
 **Year:** 2023
 **arXiv:** 2312.06674 — https://arxiv.org/abs/2312.06674
@@ -39,12 +42,23 @@ Produces a **binary safe/unsafe decision** plus, when unsafe, the **specific vio
 category/categories** — a structured verdict, not a bare bool. This is the shape the elective's
 `InputVerdict` / `OutputVerdict` mirror (decision + reason, not just true/false).
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the upgrade path from heuristic guards: M1–M4 build cheap, fast, deterministic heuristic
 scanners; the extension swaps in an LLM-judge guard (Llama-Guard-style) and compares
 catch-rate vs false-positive-rate vs latency/cost. It also models the right *output contract* for
 a guard: a categorized verdict the caller can act on.
+
+## Key Claims
+
+- A safety guard can be an LLM classifier rather than a regex; Llama Guard classifies the user input and the model output as two *separate* tasks (input guard vs. output guard).
+- Classification runs against an explicit, swappable risk taxonomy — policy is prompt data, not baked into weights — supporting zero-/few-shot custom taxonomies without retraining.
+- Output is a structured safe/unsafe verdict plus the specific violated category — a decision with a reason, not a bare boolean.
+
+## Relevant To
+
+- Elective 02 — Guardrails & Safety Layer (the LLM-as-classifier guard, M5/extension).
+- Related: owasp-llm-top10-2025.md, indirect-prompt-injection.md; the verdict shape mirrors the elective's InputVerdict / OutputVerdict (decision + reason).
 
 ## Known issues / cautions
 
