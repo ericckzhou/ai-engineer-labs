@@ -1,0 +1,10 @@
+{"query": "what is the capital of france", "expected": "Paris", "difficulty": "easy"}
+{"query": "what is 2 + 2", "expected": "4", "difficulty": "easy"}
+{"query": "explain the halting problem", "expected": "Whether an arbitrary program halts is undecidable.", "difficulty": "hard"}
+{"query": "what is the boiling point of water in celsius", "expected": "100", "difficulty": "easy"}
+{"query": "who wrote pride and prejudice", "expected": "Jane Austen", "difficulty": "easy"}
+{"query": "what is the status of the riemann hypothesis", "expected": "It is an unsolved conjecture.", "difficulty": "hard"}
+{"query": "what is the capital of france please", "expected": "Paris", "difficulty": "easy"}
+{"query": "what color is the sky on a clear day", "expected": "blue", "difficulty": "easy"}
+{"query": "summarize the theory of relativity", "expected": "Spacetime is relative and gravity curves spacetime.", "difficulty": "hard"}
+{"query": "what is the capital of austria", "expected": "Vienna", "difficulty": "easy"}

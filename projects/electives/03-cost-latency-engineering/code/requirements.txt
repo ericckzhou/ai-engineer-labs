@@ -1,0 +1,7 @@
+# Elective 03 — Cost & Latency Engineering
+# The CORE is pure-Python (stdlib only) + pytest + python-dotenv.
+python-dotenv>=1.0.0
+pytest>=8.0.0
+
+# Provider SDK — only for the live-model / live-prompt-caching extensions.
+litellm>=1.40.0

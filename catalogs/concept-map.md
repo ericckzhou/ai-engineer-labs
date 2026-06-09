@@ -313,6 +313,30 @@ When reasoning about a concept:
 
 ---
 
+### Cost & Latency Engineering (Elective 03 — Production & Hardening track)
+
+**Prompt Caching**
+- Source: `sources/official-docs/anthropic-prompt-caching.md`, `sources/official-docs/anthropic-pricing.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: a cache write costs MORE than base input — only pays off when the prefix is reused; caching a variable prefix (timestamp/incoming message) saves nothing; thresholds/prices are model-specific, don't hardcode
+
+**Semantic Caching**
+- Source: `sources/official-docs/gptcache-semantic-caching.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: a too-loose similarity threshold returns a stored answer for a DIFFERENT question (the false hit); hit-rate alone is a vanity metric — correctness-under-hits is the real one; same embedder for store + query
+
+**Model Cascade (FrugalGPT)**
+- Source: `sources/papers/frugalgpt.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: the cascade can return a worse cheap answer — quality risk, unlike caching; the escalation signal ("was the cheap model sure?") is the hard design choice; gate on the P07 eval before shipping savings
+
+**Cost-vs-Quality as Separate Axes**
+- Source: `sources/papers/frugalgpt.md`, `sources/papers/mt-bench.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: "10× cheaper" is a regression if pass-rate dropped — every saving must be proven no-worse on the frozen eval first
+
+---
+
 ### Evaluation
 
 **LLM-as-Judge**

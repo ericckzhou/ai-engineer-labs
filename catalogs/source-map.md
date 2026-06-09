@@ -121,6 +121,16 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 2: `sources/papers/llama-guard.md` — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool
 - Tier 2: `sources/papers/indirect-prompt-injection.md` — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on *retrieved* content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)
 
+## Cost & Latency (Elective 03 — Production & Hardening track)
+
+> Cutting cost/latency of a working feature WITHOUT regressing quality, gated by the Project 07
+> eval. The source base for `projects/electives/03-cost-latency-engineering/`.
+
+- Tier 1: `sources/official-docs/anthropic-prompt-caching.md` — cache a stable prompt prefix; cache-write (~1.25×/2×) vs cache-read (~0.1×) vs base input; 5-min/1-hour TTL; stable-prefix-before-variable rule; verify via `usage.cache_read_input_tokens`
+- Tier 1: `sources/official-docs/gptcache-semantic-caching.md` — semantic (embedding-similarity) cache vs exact-match; embed → ANN search → threshold = hit; too-loose threshold returns a wrong cached answer (the false hit); LRU/FIFO/LFU eviction
+- Tier 1: `sources/official-docs/anthropic-pricing.md` — the per-MTok base prices all multipliers/savings apply to (don't invent prices)
+- Tier 2: `sources/papers/frugalgpt.md` — Chen/Zaharia/Zou 2023: prompt adaptation, LLM approximation, LLM cascade (cheap model first → escalate on low reliability score); ~98% cost cut matching GPT-4; the escalation signal is the hard design choice
+
 ## AI Observability
 
 - Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces

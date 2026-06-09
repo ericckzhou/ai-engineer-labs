@@ -432,6 +432,7 @@
 <li><a href="#system-design-orchestration-project-09-capstone">System Design / Orchestration (Project 09 — capstone)</a></li>
 <li><a href="#model-context-protocol-mcp">Model Context Protocol (MCP)</a></li>
 <li><a href="#guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</a></li>
+<li><a href="#cost-latency-elective-03-production-hardening-track">Cost &amp; Latency (Elective 03 — Production &amp; Hardening track)</a></li>
 <li><a href="#ai-observability">AI Observability</a></li>
 <li><a href="#agent-self-improvement-patterns">Agent Self-Improvement Patterns</a></li>
 <li><a href="#knowledge-graphs">Knowledge Graphs</a></li>
@@ -551,6 +552,14 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/presidio-pii.html">sources/official-docs/presidio-pii.md</a> — Microsoft Presidio: two-stage PII de-identification (Analyzer = regex/NER/context/checksum recognizers → Anonymizer = replace/mask/redact/hash/encrypt); &quot;no guarantee it finds all&quot; — risk reduction, not a fix</li>
 <li>Tier 2: <a class="src" href="../../sources/rendered/papers/llama-guard.html">sources/papers/llama-guard.md</a> — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool</li>
 <li>Tier 2: <a class="src" href="../../sources/rendered/papers/indirect-prompt-injection.html">sources/papers/indirect-prompt-injection.md</a> — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on <em>retrieved</em> content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)</li>
+</ul>
+<h2 id="cost-latency-elective-03-production-hardening-track">Cost &amp; Latency (Elective 03 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Cutting cost/latency of a working feature WITHOUT regressing quality, gated by the Project 07 eval. The source base for <code>projects/electives/03-cost-latency-engineering/</code>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-prompt-caching.html">sources/official-docs/anthropic-prompt-caching.md</a> — cache a stable prompt prefix; cache-write (~1.25×/2×) vs cache-read (~0.1×) vs base input; 5-min/1-hour TTL; stable-prefix-before-variable rule; verify via <code>usage.cache_read_input_tokens</code></li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/gptcache-semantic-caching.html">sources/official-docs/gptcache-semantic-caching.md</a> — semantic (embedding-similarity) cache vs exact-match; embed → ANN search → threshold = hit; too-loose threshold returns a wrong cached answer (the false hit); LRU/FIFO/LFU eviction</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> — the per-MTok base prices all multipliers/savings apply to (don&#x27;t invent prices)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/frugalgpt.html">sources/papers/frugalgpt.md</a> — Chen/Zaharia/Zou 2023: prompt adaptation, LLM approximation, LLM cascade (cheap model first → escalate on low reliability score); ~98% cost cut matching GPT-4; the escalation signal is the hard design choice</li>
 </ul>
 <h2 id="ai-observability">AI Observability</h2>
 <ul>
