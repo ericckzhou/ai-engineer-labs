@@ -337,6 +337,30 @@ When reasoning about a concept:
 
 ---
 
+### Observability & Ops (Elective 04 — Production & Hardening track)
+
+**GenAI Telemetry / Span Instrumentation**
+- Source: `sources/official-docs/opentelemetry-genai-semconv.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: use the STANDARD attribute names (`gen_ai.*`) or interoperability is lost; a span records what happened (latency/tokens), not whether the answer was good
+
+**Online Evaluation (vs Offline)**
+- Source: `sources/articles/llm-online-evaluation-drift.md`, `sources/papers/mt-bench.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: a production LLM-judge must run ASYNC on sampled traffic (~5–10%), never synchronously on the request path; offline gates the release, online watches the deployment
+
+**Drift / Regression Detection**
+- Source: `sources/articles/llm-online-evaluation-drift.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: detect **per route/operation**, not on a global mean — a healthy average hides one route gone to 0% (same trap as P09); threshold too tight = alert fatigue, too loose = missed regression
+
+**Observability ≠ Evaluation**
+- Source: `sources/official-docs/opentelemetry-genai-semconv.md`, `sources/articles/llm-online-evaluation-drift.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: telemetry (cheap, every request) tells you latency rose; only sampled eval (expensive) tells you quality dropped — you need both
+
+---
+
 ### Evaluation
 
 **LLM-as-Judge**

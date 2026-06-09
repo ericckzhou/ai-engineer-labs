@@ -131,9 +131,15 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 1: `sources/official-docs/anthropic-pricing.md` — the per-MTok base prices all multipliers/savings apply to (don't invent prices)
 - Tier 2: `sources/papers/frugalgpt.md` — Chen/Zaharia/Zou 2023: prompt adaptation, LLM approximation, LLM cascade (cheap model first → escalate on low reliability score); ~98% cost cut matching GPT-4; the escalation signal is the hard design choice
 
-## AI Observability
+## AI Observability & Ops (Elective 04 — Production & Hardening track)
 
-- Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces
+> Instrumenting an agent with standard GenAI telemetry, then monitoring live traces for
+> drift/regression — closing P07's offline→online loop. Source base for
+> `projects/electives/04-llm-observability-ops/`.
+
+- Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary (`gen_ai.operation.name`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`/`output_tokens`, `gen_ai.response.finish_reasons`); standardized attribute names so tools agree; observability is separate from but supports evaluation
+- Tier 3: `sources/articles/llm-online-evaluation-drift.md` — online eval vs offline; sample ~5–10% of traffic with an ASYNC LLM-judge (never synchronous on the path); operational/behavioral/distributional drift; aggregate **per route**, not a global mean
+- Tier 2: `sources/papers/mt-bench.md` — score with numbers, now applied to a live window per route (not a single answer)
 
 ## Agent Self-Improvement Patterns
 

@@ -1,0 +1,9 @@
+# Elective 04 — LLM Observability & Ops
+# The CORE is pure-Python (stdlib only) + pytest + python-dotenv.
+python-dotenv>=1.0.0
+pytest>=8.0.0
+
+# Live extensions only:
+# litellm>=1.40.0                         # async sampled LLM-judge
+# opentelemetry-sdk>=1.27.0               # real collector/exporter
+# opentelemetry-exporter-otlp>=1.27.0

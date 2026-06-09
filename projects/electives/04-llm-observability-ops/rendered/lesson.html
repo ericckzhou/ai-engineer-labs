@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson (Agent Version): Observability &amp;amp; Ops — Watching a System You&amp;#x27;ve Already Shipped</title>
+<style>
+  :root { --fg:#1a1a2e; --muted:#5a5a72; --accent:#4f46e5; --bg:#fbfbfe; --code:#0f172a;
+           --codebg:#f1f5f9; --border:#e2e8f0; --quote:#eef2ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+          font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:48px 24px 96px; }
+  .banner { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border-radius:14px;
+             padding:14px 20px; font-size:14px; margin-bottom:32px; }
+  .banner b { font-weight:700; }
+  h1 { font-size:30px; line-height:1.25; margin:8px 0 24px; }
+  h2 { font-size:23px; margin:40px 0 12px; padding-bottom:6px; border-bottom:2px solid var(--border); }
+  h3 { font-size:18px; margin:28px 0 10px; color:var(--accent); }
+  h4 { font-size:16px; margin:22px 0 8px; }
+  p { margin:12px 0; }
+  a { color:var(--accent); }
+  ul,ol { margin:12px 0; padding-left:26px; }
+  li { margin:5px 0; }
+  blockquote { margin:16px 0; padding:12px 18px; background:var(--quote);
+                border-left:4px solid var(--accent); border-radius:0 8px 8px 0; }
+  blockquote p { margin:6px 0; }
+  code { background:var(--codebg); color:var(--code); padding:2px 6px; border-radius:5px;
+          font:13.5px/1.5 "SF Mono",Menlo,Consolas,monospace; }
+  pre { background:var(--code); color:#e2e8f0; padding:16px 18px; border-radius:10px;
+         overflow:auto; margin:16px 0; }
+  pre code { background:none; color:inherit; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; }
+  th,td { border:1px solid var(--border); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:#f8fafc; }
+  hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+  .meta { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="banner"><b>Human (derived) version.</b> Generated from
+<code>source/lesson.agent.md</code> by <code>scripts/render_lessons.py</code> — the agent
+version is canonical. If they conflict, the agent version wins.</div>
+<h1>Lesson (Agent Version): Observability &amp; Ops — Watching a System You&#x27;ve Already Shipped</h1>
+<blockquote><p><strong>Canonical source of truth.</strong> The human version (<code>rendered/lesson.html</code>) is derived from this file. If they conflict, this file wins. <strong>Elective — Production &amp; Hardening track.</strong> Off the numbered 1–9 spine; recommended after P09. Prerequisite skills: Projects 07, 08.</p></blockquote>
+<hr>
+<h2>Metadata</h2>
+<ul>
+<li><strong>Project:</strong> Elective 04 — LLM Observability &amp; Ops</li>
+<li><strong>Track:</strong> Production &amp; Hardening (off-spine; after the P09 capstone)</li>
+<li><strong>Estimated time:</strong> 9–12 hours</li>
+<li><strong>Prerequisites:</strong> Project 07 (offline eval — the baseline you compare against), Project 08 (the</li>
+</ul>
+<p>agent that emits traces).</p>
+<ul>
+<li><strong>Instrumented capability:</strong> the Project 08 agent.</li>
+<li><strong>Primary sources:</strong></li>
+<li><code>sources/official-docs/opentelemetry-genai-semconv.md</code> (standard GenAI span attributes)</li>
+<li><code>sources/articles/llm-online-evaluation-drift.md</code> (online eval; async sampled judge; per-route drift)</li>
+<li><code>sources/papers/mt-bench.md</code> (score with numbers — now over a live window)</li>
+</ul>
+<hr>
+<h2>Learning Objectives</h2>
+<p>By the end of this elective, the learner will be able to:</p>
+<ol>
+<li><strong>Distinguish observability from evaluation</strong> — telemetry records <em>what happened</em>; evaluation</li>
+</ol>
+<p>decides <em>whether it was good</em>; production needs both, continuously.</p>
+<ol>
+<li><strong>Emit standard GenAI spans</strong> — instrument a model/tool call with the OpenTelemetry GenAI</li>
+</ol>
+<p>attribute names (<code>gen_ai.operation.name</code>, <code>gen_ai.request.model</code>, <code>gen_ai.usage.*</code>,</p>
+<p><code>gen_ai.response.finish_reasons</code>) and explain why standard names matter.</p>
+<ol>
+<li><strong>Instrument an agent run</strong> — wrap model + tool calls so one run produces a span tree with</li>
+</ol>
+<p>latency, tokens, cost, route, and errors.</p>
+<ol>
+<li><strong>Aggregate traces into metrics</strong> — roll spans up <strong>per route/operation</strong> (count, error rate,</li>
+</ol>
+<p>latency, tokens, cost).</p>
+<ol>
+<li><strong>Detect drift</strong> — compare a live window to a baseline and flag the route/metric that regressed,</li>
+</ol>
+<p><strong>per segment, not on a global mean</strong>.</p>
+<ol>
+<li><strong>Explain the online-eval loop</strong> — why a production LLM-judge samples ~5–10% of traffic</li>
+</ol>
+<p><strong>asynchronously</strong> and never runs synchronously on the request path; how offline + online evals</p>
+<p>combine.</p>
+<hr>
+<h2>1. Motivation</h2>
+<h3>Why this exists</h3>
+<p>In Project 07 you evaluated your system <strong>offline</strong>, before shipping: a frozen set, a judge, a</p>
+<p>pass-rate. That catches the regressions you can anticipate. Then you ship — and the real world</p>
+<p>sends queries your frozen set never imagined, a provider silently changes a model, a retrieved</p>
+<p>corpus drifts, and one route quietly starts failing. Your offline eval, run last Tuesday, says</p>
+<p>nothing about <em>right now</em>.</p>
+<p>This elective builds the missing half: <strong>observability</strong> (record what the live system did, in a</p>
+<p>standard format) plus <strong>online evaluation</strong> (continuously judge whether it&#x27;s still good). It</p>
+<p>closes the loop Project 07 left open — offline → online.</p>
+<h3>What breaks without it</h3>
+<p>Without it, your first sign of a production regression is an angry user, not a dashboard. You can&#x27;t</p>
+<p>answer &quot;is it slower than last week?&quot;, &quot;which route is failing?&quot;, or &quot;did quality drift after the</p>
+<p>model update?&quot; — because you never recorded the run in a queryable way, and nothing is scoring live</p>
+<p>traffic. A system you can&#x27;t see is a system you can&#x27;t operate.</p>
+<blockquote><p><strong>Startup lens (StarcallOS).</strong> A personal OS runs unattended, all day. The only way to trust an unattended system is to instrument it: every model call, tool call, route, cost, and error as a standard span, plus a background judge sampling quality. Observability is how StarcallOS earns the right to run without you watching.</p></blockquote>
+<hr>
+<h2>2. ELI12</h2>
+<p>Imagine a restaurant kitchen. <strong>Observability</strong> is the camera over every station: it records who</p>
+<p>cooked what, how long each dish took, and which orders came back. It tells you *exactly what</p>
+<p>happened* — but a camera can&#x27;t taste the food. So you also send a <strong>food critic</strong> to taste a few</p>
+<p>random plates each night (not every plate — that would jam the kitchen). The critic tells you</p>
+<p><em>whether the food is still good.</em> You need both: the cameras to see the speed and the mistakes, the</p>
+<p>critic to judge the taste.</p>
+<p>And the golden rule of the cameras: <strong>a single average lies.</strong> &quot;Average dish time: 8 minutes&quot;</p>
+<p>looks fine even if the dessert station is secretly taking 40. You have to watch <strong>each station</strong>,</p>
+<p>not just the kitchen&#x27;s average. That per-station view is the whole trick of drift detection.</p>
+<hr>
+<h2>3. Observability vs. Evaluation</h2>
+<p>These are different jobs and the lesson hinges on not conflating them</p>
+<p>(<code>opentelemetry-genai-semconv.md</code>):</p>
+<ul>
+<li><strong>Observability</strong> = <em>what happened</em>. Latency, tokens, cost, route, error, finish reason — recorded</li>
+</ul>
+<p>on every request, cheaply, as structured <strong>traces</strong>.</p>
+<ul>
+<li><strong>Evaluation</strong> = <em>was it good</em>. A judged quality score — expensive, so run on a <strong>sample</strong>, not</li>
+</ul>
+<p>every request.</p>
+<p>A trace can tell you latency doubled; it cannot tell you the answers got worse. A judge can tell you</p>
+<p>quality dropped; it&#x27;s too costly to run on everything. Production needs both, and they share fields:</p>
+<p>the trace preserves the context (prompt, retrieved docs, response) the judge needs to score.</p>
+<hr>
+<h2>4. GenAI Telemetry — Spans with Standard Names</h2>
+<p>A <strong>span</strong> is a record of one operation (a model call, a tool call) with a start, a duration, and</p>
+<p><strong>attributes</strong>. OpenTelemetry&#x27;s GenAI semantic conventions standardize the attribute <em>names</em> so any</p>
+<p>tool can read any system&#x27;s traces (<code>opentelemetry-genai-semconv.md</code>). The ones that matter here:</p>
+<table><tr><th>Attribute</th><th>Meaning</th></tr><tr><td><code>gen_ai.operation.name</code></td><td>the operation (e.g. <code>chat</code>, <code>execute_tool</code>)</td></tr><tr><td><code>gen_ai.request.model</code></td><td>the model requested</td></tr><tr><td><code>gen_ai.usage.input_tokens</code> / <code>gen_ai.usage.output_tokens</code></td><td>token usage</td></tr><tr><td><code>gen_ai.response.finish_reasons</code></td><td>why generation stopped</td></tr></table>
+<p>The point of using the <strong>standard</strong> names (not <code>my_model</code> or <code>tokens_in</code>) is interoperability: a</p>
+<p>trace written to the convention can be read by any conforming backend, compared across models,</p>
+<p>prompts, and deployments. Inventing your own names throws that away — the whole reason the</p>
+<p>convention exists.</p>
+<hr>
+<h2>5. Instrumenting the Agent</h2>
+<p>Instrumentation wraps each operation so it emits a span. A <code>traced</code> wrapper around a model/tool call</p>
+<p>records the <strong>duration</strong> (wall-clock), pulls <strong>tokens/cost</strong> from the result, tags the <strong>route</strong> and</p>
+<p><strong>operation</strong>, captures any <strong>error</strong>, and appends the span to a collector/exporter. One agent run →</p>
+<p>a <strong>tree of spans</strong> (the top-level run, each model call, each tool call). The learner owns building</p>
+<p>the span with the correct attributes; the exporter (where spans go) is provided.</p>
+<p>A key discipline: an <strong>error is a span attribute, not a swallowed exception.</strong> A tool that fails</p>
+<p>records <code>error=true</code> on its span — that&#x27;s how the monitor later sees the error-rate rise. (This is</p>
+<p>the telemetry echo of Project 08&#x27;s &quot;the error must become an observation.&quot;)</p>
+<hr>
+<h2>6. Aggregating Traces into Metrics — Per Route</h2>
+<p>Raw spans are noise; <strong>metrics</strong> are signal. Aggregation rolls spans up <strong>per route/operation</strong> into:</p>
+<p>count, <strong>error rate</strong>, average <strong>latency</strong>, average <strong>tokens</strong>, total <strong>cost</strong>. The non-negotiable</p>
+<p>design choice is the <em>grouping</em>: per route, <strong>not</strong> one global average. A global mean is where a</p>
+<p>dead route hides — &quot;overall error rate 3%&quot; can conceal a <code>search</code> route at 60%. (Same trap Project</p>
+<p>09 names for routing accuracy; same fix — segment it.)</p>
+<hr>
+<h2>7. Drift Detection — Baseline vs. Live Window</h2>
+<p><strong>Drift</strong> is the live system moving away from a known-good <strong>baseline</strong>. The monitor compares a</p>
+<p>recent <strong>window</strong> of metrics to the baseline, per route, and <strong>flags</strong> a route whose error rate rose</p>
+<p>beyond a threshold, or whose latency rose beyond a ratio, or whose cost/tokens spiked</p>
+<p>(<code>llm-online-evaluation-drift.md</code>). Three flavors:</p>
+<ul>
+<li><strong>Operational drift</strong> — error rate, latency, cost per route.</li>
+<li><strong>Behavioral drift</strong> — refusal-rate spikes, retry storms, malformed-output rate.</li>
+<li><strong>Distributional drift</strong> — the <em>input</em> distribution moving off the golden set&#x27;s coverage (queries</li>
+</ul>
+<p>you never evaluated) — often the earliest warning, <em>before</em> failures climb.</p>
+<p>The alert threshold is the familiar precision/recall dial: too tight ⇒ alert fatigue; too loose ⇒</p>
+<p>missed regressions. The monitor&#x27;s job is to catch the seeded regression <strong>without</strong> crying wolf on a</p>
+<p>healthy window.</p>
+<hr>
+<h2>8. Online Evaluation — The Async Sampled Judge</h2>
+<p>Telemetry is cheap and runs on everything. <em>Quality</em> scoring is expensive, so online evaluation</p>
+<p><strong>samples</strong> — a background LLM-judge grades ~5–10% of traffic against the <strong>same rubric</strong> the</p>
+<p>offline eval used (<code>llm-online-evaluation-drift.md</code>). The load-bearing rule:</p>
+<blockquote><p><strong>A production judge must NOT run synchronously on the request path.</strong> That doubles latency and cost for every user. It runs <strong>asynchronously</strong>, over sampled traces, feeding a quality dashboard.</p></blockquote>
+<p>This is how offline and online evals combine: offline gates the release (Project 07); online watches</p>
+<p>the deployment (this elective). Together they&#x27;re worth more than either alone.</p>
+<hr>
+<h2>Milestones</h2>
+<ol>
+<li><strong>M1 — Emit a span:</strong> wrap a model call in a GenAI span with the standard attributes; verify via</li>
+</ol>
+<p>the exporter.</p>
+<ol>
+<li><strong>M2 — Instrument the agent:</strong> <code>traced</code> across model + tool calls; one run → a span tree;</li>
+</ol>
+<p>errors recorded as attributes.</p>
+<ol>
+<li><strong>M3 — Aggregate:</strong> roll spans up into <strong>per-route</strong> metrics (count, error rate, latency, tokens,</li>
+</ol>
+<p>cost).</p>
+<ol>
+<li><strong>M4 — Detect drift:</strong> compare a window to the baseline per route; flag the regressed route</li>
+</ol>
+<p>without false-alarming the healthy one.</p>
+<ol>
+<li><strong>M5 — Evaluate the monitor:</strong> run the fixtures; catch the seeded regression, no false alarm on</li>
+</ol>
+<p>the baseline.</p>
+<ol>
+<li><strong>Extension:</strong> wire a real OTel collector / dashboard; add an async sampled LLM-judge for quality</li>
+</ol>
+<p>drift.</p>
+<hr>
+<h2>Common Misconceptions</h2>
+<ul>
+<li><strong>&quot;Observability is evaluation.&quot;</strong> No — a trace says latency rose; it doesn&#x27;t say quality dropped.</li>
+</ul>
+<p>You need a judge for that.</p>
+<ul>
+<li><strong>&quot;I&#x27;ll name the attributes whatever.&quot;</strong> Then no standard tool can read your traces. Use the</li>
+</ul>
+<p><code>gen_ai.*</code> names; interoperability is the point.</p>
+<ul>
+<li><strong>&quot;Watch the overall average.&quot;</strong> A global mean hides a single dead route. Aggregate per route.</li>
+<li><strong>&quot;Score every request for quality.&quot;</strong> A synchronous production judge doubles latency/cost. Sample</li>
+</ul>
+<p>~5–10% asynchronously.</p>
+<ul>
+<li><strong>&quot;Swallow the tool error so the run continues.&quot;</strong> Then the monitor never sees it. The error is a</li>
+</ul>
+<p>span attribute.</p>
+<hr>
+<h2>Instructor Notes</h2>
+<ul>
+<li>The <strong>non-negotiable assessable idea</strong> is <em>observability ≠ evaluation</em> — and that drift is detected</li>
+</ul>
+<p><strong>per route, not on a global mean</strong>. A monitor that only reports an overall average has missed the</p>
+<p>point.</p>
+<ul>
+<li>The <strong>second</strong> is <em>standard attribute names</em>: inventing field names defeats interoperability.</li>
+<li>The <strong>third</strong> is the <em>async sampled judge</em>: a synchronous production judge is the named</li>
+</ul>
+<p>anti-pattern.</p>
+<ul>
+<li>Keep it offline/deterministic: a provided exporter stub + replayable trace fixtures (a baseline +</li>
+</ul>
+<p>a seeded-regression window) make the monitor a gradeable artifact with no live system.</p>
+<ul>
+<li>Scope guard: the target is the instrumentation + the drift monitor, <strong>not</strong> building a dashboard</li>
+</ul>
+<p>(that&#x27;s an extension).</p>
+<hr>
+<h2>Sources</h2>
+<ul>
+<li><code>sources/official-docs/opentelemetry-genai-semconv.md</code> — standard GenAI span attributes; tools</li>
+</ul>
+<p>agree on field names; observability supports but is separate from evaluation.</p>
+<ul>
+<li><code>sources/articles/llm-online-evaluation-drift.md</code> — online vs offline eval; async sampled judge</li>
+</ul>
+<p>(~5–10%, never synchronous); operational/behavioral/distributional drift; per-route aggregation.</p>
+<ul>
+<li><code>sources/papers/mt-bench.md</code> — scoring with numbers, applied to a live window per route.</li>
+</ul>
+</div>
+</body>
+</html>
