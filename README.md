@@ -29,11 +29,11 @@ The goal is not to finish tutorials. The goal is to produce evidence of understa
 | Metric | Status |
 |---|---:|
 | Core projects | 9 |
-| Electives | 1 |
-| Source notes | 38 |
-| Rendered lessons | 10 |
-| Rendered source pages | 38 |
-| Test files | 41 |
+| Electives | 5 |
+| Source notes | 49 |
+| Rendered lessons | 14 |
+| Rendered source pages | 49 |
+| Test files | 56 |
 | Completed implementations | TBD |
 | Evaluation reports | TBD |
 | Failure analyses | TBD |
@@ -81,6 +81,17 @@ Electives are optional off-spine deep dives. They are not required to complete t
 | Elective | What You Build | Why It Matters |
 |---|---|---|
 | [MCP Interface Layer](projects/electives/01-mcp-interface-layer/) | Wrap the memory system as an MCP server | Teaches provider/consumer protocol design |
+
+### Production & Hardening track (recommended after the capstone)
+
+What separates a demo from a production system — hardening, cost/latency, and operations. Off-spine; each attaches to a spine prerequisite.
+
+| Elective | What You Build | Why It Matters |
+|---|---|---|
+| [Guardrails & Safety Layer](projects/electives/02-guardrails-safety-layer/) | A fail-closed input/output guard around the agent | Prompt-injection defense, PII redaction, output policy |
+| [Cost & Latency Engineering](projects/electives/03-cost-latency-engineering/) | Caching + a model cascade, gated by the eval | Cut cost/latency without regressing quality |
+| [LLM Observability & Ops](projects/electives/04-llm-observability-ops/) | GenAI telemetry + a per-route drift monitor | Closes the offline→online evaluation loop |
+| [Advanced RAG / Query Engineering](projects/electives/05-advanced-rag-query-engineering/) | Query rewriting, HyDE, multi-hop fusion | Eval-gated retrieval beyond naive RAG |
 
 ## Branch Policy
 

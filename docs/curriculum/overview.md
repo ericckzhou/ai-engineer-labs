@@ -144,6 +144,35 @@ capability* — and why does standardizing the interface matter more than any si
 
 ---
 
+## Production & Hardening Track (off-spine, recommended after Project 9)
+
+A named elective track for what separates a working demo from a production system: hardening it,
+making it cheap/fast, and operating it. Off the 1–9 spine; each attaches to a spine prerequisite.
+(Decision record: `memory/project/decisions/2026-06-09-production-hardening-elective-track.md`.)
+
+**Elective 2 — Guardrails & Safety Layer.** Wrap the Project 8 agent in a fail-closed input/output
+guard: detect prompt injection (direct **and** indirect), redact PII, enforce an output policy —
+then prove on a labeled dataset you reduced attacks/leaks without blocking real users. Builds on
+Projects 4, 6, 8.
+*Key question:* Why is a feature that *works* not a feature that's *safe to expose*?
+
+**Elective 3 — Cost & Latency Engineering.** Cut a working feature's cost/latency **without**
+regressing quality, gated by the Project 7 eval: prompt caching, a semantic cache, and a model
+cascade (cheap-first, escalate on doubt). Builds on Projects 1, 2, 7.
+*Key question:* Why can you only optimize cost *safely* once you have an eval?
+
+**Elective 4 — LLM Observability & Ops.** Instrument the Project 8 agent with standard GenAI
+telemetry (OpenTelemetry `gen_ai.*` spans), then monitor live traces for drift **per route** —
+closing Project 7's offline→online loop. Builds on Projects 7, 8.
+*Key question:* What does a trace tell you that an eval can't, and vice versa?
+
+**Elective 5 — Advanced RAG / Query Engineering.** Add a query-transformation stage to Project 4's
+retrieval — rewriting, HyDE, multi-hop decomposition + fusion — and prove **per transform** which
+ones help (and which don't) against the faithfulness eval. Builds on Projects 2, 3, 4.
+*Key question:* When does a "smarter" retrieval technique actually make answers *worse*?
+
+---
+
 ## Curriculum Principles
 
 **Each project is standalone.** You can do them out of order if needed. But the order is designed.
