@@ -1,6 +1,9 @@
 # Anthropic Prompt Caching
 
 **Type:** official-docs
+**Tier:** 1 (Official Doc)
+**URL:** https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching
+**Accessed:** 2026-06-09
 **Publisher:** Anthropic
 **Link:** https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching
 **Related (in repo):** `sources/official-docs/anthropic-pricing.md` (the per-MTok base prices the
@@ -53,11 +56,22 @@ check the doc for the current number per model). Shorter prefixes silently don't
 caching actually happened via the response `usage`:
 `total_input = cache_read_input_tokens + cache_creation_input_tokens + input_tokens`.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the first, cheapest cost lever: no quality change at all (same model, same output), pure
 input-cost reduction on a reused prefix. The learner measures `cache_read_input_tokens` to prove
 the saving — and learns that caching a *variable* prefix saves nothing (the common mistake).
+
+## Key Claims
+
+- Caching reuses a stable prompt prefix (tool definitions, system prompt, long documents, few-shot examples, prior turns) marked with a `cache_control` breakpoint.
+- The cached prefix must be identical and come *before* variable content; a breakpoint on per-request content (timestamp, incoming message) caches nothing useful.
+- Cost mechanics make it a real tradeoff: cache write ~1.25× (5-min) / ~2× (1-hour) base input, cache read ~0.1×; it pays off only once the prefix is reused enough to amortize the write — verify via `usage.cache_read_input_tokens`.
+
+## Relevant To
+
+- Elective 03 — Cost & Latency Engineering (the prompt-caching lever, M1).
+- Related: anthropic-pricing.md (the base per-MTok prices the multipliers apply to). Minimums and exact multipliers are model-specific — read the live doc, don't hardcode.
 
 ## Known issues / cautions
 

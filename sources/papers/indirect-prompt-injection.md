@@ -1,6 +1,9 @@
 # Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2302.12173
+**Accessed:** 2026-06-09
 **Authors:** Greshake, Abdelnabi, Mishra, Endres, Holz, Fritz
 **Year:** 2023 (submitted Feb 2023; rev. May 2023)
 **arXiv:** 2302.12173 — https://arxiv.org/abs/2302.12173
@@ -37,12 +40,23 @@ The authors are explicit that **robust mitigations are currently lacking** — t
 characterizes the threat rather than solving it. This is itself a key lesson: there is no single
 fix; defense is layered and incomplete.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 This is the reason scanning *only the user's prompt* is insufficient. In a RAG system (Project
 04), the dangerous text is in the **retrieved document**. The elective therefore must guard the
 retrieved context, not just the user input — and must frame guarding as risk reduction over an
 unsolved problem, not a fix.
+
+## Key Claims
+
+- LLM-integrated apps blur the boundary between *data* and *instructions*: any text reaching the prompt — including content the app retrieved on the user's behalf — can be read as a command.
+- Indirect injection plants malicious instructions in content the app is likely to retrieve (web page, PDF, email, calendar entry); the user never typed the attack.
+- Demonstrated categories include data exfiltration, self-propagating "worming," information-ecosystem poisoning, and remote control of tool/API calls; the authors state robust mitigations are currently lacking.
+
+## Relevant To
+
+- Elective 02 — Guardrails & Safety Layer (the indirect-injection threat that ties guarding to retrieval).
+- Related: owasp-llm-top10-2025.md (LLM01); Project 04 (in RAG the dangerous text is in the retrieved document); Project 06 (tool arguments are untrusted model input).
 
 ## Known issues / cautions
 

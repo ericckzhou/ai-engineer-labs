@@ -1,6 +1,9 @@
 # Microsoft Presidio — PII Detection and De-identification
 
 **Type:** official-docs (open-source SDK)
+**Tier:** 1 (Official Doc)
+**URL:** https://microsoft.github.io/presidio/
+**Accessed:** 2026-06-09
 **Publisher:** Microsoft
 **Link:** https://microsoft.github.io/presidio/
 **Repo:** https://github.com/microsoft/presidio
@@ -37,12 +40,23 @@ real backend in an extension).
 Names, locations, credit-card numbers, SSNs, phone numbers, crypto wallet addresses, financial
 data — and **custom recognizers** for domain-specific PII.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It models the right decomposition for `redact_output`: **detect (recognizers) → transform
 (operators)**, with the entity list and operator choice driven by config — not a single
 hardcoded regex. The learner's offline core can be regex + checksum recognizers with a `mask`
 operator; the extension swaps in Presidio for NER-based detection.
+
+## Key Claims
+
+- Two-stage pipeline: an Analyzer detects PII (regex patterns, NER, context-word boosting, checksum validation) and an Anonymizer transforms it (replace, mask, redact, hash, encrypt).
+- Entity list and operator choice are config-driven, not a single hardcoded regex; custom recognizers extend it to domain-specific PII.
+- Microsoft states plainly there is no guarantee Presidio finds all sensitive information — redaction is risk reduction, not a guarantee.
+
+## Relevant To
+
+- Elective 02 — Guardrails & Safety Layer (the PII-redaction component, M2).
+- Related: owasp-llm-top10-2025.md (LLM02). The learner's offline core is regex + checksum recognizers with a mask operator; Presidio NER is the extension backend.
 
 ## Known issues / cautions
 

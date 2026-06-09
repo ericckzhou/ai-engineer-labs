@@ -421,7 +421,9 @@
 <li><a href="#components-the-design-to-mirror">Components (the design to mirror)</a></li>
 <li><a href="#how-a-hit-is-decided">How a hit is decided</a></li>
 <li><a href="#the-critical-risk-the-lesson-s-failure-mode">The critical risk (the lesson&#x27;s failure mode)</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -435,11 +437,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../official-docs/gptcache-semantic-caching.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (open-source library)</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (open-source library)</div>
+<div class="metadata-item"><strong>Tier</strong>1 (Official Doc)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://github.com/zilliztech/GPTCache">https://github.com/zilliztech/GPTCache</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="gptcache-semantic-caching-for-llms">GPTCache — Semantic Caching for LLMs</h1>
-<p><strong>Type:</strong> official-docs (open-source library) <strong>Publisher:</strong> Zilliz <strong>Link:</strong> https://github.com/zilliztech/GPTCache</p>
+<p><strong>Type:</strong> official-docs (open-source library) <strong>Tier:</strong> 1 (Official Doc) <strong>URL:</strong> https://github.com/zilliztech/GPTCache <strong>Accessed:</strong> 2026-06-09 <strong>Publisher:</strong> Zilliz <strong>Link:</strong> https://github.com/zilliztech/GPTCache</p>
 <div class="callout info"><p>Primary source for <strong>Elective 03 — Cost &amp; Latency Engineering</strong> (the semantic-cache lever, M2). Reference design for an embedding-similarity cache; faithful summary.</p></div>
 <hr>
 <h2 id="what-it-is">What it is</h2>
@@ -467,8 +472,19 @@
 <p>Embed the incoming query → search the vector store → compare the top similarity to a <strong>threshold</strong>. Above threshold ⇒ return the cached answer (a hit); below ⇒ miss, call the LLM, store the result.</p>
 <h2 id="the-critical-risk-the-lesson-s-failure-mode">The critical risk (the lesson&#x27;s failure mode)</h2>
 <p><strong>A too-loose threshold returns a stored answer for a different question.</strong> The cache reports a &quot;hit&quot; but serves a wrong, confidently-cached answer. So the threshold is a precision/recall dial exactly like a guard&#x27;s — and the eval (Project 07&#x27;s set) is what catches a false hit. Hit <em>rate</em> alone is a vanity metric; correctness-under-hits is the real one.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It connects Projects 02 (embeddings) and 03 (ANN) to a production cost lever, and it has a quality risk (the false hit) that the eval must police — reinforcing the elective&#x27;s thesis that cost optimization is only safe behind an eval.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>A semantic cache returns a stored answer when a <em>semantically similar</em> query was seen before, so hit rates far exceed exact-match caching (&quot;what is GitHub&quot; ≈ &quot;can you explain GitHub&quot;).</li>
+<li>Components: embedding generation, vector store + similarity search, cache storage, a similarity evaluator + threshold, and an eviction manager.</li>
+<li>The threshold is a precision/recall dial: too loose returns a confidently wrong answer for a different question, and only the eval catches a false hit — hit <em>rate</em> alone is a vanity metric.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 03 — Cost &amp; Latency Engineering (the semantic-cache lever, M2).</li>
+<li>Related: Project 02 (same embedder for store and query), Project 03 (ANN search), Project 07 (the eval that polices false hits).</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>Threshold tuning is the whole game; too loose = wrong answers, too tight = no hits (no saving).</li>

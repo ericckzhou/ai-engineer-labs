@@ -1,6 +1,9 @@
 # Query Rewriting for Retrieval-Augmented Large Language Models (Rewrite-Retrieve-Read)
 
 **Type:** paper
+**Tier:** 2 (Foundational Paper)
+**URL:** https://arxiv.org/abs/2305.14283
+**Accessed:** 2026-06-09
 **Authors:** Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, Nan Duan
 **Year:** 2023 (EMNLP 2023)
 **arXiv:** 2305.14283 — https://arxiv.org/abs/2305.14283
@@ -29,12 +32,23 @@ Two forms:
 Consistent improvement over retrieve-then-read across open-domain and multiple-choice QA — the
 rewrite closes the question↔query gap before retrieval ever runs.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the first and most general query transform: the user's words are an input to be *engineered*,
 not a fixed query. It pairs with HyDE (rewrite the query text vs. embed a hypothetical answer) and
 multi-hop decomposition (one query vs. several). And like all of them, it can drift — a rewrite can
 wander off the user's intent — so it is measured against the eval, not assumed good.
+
+## Key Claims
+
+- There is a gap between how a user phrases a question and the best *query* for the index; plain retrieve-then-read leaves it unclosed.
+- Rewrite-Retrieve-Read inserts a reformulation step: an LLM (or a small LM trained with RL from the reader's feedback) rewrites the question into better search queries before retrieval.
+- Consistent improvement over retrieve-then-read across open-domain and multiple-choice QA.
+
+## Relevant To
+
+- Elective 05 — Advanced RAG / Query Engineering (query rewriting, M1).
+- Related: hyde.md (rewrite text vs. embed a hypothetical answer), self-rag.md (retrieve-or-not); Elective 03 (the per-query generation cost).
 
 ## Known issues / cautions
 

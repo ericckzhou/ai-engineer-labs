@@ -419,7 +419,9 @@
 <li><a href="#core-idea">Core idea</a></li>
 <li><a href="#why-it-works">Why it works</a></li>
 <li><a href="#result">Result</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -433,11 +435,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../papers/hyde.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div>
+<div class="metadata-item"><strong>Tier</strong>2 (Foundational Paper)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://arxiv.org/abs/2212.10496">https://arxiv.org/abs/2212.10496</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="hyde-precise-zero-shot-dense-retrieval-without-relevance-labels">HyDE: Precise Zero-Shot Dense Retrieval without Relevance Labels</h1>
-<p><strong>Type:</strong> paper <strong>Authors:</strong> Luyu Gao, Xueguang Ma, Jimmy Lin, Jamie Callan (CMU / Waterloo) <strong>Year:</strong> 2022 <strong>arXiv:</strong> 2212.10496 — https://arxiv.org/abs/2212.10496</p>
+<p><strong>Type:</strong> paper <strong>Tier:</strong> 2 (Foundational Paper) <strong>URL:</strong> https://arxiv.org/abs/2212.10496 <strong>Accessed:</strong> 2026-06-09 <strong>Authors:</strong> Luyu Gao, Xueguang Ma, Jimmy Lin, Jamie Callan (CMU / Waterloo) <strong>Year:</strong> 2022 <strong>arXiv:</strong> 2212.10496 — https://arxiv.org/abs/2212.10496</p>
 <div class="callout info"><p>Primary source for <strong>Elective 05 — Advanced RAG / Query Engineering</strong> (the HyDE transform, M2). Faithful summary; arXiv PDF is canonical.</p></div>
 <hr>
 <h2 id="core-idea">Core idea</h2>
@@ -457,8 +462,19 @@
 <p>The hypothetical document &quot;looks like&quot; a relevant document, so its embedding lands in the neighborhood of genuinely relevant corpus documents — closer than the bare query would. The encoder&#x27;s <strong>dense bottleneck filters out the hallucinated specifics</strong>: the generated doc grounds the <em>shape</em> of a good answer, and the nearest real documents supply the <em>facts</em>. No relevance labels, no fine-tuning.</p>
 <h2 id="result">Result</h2>
 <p>HyDE substantially beats unsupervised dense retrievers and approaches fine-tuned systems, across languages and tasks — entirely zero-shot.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It is a query-transformation lever: change <em>what you embed</em> to fix retrieval. But it is not free — it costs a generation per query and can <em>hurt</em> on short factual lookups (the hypothetical adds noise). That is exactly why the elective measures each transform against the eval rather than assuming it helps.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>A bare query and a relevant document live in different regions of embedding space, so embedding the <em>question</em> retrieves poorly.</li>
+<li>HyDE instructs an LLM to write a <em>hypothetical answer document</em>, embeds that document (not the query), and retrieves the real documents nearest it.</li>
+<li>The encoder&#x27;s dense bottleneck filters out the hypothetical&#x27;s hallucinated specifics — it keeps the <em>shape</em> of a good answer — and beats unsupervised dense retrievers zero-shot, approaching fine-tuned systems.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 05 — Advanced RAG / Query Engineering (the HyDE transform, M2).</li>
+<li>Related: query-rewriting-rag.md (rewrite the query text vs. embed a hypothetical answer); Elective 03 (the extra generation per query is a cost/latency lever).</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>Costs an extra LLM generation per query (latency/cost) — connects to Elective 03.</li>

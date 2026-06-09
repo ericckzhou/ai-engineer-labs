@@ -419,7 +419,9 @@
 <li><a href="#core-idea">Core idea</a></li>
 <li><a href="#approach">Approach</a></li>
 <li><a href="#result">Result</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -433,11 +435,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../papers/query-rewriting-rag.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>paper</div>
+<div class="metadata-item"><strong>Tier</strong>2 (Foundational Paper)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://arxiv.org/abs/2305.14283">https://arxiv.org/abs/2305.14283</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="query-rewriting-for-retrieval-augmented-large-language-models-rewrite-retrieve-read">Query Rewriting for Retrieval-Augmented Large Language Models (Rewrite-Retrieve-Read)</h1>
-<p><strong>Type:</strong> paper <strong>Authors:</strong> Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, Nan Duan <strong>Year:</strong> 2023 (EMNLP 2023) <strong>arXiv:</strong> 2305.14283 — https://arxiv.org/abs/2305.14283</p>
+<p><strong>Type:</strong> paper <strong>Tier:</strong> 2 (Foundational Paper) <strong>URL:</strong> https://arxiv.org/abs/2305.14283 <strong>Accessed:</strong> 2026-06-09 <strong>Authors:</strong> Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, Nan Duan <strong>Year:</strong> 2023 (EMNLP 2023) <strong>arXiv:</strong> 2305.14283 — https://arxiv.org/abs/2305.14283</p>
 <div class="callout info"><p>Primary source for <strong>Elective 05 — Advanced RAG / Query Engineering</strong> (query rewriting, M1). Faithful summary; arXiv PDF is canonical.</p></div>
 <hr>
 <h2 id="core-idea">Core idea</h2>
@@ -451,8 +456,19 @@
 <p>feedback** (the black-box LLM reader&#x27;s answer quality is the reward signal).</p>
 <h2 id="result">Result</h2>
 <p>Consistent improvement over retrieve-then-read across open-domain and multiple-choice QA — the rewrite closes the question↔query gap before retrieval ever runs.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>It is the first and most general query transform: the user&#x27;s words are an input to be <em>engineered</em>, not a fixed query. It pairs with HyDE (rewrite the query text vs. embed a hypothetical answer) and multi-hop decomposition (one query vs. several). And like all of them, it can drift — a rewrite can wander off the user&#x27;s intent — so it is measured against the eval, not assumed good.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>There is a gap between how a user phrases a question and the best <em>query</em> for the index; plain retrieve-then-read leaves it unclosed.</li>
+<li>Rewrite-Retrieve-Read inserts a reformulation step: an LLM (or a small LM trained with RL from the reader&#x27;s feedback) rewrites the question into better search queries before retrieval.</li>
+<li>Consistent improvement over retrieve-then-read across open-domain and multiple-choice QA.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 05 — Advanced RAG / Query Engineering (query rewriting, M1).</li>
+<li>Related: hyde.md (rewrite text vs. embed a hypothetical answer), self-rag.md (retrieve-or-not); Elective 03 (the per-query generation cost).</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>A rewrite can <em>change the meaning</em> (drift) and retrieve the wrong thing — gate on faithfulness.</li>

@@ -420,7 +420,9 @@
 <li><a href="#the-two-categories-this-elective-targets">The two categories this elective targets</a></li>
 <li><a href="#llm01-2025-prompt-injection">LLM01:2025 — Prompt Injection</a></li>
 <li><a href="#llm02-2025-sensitive-information-disclosure">LLM02:2025 — Sensitive Information Disclosure</a></li>
-<li><a href="#why-it-anchors-the-elective">Why it anchors the elective</a></li>
+<li><a href="#why-this-source-matters">Why This Source Matters</a></li>
+<li><a href="#key-claims">Key Claims</a></li>
+<li><a href="#relevant-to">Relevant To</a></li>
 <li><a href="#known-issues-cautions">Known issues / cautions</a></li>
       </ul>
     </nav>
@@ -434,11 +436,14 @@
           <a href="../../../catalogs/rendered/source-map.html">Rendered Source Map</a>
           <a href="../../official-docs/owasp-llm-top10-2025.md">Canonical Markdown</a>
         </div>
-        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (industry standard / threat taxonomy)</div></div>
+        <div class="metadata-grid"><div class="metadata-item"><strong>Type</strong>official-docs (industry standard / threat taxonomy)</div>
+<div class="metadata-item"><strong>Tier</strong>1 (Industry Standard)</div>
+<div class="metadata-item metadata-url"><strong>URL</strong><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">https://owasp.org/www-project-top-10-for-large-language-model-applications/</a></div>
+<div class="metadata-item"><strong>Accessed</strong>2026-06-09</div></div>
 
       </header>
       <h1 id="owasp-top-10-for-llm-applications-2025">OWASP Top 10 for LLM Applications (2025)</h1>
-<p><strong>Type:</strong> official-docs (industry standard / threat taxonomy) <strong>Publisher:</strong> OWASP Foundation — GenAI Security Project <strong>Version:</strong> v2025 (released Nov 2024) <strong>Link:</strong> https://owasp.org/www-project-top-10-for-large-language-model-applications/ <strong>Canonical PDF:</strong> https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf</p>
+<p><strong>Type:</strong> official-docs (industry standard / threat taxonomy) <strong>Tier:</strong> 1 (Industry Standard) <strong>URL:</strong> https://owasp.org/www-project-top-10-for-large-language-model-applications/ <strong>Accessed:</strong> 2026-06-09 <strong>Publisher:</strong> OWASP Foundation — GenAI Security Project <strong>Version:</strong> v2025 (released Nov 2024) <strong>Link:</strong> https://owasp.org/www-project-top-10-for-large-language-model-applications/ <strong>Canonical PDF:</strong> https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf</p>
 <div class="callout info"><p>Primary source for <strong>Elective 02 — Guardrails &amp; Safety Layer</strong>. Pointers and faithful summary only; the canonical text is the OWASP PDF above. Where OWASP&#x27;s exact mitigation wording matters, quote from the PDF.</p></div>
 <hr>
 <h2 id="what-it-is">What it is</h2>
@@ -458,8 +463,19 @@
 <h3 id="llm02-2025-sensitive-information-disclosure">LLM02:2025 — Sensitive Information Disclosure</h3>
 <p>The model reveals data it should not — PII, credentials, proprietary algorithms, or other confidential content — either from its training data, its context window (retrieved docs), or prior turns.</p>
 <p><strong>OWASP-recommended mitigations (paraphrased):</strong> automated detection and <strong>redaction</strong> of confidential/PII data in inputs and generated responses; data minimization; access controls on what enters the context; output scanning before the response leaves the system.</p>
-<h2 id="why-it-anchors-the-elective">Why it anchors the elective</h2>
+<h2 id="why-this-source-matters">Why This Source Matters</h2>
 <p>LLM01 motivates the <strong>input scan</strong> (catch injection before it reaches the model) and LLM02 motivates <strong>output redaction + policy enforcement</strong> (catch PII/leaks before the response reaches the user). OWASP&#x27;s own framing — that prompt-level instructions can be bypassed — is the argument for a separate, fail-closed guard layer rather than &quot;just put it in the system prompt.&quot;</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul>
+<li>The 2025 edition is the de-facto industry checklist for LLM-application security, reordered and reworked from community feedback.</li>
+<li>LLM01:2025 Prompt Injection (direct and indirect) exploits the lack of a hard instruction/data boundary; OWASP&#x27;s own mitigations (system instructions, input validation, output allow-lists, least privilege, human approval) are necessary but can be bypassed.</li>
+<li>LLM02:2025 Sensitive Information Disclosure is countered by automated PII detection/redaction, data minimization, and output scanning before responses leave the system.</li>
+</ul>
+<h2 id="relevant-to">Relevant To</h2>
+<ul>
+<li>Elective 02 — Guardrails &amp; Safety Layer (the threat taxonomy the layer hardens against).</li>
+<li>Related: indirect-prompt-injection.md (LLM01 indirect), presidio-pii.md (LLM02 redaction), llama-guard.md.</li>
+</ul>
 <h2 id="known-issues-cautions">Known issues / cautions</h2>
 <ul>
 <li>The list is a <em>taxonomy of risks</em>, not a library of solutions. Mitigations are directional;</li>

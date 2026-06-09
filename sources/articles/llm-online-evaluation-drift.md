@@ -1,6 +1,9 @@
 # Online Evaluation & Drift Monitoring for LLM Systems (industry practice)
 
 **Type:** article (synthesized industry best-practice; multiple practitioner sources)
+**Tier:** 3 (Engineering Guide)
+**URL:** https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges
+**Accessed:** 2026-06-09
 **Primary references:**
 - Langfuse — "LLM Evaluation 101: Best Practices and Challenges" — https://langfuse.com/blog/2025-03-04-llm-evaluation-101-best-practices-and-challenges
 - Databricks — "Best Practices and Methods for LLM Evaluation" — https://www.databricks.com/blog/best-practices-and-methods-llm-evaluation
@@ -58,11 +61,22 @@ Aggregate **per route / per operation, not as one global mean.** A healthy overa
 hide a single route that has silently gone to a 0% pass-rate or a 10× latency — the same trap
 Project 09 names for routing accuracy. Drift detection must be per-segment.
 
-## Why it anchors the elective
+## Why This Source Matters
 
 It is the "decide whether it was good, continuously" half that the OTel telemetry ("record what
 happened") cannot provide alone. The learner builds a monitor that aggregates spans per route and
 flags the route that regressed against a baseline — the smallest real online-eval loop.
+
+## Key Claims
+
+- Observability records what happened; evaluation decides whether it was good — production needs both: cheap telemetry on every request plus sampled quality evaluation.
+- Online evaluation runs a background LLM judge over ~5–10% sampled traffic against the *same* offline rubric; it must not run synchronously on the request path (doubles latency and cost).
+- Drift is operational (error/latency/cost), behavioral (refusal spikes, retry storms, malformed output), and distributional (input-embedding shift) — and must be aggregated per route, never as one global mean that hides a regressed segment.
+
+## Relevant To
+
+- Elective 04 — Observability & Ops (the online-evaluation / drift-monitor half).
+- Related: opentelemetry-genai-semconv.md (the telemetry vocabulary), mt-bench.md (scoring with numbers over a live window), Project 07 (offline eval), Project 09 (per-route aggregation).
 
 ## Known issues / cautions
 
