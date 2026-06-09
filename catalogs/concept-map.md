@@ -140,6 +140,35 @@ When reasoning about a concept:
 
 ---
 
+### Advanced RAG / Query Engineering (Elective 05 — Production & Hardening track)
+
+**Query Rewriting (Rewrite-Retrieve-Read)**
+- Source: `sources/papers/query-rewriting-rag.md` (Ma et al. 2023)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: a rewrite can DRIFT off the user's intent and retrieve the wrong thing — gate on faithfulness; the user's words are an input to engineer, not a fixed query
+
+**HyDE (Hypothetical Document Embeddings)**
+- Source: `sources/papers/hyde.md` (Gao et al. 2022)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: embed a hypothetical ANSWER, not the query; can HURT on short factual lookups (the hypothetical adds noise); costs a generation per query; never surface the hypothetical as the answer
+
+**Multi-hop Decomposition + Fusion**
+- Source: `sources/papers/query-rewriting-rag.md`, `sources/papers/rag-paper.md`
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: naively concatenating per-sub-question contexts blows the budget and dilutes relevance — dedupe + re-rank the union; re-ranking is from P03 (provided)
+
+**Adaptive Retrieval / Self-Critique (Self-RAG)**
+- Source: `sources/papers/self-rag.md` (Asai et al. 2023)
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md` (M5/extension)
+- Known issues: the advanced move is sometimes NOT to retrieve, and always to critique relevance/support; a wrong skip loses grounding — measure on the eval; the critique is itself fallible + a cost
+
+**Transforms Must Justify Themselves (eval-gated)**
+- Source: `sources/papers/ragas.md`, `sources/papers/hyde.md`
+- Lesson: `projects/electives/05-advanced-rag-query-engineering/source/lesson.agent.md`
+- Known issues: not every transform helps — a transform that retrieves more but lowers faithfulness (more distractors) is a regression; report per-transform, honestly
+
+---
+
 ### Memory
 
 **Memory Stream**
@@ -286,6 +315,78 @@ When reasoning about a concept:
 - Source: `sources/official-docs/mcp-security-best-practices.md`
 - Lesson: `projects/electives/01-mcp-interface-layer/source/lesson.agent.md`; related to Project 06 sandboxing
 - Known issues: local servers run with host privileges unless sandboxed; use least privilege and explicit consent
+
+---
+
+### Guardrails & Safety (Elective 02 — Production & Hardening track)
+
+**Prompt Injection (direct / indirect)**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md` (LLM01:2025), `sources/papers/indirect-prompt-injection.md` (Greshake et al. 2023)
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: scanning only the *user prompt* misses indirect injection riding in on retrieved content (ties to P04); system-prompt restrictions are bypassable — needs an external, fail-closed guard
+
+**PII / Sensitive Information Redaction**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md` (LLM02:2025), `sources/official-docs/presidio-pii.md`
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: detect→transform decomposition (recognizers → operators); masking inside JSON/tool args corrupts structure — redact at the right layer; no detector finds everything (risk reduction, not a fix)
+
+**Output Policy / Fail-Closed Enforcement**
+- Source: `sources/official-docs/owasp-llm-top10-2025.md`, `sources/papers/llama-guard.md`
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md`
+- Known issues: a guard that errors-open is worse than no guard; the precision/recall (attack-catch vs benign-false-positive) tradeoff is the lesson — a guard that blocks everything is useless
+
+**LLM-as-Guard (classifier)**
+- Source: `sources/papers/llama-guard.md` (Inan et al. 2023)
+- Lesson: `projects/electives/02-guardrails-safety-layer/source/lesson.agent.md` (M5 / extension)
+- Known issues: slower/costlier than heuristics and itself injectable; a guard only catches what its taxonomy names; verdict should be categorized (decision + reason), not a bare bool
+
+---
+
+### Cost & Latency Engineering (Elective 03 — Production & Hardening track)
+
+**Prompt Caching**
+- Source: `sources/official-docs/anthropic-prompt-caching.md`, `sources/official-docs/anthropic-pricing.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: a cache write costs MORE than base input — only pays off when the prefix is reused; caching a variable prefix (timestamp/incoming message) saves nothing; thresholds/prices are model-specific, don't hardcode
+
+**Semantic Caching**
+- Source: `sources/official-docs/gptcache-semantic-caching.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: a too-loose similarity threshold returns a stored answer for a DIFFERENT question (the false hit); hit-rate alone is a vanity metric — correctness-under-hits is the real one; same embedder for store + query
+
+**Model Cascade (FrugalGPT)**
+- Source: `sources/papers/frugalgpt.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: the cascade can return a worse cheap answer — quality risk, unlike caching; the escalation signal ("was the cheap model sure?") is the hard design choice; gate on the P07 eval before shipping savings
+
+**Cost-vs-Quality as Separate Axes**
+- Source: `sources/papers/frugalgpt.md`, `sources/papers/mt-bench.md`
+- Lesson: `projects/electives/03-cost-latency-engineering/source/lesson.agent.md`
+- Known issues: "10× cheaper" is a regression if pass-rate dropped — every saving must be proven no-worse on the frozen eval first
+
+---
+
+### Observability & Ops (Elective 04 — Production & Hardening track)
+
+**GenAI Telemetry / Span Instrumentation**
+- Source: `sources/official-docs/opentelemetry-genai-semconv.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: use the STANDARD attribute names (`gen_ai.*`) or interoperability is lost; a span records what happened (latency/tokens), not whether the answer was good
+
+**Online Evaluation (vs Offline)**
+- Source: `sources/articles/llm-online-evaluation-drift.md`, `sources/papers/mt-bench.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: a production LLM-judge must run ASYNC on sampled traffic (~5–10%), never synchronously on the request path; offline gates the release, online watches the deployment
+
+**Drift / Regression Detection**
+- Source: `sources/articles/llm-online-evaluation-drift.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: detect **per route/operation**, not on a global mean — a healthy average hides one route gone to 0% (same trap as P09); threshold too tight = alert fatigue, too loose = missed regression
+
+**Observability ≠ Evaluation**
+- Source: `sources/official-docs/opentelemetry-genai-semconv.md`, `sources/articles/llm-online-evaluation-drift.md`
+- Lesson: `projects/electives/04-llm-observability-ops/source/lesson.agent.md`
+- Known issues: telemetry (cheap, every request) tells you latency rose; only sampled eval (expensive) tells you quality dropped — you need both
 
 ---
 

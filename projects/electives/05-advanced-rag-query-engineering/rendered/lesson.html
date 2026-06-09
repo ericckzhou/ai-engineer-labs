@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson (Agent Version): Advanced RAG — Engineering the Query, Not Just the Index</title>
+<style>
+  :root { --fg:#1a1a2e; --muted:#5a5a72; --accent:#4f46e5; --bg:#fbfbfe; --code:#0f172a;
+           --codebg:#f1f5f9; --border:#e2e8f0; --quote:#eef2ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+          font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:48px 24px 96px; }
+  .banner { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border-radius:14px;
+             padding:14px 20px; font-size:14px; margin-bottom:32px; }
+  .banner b { font-weight:700; }
+  h1 { font-size:30px; line-height:1.25; margin:8px 0 24px; }
+  h2 { font-size:23px; margin:40px 0 12px; padding-bottom:6px; border-bottom:2px solid var(--border); }
+  h3 { font-size:18px; margin:28px 0 10px; color:var(--accent); }
+  h4 { font-size:16px; margin:22px 0 8px; }
+  p { margin:12px 0; }
+  a { color:var(--accent); }
+  ul,ol { margin:12px 0; padding-left:26px; }
+  li { margin:5px 0; }
+  blockquote { margin:16px 0; padding:12px 18px; background:var(--quote);
+                border-left:4px solid var(--accent); border-radius:0 8px 8px 0; }
+  blockquote p { margin:6px 0; }
+  code { background:var(--codebg); color:var(--code); padding:2px 6px; border-radius:5px;
+          font:13.5px/1.5 "SF Mono",Menlo,Consolas,monospace; }
+  pre { background:var(--code); color:#e2e8f0; padding:16px 18px; border-radius:10px;
+         overflow:auto; margin:16px 0; }
+  pre code { background:none; color:inherit; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; }
+  th,td { border:1px solid var(--border); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:#f8fafc; }
+  hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+  .meta { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="banner"><b>Human (derived) version.</b> Generated from
+<code>source/lesson.agent.md</code> by <code>scripts/render_lessons.py</code> — the agent
+version is canonical. If they conflict, the agent version wins.</div>
+<h1>Lesson (Agent Version): Advanced RAG — Engineering the Query, Not Just the Index</h1>
+<blockquote><p><strong>Canonical source of truth.</strong> The human version (<code>rendered/lesson.html</code>) is derived from this file. If they conflict, this file wins. <strong>Elective — Production &amp; Hardening track.</strong> Off the numbered 1–9 spine; recommended after P09. Prerequisite skills: Projects 02, 03, 04.</p></blockquote>
+<hr>
+<h2>Metadata</h2>
+<ul>
+<li><strong>Project:</strong> Elective 05 — Advanced RAG / Query Engineering</li>
+<li><strong>Track:</strong> Production &amp; Hardening (off-spine; after the P09 capstone) — a <em>depth</em> elective on retrieval</li>
+<li><strong>Estimated time:</strong> 9–13 hours</li>
+<li><strong>Prerequisites:</strong> Project 04 (the RAG pipeline + faithfulness eval being extended), Project 03</li>
+</ul>
+<p>(vector retrieval + <strong>re-ranking — already built, provided here</strong>), Project 02 (embeddings).</p>
+<ul>
+<li><strong>Extended capability:</strong> the Project 04 PDF research assistant.</li>
+<li><strong>Primary sources:</strong></li>
+<li><code>sources/papers/query-rewriting-rag.md</code> (Ma et al. 2023 — Rewrite-Retrieve-Read)</li>
+<li><code>sources/papers/hyde.md</code> (Gao et al. 2022 — Hypothetical Document Embeddings)</li>
+<li><code>sources/papers/self-rag.md</code> (Asai et al. 2023 — adaptive retrieval + self-critique)</li>
+<li><code>sources/papers/ragas.md</code> (the faithfulness/answer-relevance gate)</li>
+</ul>
+<hr>
+<h2>Learning Objectives</h2>
+<p>By the end of this elective, the learner will be able to:</p>
+<ol>
+<li><strong>Name the two failure modes of naive retrieve-then-read</strong> — paraphrased queries that miss</li>
+</ol>
+<p>lexically/semantically, and multi-hop questions a single retrieval can&#x27;t satisfy.</p>
+<ol>
+<li><strong>Apply query rewriting</strong> — reformulate the user&#x27;s question into a better <em>retrieval query</em>,</li>
+</ol>
+<p>and explain the question↔query gap (Rewrite-Retrieve-Read).</p>
+<ol>
+<li><strong>Apply HyDE</strong> — generate a hypothetical answer, embed <em>that</em> (not the query), and explain why</li>
+</ol>
+<p>the hypothetical lands nearer real relevant documents, and when it <em>hurts</em>.</p>
+<ol>
+<li><strong>Decompose a multi-hop query and fuse results</strong> — split into sub-questions, retrieve per</li>
+</ol>
+<p>sub-question, and <strong>fuse</strong> the union (dedupe + re-rank) without blowing the context budget.</p>
+<ol>
+<li><strong>Measure each transform against the faithfulness eval</strong> — prove <em>which</em> transforms help, and</li>
+</ol>
+<p>recognize that some don&#x27;t (a transform that retrieves more but lowers faithfulness is a</p>
+<p>regression).</p>
+<ol>
+<li><strong>Explain adaptive retrieval and self-critique</strong> — that the most advanced move is sometimes</li>
+</ol>
+<p><em>not to retrieve</em>, and always to critique relevance/support (Self-RAG).</p>
+<hr>
+<h2>1. Motivation</h2>
+<h3>Why this exists</h3>
+<p>Your Project 04 assistant retrieves with the user&#x27;s question verbatim, then reads. It works when the</p>
+<p>question&#x27;s words match the document&#x27;s words. It fails in two very common cases:</p>
+<ol>
+<li><strong>Paraphrase miss.</strong> The user asks &quot;how do I get my money back?&quot;; the document says &quot;refund</li>
+</ol>
+<p>policy.&quot; A single embedding of the bare question may not land near the right passage.</p>
+<ol>
+<li><strong>Multi-hop.</strong> &quot;Which of the founders went to the same university as the current CTO?&quot; needs</li>
+</ol>
+<p><em>two</em> retrievals (find the CTO&#x27;s university; find founders from there) — one query can&#x27;t get both.</p>
+<p>Naive RAG treats the user&#x27;s question as a fixed, perfect query. It isn&#x27;t. This elective makes the</p>
+<p><strong>query</strong> a thing you engineer — rewrite it, expand it into a hypothetical answer, or split it —</p>
+<p>before retrieval ever runs. The index and the re-ranker (Project 03) are <em>given</em>; the new surface</p>
+<p>is the query stage.</p>
+<h3>What breaks without it</h3>
+<p>Without query engineering, your retrieval ceiling is &quot;the user phrased it well and the answer is in</p>
+<p>one chunk.&quot; Real questions are messy and multi-part; you retrieve plausible-but-wrong context and</p>
+<p>the reader confidently answers from it. And the trap on the <em>other</em> side: bolting on every fancy</p>
+<p>transform without measuring — HyDE, rewriting, decomposition all <em>cost</em> a generation and can</p>
+<p><em>lower</em> faithfulness by dragging in distractors. The discipline is: add a transform only if the</p>
+<p>eval says it helped.</p>
+<blockquote><p><strong>Startup lens (StarcallOS).</strong> A personal OS answers questions over <em>your</em> messy corpus — notes, emails, half-finished docs — where the phrasing never matches and questions span sources. Query engineering is what turns &quot;search my stuff&quot; from a keyword box into something that actually finds the multi-hop answer. And the eval is what stops you from shipping a clever transform that quietly made retrieval worse.</p></blockquote>
+<hr>
+<h2>2. ELI12</h2>
+<p>Imagine a librarian. You walk up and mumble &quot;that money-back thing.&quot; A <em>bad</em> librarian takes your</p>
+<p>exact words to the shelf, finds nothing labeled &quot;money-back thing,&quot; and gives up. A <em>good</em></p>
+<p>librarian does three smarter things:</p>
+<ol>
+<li><strong>Rewrites your request</strong> in library language — &quot;ah, you mean the <strong>refund policy</strong>&quot; — and finds</li>
+</ol>
+<p>it. (Query rewriting.)</p>
+<ol>
+<li><strong>Imagines the answer first</strong> — &quot;a refund policy page probably says: *returns within 30 days, keep</li>
+</ol>
+<p>the receipt…<em>&quot; — and looks for the shelf that has pages like *that</em>, not pages with your exact</p>
+<p>words. (HyDE.)</p>
+<ol>
+<li><strong>Splits a two-part question</strong> — &quot;which founder went to the CTO&#x27;s school?&quot; becomes &quot;where did the</li>
+</ol>
+<p>CTO study?&quot; then &quot;which founders studied there?&quot; — two trips, then combines. (Decomposition.)</p>
+<p>But here&#x27;s the catch the good librarian knows: <strong>fancier isn&#x27;t always better.</strong> Sometimes imagining</p>
+<p>the answer leads you to the wrong shelf. So the good librarian <em>checks</em>: did this actually find a</p>
+<p>better page than just using your words? That check is the eval, and it&#x27;s the difference between a</p>
+<p>clever librarian and a reliable one.</p>
+<hr>
+<h2>3. The Two Failure Modes of Naive Retrieve-Then-Read</h2>
+<p>Project 04&#x27;s pipeline is <code>embed(question) → nearest chunks → read</code>. Two structural failures:</p>
+<ul>
+<li><strong>The question↔query gap.</strong> &quot;There is inevitably a gap between the input text and the needed</li>
+</ul>
+<p>knowledge in retrieval&quot; (<code>query-rewriting-rag.md</code>). How a human asks ≠ how the answer is written.</p>
+<p>A bare-question embedding can miss the right passage entirely.</p>
+<ul>
+<li><strong>Single-shot retrieval can&#x27;t multi-hop.</strong> A compound question needs information from <em>different</em></li>
+</ul>
+<p>places; one retrieval returns one neighborhood. You must split the question and retrieve per part.</p>
+<p>Both are <strong>query</strong> problems, not index problems. The fix is upstream of retrieval.</p>
+<hr>
+<h2>4. Query Rewriting — Rewrite, Retrieve, Read</h2>
+<p>Instead of retrieving with the raw question, <strong>reformulate it into a better retrieval query first</strong></p>
+<p>(<code>query-rewriting-rag.md</code>). Prompt an LLM: &quot;rewrite this question as a search query (or a few).&quot;</p>
+<p>The rewrite closes the question↔query gap — turning &quot;how do I get my money back?&quot; into &quot;refund</p>
+<p>policy return window eligibility.&quot;</p>
+<p>The paper trains a small rewriter with RL from the reader&#x27;s feedback; the cheap starting point (and</p>
+<p>this elective&#x27;s core) is an <strong>LLM-prompted rewriter</strong>. The risk to respect: a rewrite can <strong>drift</strong></p>
+<p>— change the meaning and retrieve the wrong thing — which is why it&#x27;s gated on faithfulness.</p>
+<hr>
+<h2>5. HyDE — Embed a Hypothetical Answer, Not the Question</h2>
+<p>A question and its answer don&#x27;t look alike in embedding space. <strong>HyDE</strong> (<code>hyde.md</code>) closes that gap</p>
+<p>differently: <strong>generate a hypothetical document</strong> that <em>would</em> answer the query, then **embed that</p>
+<p>document** (not the query) and retrieve its neighbors.</p>
+<p>The hypothetical may contain wrong facts — that&#x27;s fine. It &quot;looks like&quot; a relevant document, so its</p>
+<p>embedding lands near genuinely relevant ones, and the encoder&#x27;s **dense bottleneck filters out the</p>
+<p>hallucinated specifics*<em>: the hypothetical supplies the *shape</em> of a good answer; the real corpus</p>
+<p>supplies the <em>facts</em>. The caution: HyDE can <strong>hurt</strong> on short factual lookups where the bare term</p>
+<p>match was already good (the hypothetical adds noise). Measure it — never surface the hypothetical</p>
+<p>itself as the answer.</p>
+<hr>
+<h2>6. Multi-hop Decomposition and Fusion</h2>
+<p>For a compound question, <strong>decompose</strong> it into sub-questions, <strong>retrieve per sub-question</strong>, then</p>
+<p><strong>fuse</strong> the results. Fusion is where this breaks if done naively:</p>
+<ul>
+<li>Concatenating every sub-question&#x27;s chunks <strong>blows the context budget</strong> and <strong>dilutes relevance</strong></li>
+</ul>
+<p>(more distractors → lower faithfulness).</p>
+<ul>
+<li>So <strong>fuse = dedupe the union, then re-rank</strong> it (Project 03&#x27;s cross-encoder, <em>provided</em> here) and</li>
+</ul>
+<p>keep the top-N. The re-ranker is the tool that makes multi-query retrieval safe.</p>
+<p>This is the transform with the most moving parts, and the one where &quot;retrieved more&quot; most easily</p>
+<p>becomes &quot;answered worse.&quot; The eval is the referee.</p>
+<hr>
+<h2>7. Re-Ranking the Union (Provided)</h2>
+<p>Re-ranking — retrieve broadly with the bi-encoder, then re-score the top-k with a cross-encoder — is</p>
+<p><strong>Project 03&#x27;s</strong> lesson, so it is <em>provided</em> here, not rebuilt. Its role in this elective is the</p>
+<p><strong>fusion stage</strong>: it turns the noisy union of multi-query results into a clean, relevance-ordered</p>
+<p>context. Do not re-implement it; <em>use</em> it.</p>
+<hr>
+<h2>8. Not Every Transform Helps — The Eval Is the Referee</h2>
+<p>This is the spine of the elective. Each transform costs a generation and can <em>lower</em> quality by</p>
+<p>pulling in distractors. So you run <strong>Project 04&#x27;s faithfulness + answer-relevance eval</strong></p>
+<p>(<code>ragas.md</code>) <strong>per transform</strong> — baseline vs. rewrite vs. HyDE vs. decomposition — and report which</p>
+<p>actually helped on which queries. Expected honest findings:</p>
+<ul>
+<li>Rewriting helps the paraphrase cases, may drift on already-clear ones.</li>
+<li>HyDE helps conceptual queries, can hurt short factual ones.</li>
+<li>Decomposition helps multi-hop, costs the most and risks dilution.</li>
+</ul>
+<p>A transform that raises retrieval recall but <strong>lowers faithfulness</strong> is a <strong>regression</strong>, not a win.</p>
+<p>&quot;More retrieved&quot; is not the metric; &quot;better-grounded answer&quot; is.</p>
+<hr>
+<h2>9. Adaptive Retrieval and Self-Critique (Self-RAG) — The Advanced Move</h2>
+<p>The most advanced query decision is sometimes <strong>not to retrieve at all</strong>, and always to **critique</p>
+<p>what you retrieved<strong>. </strong>Self-RAG** (<code>self-rag.md</code>) uses reflection to: (1) decide <em>retrieve-or-not</em></p>
+<p>before fetching, (2) judge whether each passage is <em>relevant</em>, (3) judge whether the answer is</p>
+<p><em>supported</em> by the passages. Always-retrieve RAG &quot;indiscriminately incorporates a fixed number of</p>
+<p>passages,&quot; which can drag in irrelevant context and degrade the answer.</p>
+<p>In this elective Self-RAG is the <strong>extension</strong>: approximate the <em>behavior</em> with prompting — a</p>
+<p>retrieve-or-not gate plus a relevance/support critique over the transformed pipeline — reframing</p>
+<p>Project 04&#x27;s faithfulness metric as an <em>inline</em> decision, not just a post-hoc score.</p>
+<hr>
+<h2>Milestones</h2>
+<ol>
+<li><strong>M1 — Query rewriting:</strong> reformulate the query; measure retrieval-hit lift on paraphrased cases.</li>
+<li><strong>M2 — HyDE:</strong> generate a hypothetical answer, embed it, retrieve; compare recall vs the raw query.</li>
+<li><strong>M3 — Multi-hop decomposition:</strong> split a compound question, retrieve per sub-question, fuse</li>
+</ol>
+<p>(dedupe + re-rank the union).</p>
+<ol>
+<li><strong>M4 — Orchestrate:</strong> transforms → retrieve → fuse → re-rank (provided) → read.</li>
+<li><strong>M5 — Prove which helped:</strong> run the faithfulness eval <strong>per transform</strong>; report honestly,</li>
+</ol>
+<p>including the transforms that didn&#x27;t help.</p>
+<ol>
+<li><strong>Extension:</strong> Self-RAG-style retrieve-or-not gate + relevance/support critique; hybrid (BM25 +</li>
+</ol>
+<p>dense); GraphRAG over the corpus.</p>
+<hr>
+<h2>Common Misconceptions</h2>
+<ul>
+<li><strong>&quot;The user&#x27;s question is the query.&quot;</strong> It&#x27;s an <em>input to engineer</em>. The question↔query gap is the</li>
+</ul>
+<p>whole motivation for rewriting.</p>
+<ul>
+<li><strong>&quot;HyDE embeds the question.&quot;</strong> No — it embeds a <em>hypothetical answer</em>. And it can hurt on factual</li>
+</ul>
+<p>lookups; measure it.</p>
+<ul>
+<li><strong>&quot;More retrieved context is better.&quot;</strong> More distractors lower faithfulness. Fuse = dedupe +</li>
+</ul>
+<p>re-rank, not concatenate-everything.</p>
+<ul>
+<li><strong>&quot;Advanced RAG means always retrieve more.&quot;</strong> The advanced move is sometimes <em>not</em> retrieving, and</li>
+</ul>
+<p>always <em>critiquing</em> what you got (Self-RAG).</p>
+<ul>
+<li><strong>&quot;I&#x27;ll add HyDE + rewrite + decomposition because they&#x27;re fancy.&quot;</strong> Only if the eval says they</li>
+</ul>
+<p>helped. A transform that lowers faithfulness is a regression.</p>
+<ul>
+<li><strong>&quot;I need to build re-ranking.&quot;</strong> It&#x27;s from Project 03 and provided — <em>use</em> it for fusion.</li>
+</ul>
+<hr>
+<h2>Instructor Notes</h2>
+<ul>
+<li>The <strong>non-negotiable assessable idea</strong> is <em>transforms must be eval-gated</em>: <code>EVALUATION.md</code> must</li>
+</ul>
+<p>report faithfulness <strong>per transform</strong>, including any that didn&#x27;t help. A learner who adds HyDE</p>
+<p>and assumes it helped has missed the point.</p>
+<ul>
+<li>The <strong>second</strong> is the <strong>fusion</strong> discipline: dedupe + re-rank the union, not concatenate — or</li>
+</ul>
+<p>multi-hop <em>lowers</em> faithfulness.</p>
+<ul>
+<li>The <strong>third</strong> is the framing: the index + re-ranker are <strong>given</strong> (P03/P04); the <strong>query stage</strong></li>
+</ul>
+<p>is the target. Don&#x27;t let the learner rebuild retrieval.</p>
+<ul>
+<li>Keep it offline/deterministic: a provided corpus + retriever + canned rewrites/HyDE docs (a</li>
+</ul>
+<p>fixture) + the faithfulness checker make the whole thing gradeable without a provider; live LLM</p>
+<p>transforms are the extension.</p>
+<hr>
+<h2>Sources</h2>
+<ul>
+<li><code>sources/papers/query-rewriting-rag.md</code> — Ma et al. 2023: Rewrite-Retrieve-Read; the</li>
+</ul>
+<p>question↔query gap; rewrite before retrieval.</p>
+<ul>
+<li><code>sources/papers/hyde.md</code> — Gao et al. 2022: embed a hypothetical answer; the dense bottleneck</li>
+</ul>
+<p>filters hallucinations; can hurt on factual lookups.</p>
+<ul>
+<li><code>sources/papers/self-rag.md</code> — Asai et al. 2023: adaptive retrieve-or-not + relevance/support</li>
+</ul>
+<p>self-critique; the advanced move is sometimes not retrieving.</p>
+<ul>
+<li><code>sources/papers/ragas.md</code> — faithfulness/answer-relevance: the per-transform gate.</li>
+</ul>
+</div>
+</body>
+</html>

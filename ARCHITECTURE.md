@@ -60,7 +60,11 @@ ai-engineering-lab/
 │   ├── curriculum/        ← Curriculum overview and sequencing
 │   └── experiments/       ← Ad-hoc explorations
 │
-├── projects/              ← The 9 learning projects
+├── projects/              ← Learning projects
+│   ├── electives/         ← Off-spine projects (see "The Project Spine and Electives")
+│   │   ├── 01-mcp-interface-layer/   ← Standalone elective
+│   │   └── 0X-.../                   ← Production & Hardening track (E2–E5)
+│   │                      ← Every project (spine or elective) has this structure:
 │   └── XX-project-name/
 │       ├── PROJECT.md     ← What we're building and why
 │       ├── source/
@@ -113,6 +117,31 @@ ai-engineering-lab/
 ├── .env.example           ← Environment variable template
 └── .gitignore
 ```
+
+---
+
+## The Project Spine and Electives
+
+Projects come in two kinds.
+
+**The build spine (Projects 1–9)** is a single, ordered narrative: each project introduces a
+*new capability*, escalating from a model call (P01) to autonomous agents (P08) to a composition
+**capstone (P09)**. Spine projects are taken in order; each assumes the prior ones.
+
+**Electives** live under `projects/electives/` and sit *off* the numbered spine. They apply,
+harden, or extend capabilities the spine already built, and are order-independent after their
+prerequisite project. There are two groupings:
+
+- **Standalone electives** — e.g. `01-mcp-interface-layer` (wraps P05 as an MCP server).
+- **The Production & Hardening track (E2–E5)** — a *named, sequenced-as-a-group* elective track,
+  recommended **after** the P09 capstone. It covers what separates a demo from a production
+  system: Guardrails & Safety (E2), Cost & Latency (E3), Observability & Ops (E4), and Advanced
+  RAG (E5). Each attaches to a spine prerequisite (E2→P08, E3→P07, E4→P07/P08, E5→P04).
+
+The track keeps the capstone at P09 (it does not move into the numbered spine) while still
+framing production work as the real next stage rather than optional fluff. This grouping was a
+deliberate structural decision:
+`memory/project/decisions/2026-06-09-production-hardening-elective-track.md`.
 
 ---
 

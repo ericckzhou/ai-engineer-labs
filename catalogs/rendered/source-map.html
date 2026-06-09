@@ -424,6 +424,7 @@
 <li><a href="#vector-databases-approximate-nearest-neighbor">Vector Databases &amp; Approximate Nearest Neighbor</a></li>
 <li><a href="#re-ranking-two-stage-retrieval">Re-Ranking / Two-Stage Retrieval</a></li>
 <li><a href="#rag-retrieval-augmented-generation">RAG (Retrieval-Augmented Generation)</a></li>
+<li><a href="#advanced-rag-query-engineering-elective-05-production-hardening-track">Advanced RAG / Query Engineering (Elective 05 — Production &amp; Hardening track)</a></li>
 <li><a href="#chunking">Chunking</a></li>
 <li><a href="#memory-systems">Memory Systems</a></li>
 <li><a href="#tool-use-agents">Tool Use / Agents</a></li>
@@ -431,7 +432,9 @@
 <li><a href="#evaluation">Evaluation</a></li>
 <li><a href="#system-design-orchestration-project-09-capstone">System Design / Orchestration (Project 09 — capstone)</a></li>
 <li><a href="#model-context-protocol-mcp">Model Context Protocol (MCP)</a></li>
-<li><a href="#ai-observability">AI Observability</a></li>
+<li><a href="#guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</a></li>
+<li><a href="#cost-latency-elective-03-production-hardening-track">Cost &amp; Latency (Elective 03 — Production &amp; Hardening track)</a></li>
+<li><a href="#ai-observability-ops-elective-04-production-hardening-track">AI Observability &amp; Ops (Elective 04 — Production &amp; Hardening track)</a></li>
 <li><a href="#agent-self-improvement-patterns">Agent Self-Improvement Patterns</a></li>
 <li><a href="#knowledge-graphs">Knowledge Graphs</a></li>
       </ul>
@@ -493,6 +496,15 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <li>Tier 2: <a class="src" href="../../sources/rendered/papers/rag-paper.html">sources/papers/rag-paper.md</a> — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token</li>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-citations.html">sources/official-docs/anthropic-citations.md</a> — claim → source location (<code>char_location</code>/<code>page_location</code>/<code>content_block_location</code>), <code>cited_text</code>, sentence-level citation chunking, verifiable pointers</li>
 </ul>
+<h2 id="advanced-rag-query-engineering-elective-05-production-hardening-track">Advanced RAG / Query Engineering (Elective 05 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Extending P04&#x27;s naive retrieve-then-read with a query-transformation stage — measured against P04&#x27;s faithfulness eval. Source base for <code>projects/electives/05-advanced-rag-query-engineering/</code>.</p></div>
+<ul>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/query-rewriting-rag.html">sources/papers/query-rewriting-rag.md</a> — Ma et al. 2023 (EMNLP): Rewrite-Retrieve-Read; the question↔query gap; reformulate the query BEFORE retrieval (LLM rewriter or RL-trained small LM from reader feedback)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/hyde.html">sources/papers/hyde.md</a> — Gao et al. 2022: Hypothetical Document Embeddings; generate a hypothetical answer, embed THAT (not the query); the dense bottleneck filters hallucinations; zero-shot</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/self-rag.html">sources/papers/self-rag.md</a> — Asai et al. 2023: adaptive retrieve-or-NOT + self-critique (relevance + support) via reflection tokens; the advanced move is sometimes not retrieving, always critiquing what you retrieved</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/ragas.html">sources/papers/ragas.md</a> — the faithfulness/answer-relevance gate (already in repo) every transform is measured against</li>
+<li>Tier 3: <a class="src" href="../../sources/rendered/articles/sbert-retrieve-rerank.html">sources/articles/sbert-retrieve-rerank.md</a> — re-ranking (already learned in P03; PROVIDED here, not the target)</li>
+</ul>
 <h2 id="chunking">Chunking</h2>
 <ul>
 <li>Tier 3: <a class="src" href="../../sources/rendered/articles/chunking-strategies.html">sources/articles/chunking-strategies.md</a> — Pinecone: chunk-size = precision vs context tradeoff, overlap, fixed-size (default) vs recursive vs semantic chunking, chunk expansion</li>
@@ -543,9 +555,28 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-security-best-practices.html">sources/official-docs/mcp-security-best-practices.md</a> — local server execution risk, consent, sandboxing, least privilege, token/session risks</li>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-build-server.html">sources/official-docs/mcp-build-server.md</a> — practical server scaffolding, FastMCP, stdio logging caveat, host configuration</li>
 </ul>
-<h2 id="ai-observability">AI Observability</h2>
+<h2 id="guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Hardening an existing capability (P08 agent / P04 RAG) against untrusted input: prompt-injection detection, PII/sensitive-info redaction, and fail-closed output policy. The source base for <code>projects/electives/02-guardrails-safety-layer/</code>.</p></div>
 <ul>
-<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/opentelemetry-genai-semconv.html">sources/official-docs/opentelemetry-genai-semconv.md</a> — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/owasp-llm-top10-2025.html">sources/official-docs/owasp-llm-top10-2025.md</a> — OWASP Top 10 for LLMs (2025): LLM01 Prompt Injection (direct vs indirect; system-prompt defenses are bypassable), LLM02 Sensitive Information Disclosure (automated detection + redaction of PII)</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/presidio-pii.html">sources/official-docs/presidio-pii.md</a> — Microsoft Presidio: two-stage PII de-identification (Analyzer = regex/NER/context/checksum recognizers → Anonymizer = replace/mask/redact/hash/encrypt); &quot;no guarantee it finds all&quot; — risk reduction, not a fix</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/llama-guard.html">sources/papers/llama-guard.md</a> — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/indirect-prompt-injection.html">sources/papers/indirect-prompt-injection.md</a> — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on <em>retrieved</em> content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)</li>
+</ul>
+<h2 id="cost-latency-elective-03-production-hardening-track">Cost &amp; Latency (Elective 03 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Cutting cost/latency of a working feature WITHOUT regressing quality, gated by the Project 07 eval. The source base for <code>projects/electives/03-cost-latency-engineering/</code>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-prompt-caching.html">sources/official-docs/anthropic-prompt-caching.md</a> — cache a stable prompt prefix; cache-write (~1.25×/2×) vs cache-read (~0.1×) vs base input; 5-min/1-hour TTL; stable-prefix-before-variable rule; verify via <code>usage.cache_read_input_tokens</code></li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/gptcache-semantic-caching.html">sources/official-docs/gptcache-semantic-caching.md</a> — semantic (embedding-similarity) cache vs exact-match; embed → ANN search → threshold = hit; too-loose threshold returns a wrong cached answer (the false hit); LRU/FIFO/LFU eviction</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-pricing.html">sources/official-docs/anthropic-pricing.md</a> — the per-MTok base prices all multipliers/savings apply to (don&#x27;t invent prices)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/frugalgpt.html">sources/papers/frugalgpt.md</a> — Chen/Zaharia/Zou 2023: prompt adaptation, LLM approximation, LLM cascade (cheap model first → escalate on low reliability score); ~98% cost cut matching GPT-4; the escalation signal is the hard design choice</li>
+</ul>
+<h2 id="ai-observability-ops-elective-04-production-hardening-track">AI Observability &amp; Ops (Elective 04 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Instrumenting an agent with standard GenAI telemetry, then monitoring live traces for drift/regression — closing P07&#x27;s offline→online loop. Source base for <code>projects/electives/04-llm-observability-ops/</code>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/opentelemetry-genai-semconv.html">sources/official-docs/opentelemetry-genai-semconv.md</a> — standard GenAI telemetry vocabulary (<code>gen_ai.operation.name</code>, <code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code>/<code>output_tokens</code>, <code>gen_ai.response.finish_reasons</code>); standardized attribute names so tools agree; observability is separate from but supports evaluation</li>
+<li>Tier 3: <a class="src" href="../../sources/rendered/articles/llm-online-evaluation-drift.html">sources/articles/llm-online-evaluation-drift.md</a> — online eval vs offline; sample ~5–10% of traffic with an ASYNC LLM-judge (never synchronous on the path); operational/behavioral/distributional drift; aggregate <strong>per route</strong>, not a global mean</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/mt-bench.html">sources/papers/mt-bench.md</a> — score with numbers, now applied to a live window per route (not a single answer)</li>
 </ul>
 <h2 id="agent-self-improvement-patterns">Agent Self-Improvement Patterns</h2>
 <div class="callout info"><p>Optional extensions for Project 08. These are architecture comparisons, not required base-agent behavior.</p></div>

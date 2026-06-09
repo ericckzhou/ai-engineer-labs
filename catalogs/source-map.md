@@ -57,6 +57,17 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 2: `sources/papers/rag-paper.md` — Lewis et al. 2020: RAG = parametric (seq2seq weights) + non-parametric (dense vector index) memory; provenance + updatable knowledge; RAG-Sequence vs RAG-Token
 - Tier 1: `sources/official-docs/anthropic-citations.md` — claim → source location (`char_location`/`page_location`/`content_block_location`), `cited_text`, sentence-level citation chunking, verifiable pointers
 
+## Advanced RAG / Query Engineering (Elective 05 — Production & Hardening track)
+
+> Extending P04's naive retrieve-then-read with a query-transformation stage — measured against
+> P04's faithfulness eval. Source base for `projects/electives/05-advanced-rag-query-engineering/`.
+
+- Tier 2: `sources/papers/query-rewriting-rag.md` — Ma et al. 2023 (EMNLP): Rewrite-Retrieve-Read; the question↔query gap; reformulate the query BEFORE retrieval (LLM rewriter or RL-trained small LM from reader feedback)
+- Tier 2: `sources/papers/hyde.md` — Gao et al. 2022: Hypothetical Document Embeddings; generate a hypothetical answer, embed THAT (not the query); the dense bottleneck filters hallucinations; zero-shot
+- Tier 2: `sources/papers/self-rag.md` — Asai et al. 2023: adaptive retrieve-or-NOT + self-critique (relevance + support) via reflection tokens; the advanced move is sometimes not retrieving, always critiquing what you retrieved
+- Tier 2: `sources/papers/ragas.md` — the faithfulness/answer-relevance gate (already in repo) every transform is measured against
+- Tier 3: `sources/articles/sbert-retrieve-rerank.md` — re-ranking (already learned in P03; PROVIDED here, not the target)
+
 ## Chunking
 
 - Tier 3: `sources/articles/chunking-strategies.md` — Pinecone: chunk-size = precision vs context tradeoff, overlap, fixed-size (default) vs recursive vs semantic chunking, chunk expansion
@@ -110,9 +121,36 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 1: `sources/official-docs/mcp-security-best-practices.md` — local server execution risk, consent, sandboxing, least privilege, token/session risks
 - Tier 1: `sources/official-docs/mcp-build-server.md` — practical server scaffolding, FastMCP, stdio logging caveat, host configuration
 
-## AI Observability
+## Guardrails & Safety (Elective 02 — Production & Hardening track)
 
-- Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary for LLM calls, agent/framework spans, finish reasons, usage, errors, and traces
+> Hardening an existing capability (P08 agent / P04 RAG) against untrusted input: prompt-injection
+> detection, PII/sensitive-info redaction, and fail-closed output policy. The source base for
+> `projects/electives/02-guardrails-safety-layer/`.
+
+- Tier 1: `sources/official-docs/owasp-llm-top10-2025.md` — OWASP Top 10 for LLMs (2025): LLM01 Prompt Injection (direct vs indirect; system-prompt defenses are bypassable), LLM02 Sensitive Information Disclosure (automated detection + redaction of PII)
+- Tier 1: `sources/official-docs/presidio-pii.md` — Microsoft Presidio: two-stage PII de-identification (Analyzer = regex/NER/context/checksum recognizers → Anonymizer = replace/mask/redact/hash/encrypt); "no guarantee it finds all" — risk reduction, not a fix
+- Tier 2: `sources/papers/llama-guard.md` — Inan et al. 2023: LLM-as-classifier guard; separate prompt vs response classification; taxonomy-as-prompt; structured verdict (binary + violated categories), not a bare bool
+- Tier 2: `sources/papers/indirect-prompt-injection.md` — Greshake et al. 2023: indirect prompt injection — hidden instructions ride in on *retrieved* content (data/instruction boundary collapse); scanning only user input is insufficient; robust mitigations are lacking (defense in depth)
+
+## Cost & Latency (Elective 03 — Production & Hardening track)
+
+> Cutting cost/latency of a working feature WITHOUT regressing quality, gated by the Project 07
+> eval. The source base for `projects/electives/03-cost-latency-engineering/`.
+
+- Tier 1: `sources/official-docs/anthropic-prompt-caching.md` — cache a stable prompt prefix; cache-write (~1.25×/2×) vs cache-read (~0.1×) vs base input; 5-min/1-hour TTL; stable-prefix-before-variable rule; verify via `usage.cache_read_input_tokens`
+- Tier 1: `sources/official-docs/gptcache-semantic-caching.md` — semantic (embedding-similarity) cache vs exact-match; embed → ANN search → threshold = hit; too-loose threshold returns a wrong cached answer (the false hit); LRU/FIFO/LFU eviction
+- Tier 1: `sources/official-docs/anthropic-pricing.md` — the per-MTok base prices all multipliers/savings apply to (don't invent prices)
+- Tier 2: `sources/papers/frugalgpt.md` — Chen/Zaharia/Zou 2023: prompt adaptation, LLM approximation, LLM cascade (cheap model first → escalate on low reliability score); ~98% cost cut matching GPT-4; the escalation signal is the hard design choice
+
+## AI Observability & Ops (Elective 04 — Production & Hardening track)
+
+> Instrumenting an agent with standard GenAI telemetry, then monitoring live traces for
+> drift/regression — closing P07's offline→online loop. Source base for
+> `projects/electives/04-llm-observability-ops/`.
+
+- Tier 1: `sources/official-docs/opentelemetry-genai-semconv.md` — standard GenAI telemetry vocabulary (`gen_ai.operation.name`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`/`output_tokens`, `gen_ai.response.finish_reasons`); standardized attribute names so tools agree; observability is separate from but supports evaluation
+- Tier 3: `sources/articles/llm-online-evaluation-drift.md` — online eval vs offline; sample ~5–10% of traffic with an ASYNC LLM-judge (never synchronous on the path); operational/behavioral/distributional drift; aggregate **per route**, not a global mean
+- Tier 2: `sources/papers/mt-bench.md` — score with numbers, now applied to a live window per route (not a single answer)
 
 ## Agent Self-Improvement Patterns
 
