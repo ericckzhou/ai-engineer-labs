@@ -171,6 +171,13 @@ retrieval — rewriting, HyDE, multi-hop decomposition + fusion — and prove **
 ones help (and which don't) against the faithfulness eval. Builds on Projects 2, 3, 4.
 *Key question:* When does a "smarter" retrieval technique actually make answers *worse*?
 
+**Elective 6 — Structured Output & Reliability.** Build the layer that turns a model's flaky text into
+a schema-valid object — extract, validate, and a bounded repair loop that **fails closed** — then
+measure the reliability lift per failure kind. Recommended after Project 6 (before Project 8), because
+every project that parses model output (tool args, judge verdicts, agent actions, routing) depends on
+it. Builds on Projects 1, 6.
+*Key question:* Why is "the JSON parsed" not the same as "the output is trustworthy"?
+
 ---
 
 ## Curriculum Principles

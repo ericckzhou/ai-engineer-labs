@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson (Agent Version): Structured Output &amp;amp; Reliability — Making a Model&amp;#x27;s Text Trustworthy Data</title>
+<style>
+  :root { --fg:#1a1a2e; --muted:#5a5a72; --accent:#4f46e5; --bg:#fbfbfe; --code:#0f172a;
+           --codebg:#f1f5f9; --border:#e2e8f0; --quote:#eef2ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+          font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:48px 24px 96px; }
+  .banner { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border-radius:14px;
+             padding:14px 20px; font-size:14px; margin-bottom:32px; }
+  .banner b { font-weight:700; }
+  h1 { font-size:30px; line-height:1.25; margin:8px 0 24px; }
+  h2 { font-size:23px; margin:40px 0 12px; padding-bottom:6px; border-bottom:2px solid var(--border); }
+  h3 { font-size:18px; margin:28px 0 10px; color:var(--accent); }
+  h4 { font-size:16px; margin:22px 0 8px; }
+  p { margin:12px 0; }
+  a { color:var(--accent); }
+  ul,ol { margin:12px 0; padding-left:26px; }
+  li { margin:5px 0; }
+  blockquote { margin:16px 0; padding:12px 18px; background:var(--quote);
+                border-left:4px solid var(--accent); border-radius:0 8px 8px 0; }
+  blockquote p { margin:6px 0; }
+  code { background:var(--codebg); color:var(--code); padding:2px 6px; border-radius:5px;
+          font:13.5px/1.5 "SF Mono",Menlo,Consolas,monospace; }
+  pre { background:var(--code); color:#e2e8f0; padding:16px 18px; border-radius:10px;
+         overflow:auto; margin:16px 0; }
+  pre code { background:none; color:inherit; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; }
+  th,td { border:1px solid var(--border); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:#f8fafc; }
+  hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+  .meta { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="banner"><b>Human (derived) version.</b> Generated from
+<code>source/lesson.agent.md</code> by <code>scripts/render_lessons.py</code> — the agent
+version is canonical. If they conflict, the agent version wins.</div>
+<h1>Lesson (Agent Version): Structured Output &amp; Reliability — Making a Model&#x27;s Text Trustworthy Data</h1>
+<blockquote><p><strong>Canonical source of truth.</strong> The human version (<code>rendered/lesson.html</code>) is derived from this file. If they conflict, this file wins. <strong>Elective — Production &amp; Hardening track.</strong> Off the numbered 1–9 spine; strongly recommended <strong>after P06 (tool use), before P08 (agent)</strong>. Prerequisite skills: Project 01, Project 06.</p></blockquote>
+<hr>
+<h2>Metadata</h2>
+<ul>
+<li><strong>Project:</strong> Elective 06 — Structured Output &amp; Reliability</li>
+<li><strong>Track:</strong> Production &amp; Hardening (off-spine) — a <em>reliability</em> elective the other projects depend on</li>
+<li><strong>Estimated time:</strong> 7–11 hours</li>
+<li><strong>Prerequisites:</strong> Project 06 (tool use — tools ARE structured output), Project 01 (model calls).</li>
+<li><strong>Hardens:</strong> every project that parses a model&#x27;s output — P06 tool arguments, P07 eval verdicts,</li>
+</ul>
+<p>P08 agent actions, P09 routing.</p>
+<ul>
+<li><strong>Primary sources:</strong></li>
+<li><code>sources/official-docs/anthropic-tool-use.md</code> (tools as structured output; JSON-schema input; <code>tool_choice</code> to force structure)</li>
+<li><code>sources/papers/outlines-guided-generation.md</code> (Willard &amp; Louf 2023 — constrain the decoder so output is valid by construction)</li>
+</ul>
+<hr>
+<h2>Learning Objectives</h2>
+<p>By the end of this elective, the learner will be able to:</p>
+<ol>
+<li><strong>Name the three failure modes of &quot;just parse the model output&quot;</strong> — format noise (fences/prose),</li>
+</ol>
+<p>syntax errors, and the sneaky one: syntactically-valid JSON that <strong>violates the schema</strong>.</p>
+<ol>
+<li><strong>Separate extraction from validation</strong> — extraction fixes <em>format</em>; validation catches <em>contract</em></li>
+</ol>
+<p>violations. Conflating them is why &quot;it worked on my example&quot; breaks in production.</p>
+<ol>
+<li><strong>Build a validate → repair → retry loop</strong> that feeds the <em>specific</em> validation errors back to the</li>
+</ol>
+<p>model, with a <strong>bounded attempt budget</strong>, and <strong>fails closed</strong> (never returns an unvalidated object).</p>
+<ol>
+<li><strong>Measure reliability as a number</strong> — success rate per failure kind, and the repair <em>cost</em> (extra</li>
+</ol>
+<p>generations) — so a reliability claim is evidence, not a vibe.</p>
+<ol>
+<li><strong>Explain constrained decoding</strong> — that the most robust fix prevents invalid output <em>at generation</em></li>
+</ol>
+<p>(guided decoding / a forced tool schema) instead of repairing it after, and the tradeoffs.</p>
+<hr>
+<h2>1. Motivation</h2>
+<h3>Why this exists</h3>
+<p>Every project after Project 06 quietly assumes the model returns <strong>usable structured data</strong>: P06 reads</p>
+<p>tool arguments, P07 parses an LLM judge&#x27;s verdict, P08 decides the next action from a JSON blob, P09</p>
+<p>routes on a classification. None of them taught how to <em>guarantee</em> that data. They assumed</p>
+<p><code>json.loads(response)</code> works.</p>
+<p>It doesn&#x27;t — reliably. A model is a text generator, not a serializer. Ask it for JSON and a meaningful</p>
+<p>fraction of the time you get JSON wrapped in a ```json fence, or with a &quot;Sure! Here you go:&quot; preamble,</p>
+<p>or with a trailing &quot;Hope that helps!&quot;, or — worst — perfectly-valid JSON whose <code>priority</code> is <code>&quot;high&quot;</code></p>
+<p>instead of <code>4</code>, or that&#x27;s missing <code>needs_human</code> entirely. The first three are <em>format</em> problems. The</p>
+<p>last is a <em>contract</em> problem, and it&#x27;s the dangerous one: it <strong>parses</strong>, so your code happily proceeds</p>
+<p>with a wrong object.</p>
+<p>This elective makes the model→object boundary a thing you <strong>engineer</strong>: extract, validate against a</p>
+<p>schema, and on failure send the model its own errors and ask it to fix them — within a budget, failing</p>
+<p>closed when it can&#x27;t. Then you <strong>measure</strong> the lift.</p>
+<h3>What breaks without it</h3>
+<p>Without this layer, your reliability ceiling is &quot;the model happened to format it right.&quot; One stray</p>
+<p>fence crashes a tool call; one out-of-range enum silently mis-routes a request; one missing field</p>
+<p>throws three calls deep with a <code>KeyError</code> and no idea which model response caused it. And the trap on</p>
+<p>the <em>other</em> side: blindly retrying on failure with no error feedback (the model repeats the same</p>
+<p>mistake) or, worse, &quot;fixing&quot; the parse by accepting whatever came back — returning an object you never</p>
+<p>validated. Reliability is the loop <strong>plus</strong> the discipline to fail closed.</p>
+<blockquote><p><strong>Startup lens (StarcallOS).</strong> A personal OS chains models: classify an input, pick a tool, fill its arguments, judge the result. Each hop hands structured data to the next. One unreliable hop poisons the chain — a mis-parsed action runs the wrong tool on your real files. The coerce loop is the shock-absorber between a probabilistic generator and deterministic code that <em>acts</em>.</p></blockquote>
+<hr>
+<h2>2. ELI12</h2>
+<p>You ask a brilliant but rambling friend to write you a shopping list as a neat table. Sometimes you get</p>
+<p>the table. Sometimes you get &quot;Sure! Here&#x27;s your list:&quot; and <em>then</em> the table. Sometimes the table is</p>
+<p>wrapped in decorative borders. And sometimes it looks perfect but they wrote &quot;a bunch&quot; in the quantity</p>
+<p>column instead of a number.</p>
+<p>A careless person grabs whatever and goes shopping — and comes home with &quot;a bunch&quot; of milk. A careful</p>
+<p>person does two different things:</p>
+<ol>
+<li><strong>Unwraps</strong> the table from the chatter and borders. (That&#x27;s <em>extraction</em> — a format problem.)</li>
+<li><strong>Checks the table follows the rules</strong>: every row has a number in the quantity column, every item is</li>
+</ol>
+<p>one you actually buy. (That&#x27;s <em>validation</em> — a contract problem.)</p>
+<p>And if a rule is broken, the careful person doesn&#x27;t guess — they hand it back: &quot;quantity must be a</p>
+<p>number; you wrote &#x27;a bunch&#x27; for milk — fix just that.&quot; Usually the friend fixes it. If after a couple</p>
+<p>tries it&#x27;s still broken, the careful person <strong>stops</strong> rather than shop on bad data. Unwrap, check,</p>
+<p>hand-back-with-the-specific-error, and know when to stop — that&#x27;s the whole elective.</p>
+<hr>
+<h2>3. The Three Failure Modes of &quot;Just Parse It&quot;</h2>
+<p><code>json.loads(model_output)</code> fails three structurally different ways. Naming them is half the battle,</p>
+<p>because each has a <em>different</em> fix:</p>
+<ul>
+<li><strong>Format noise.</strong> Valid JSON wrapped in ```json fences or buried in prose (&quot;Here you go: {…}. Hope</li>
+</ul>
+<p>that helps!&quot;). Fix: <strong>extraction</strong> — strip the wrapper, find the object. Cheap, deterministic, no</p>
+<p>model needed.</p>
+<ul>
+<li><strong>Syntax errors.</strong> Single quotes, trailing commas, unquoted keys — not valid JSON. Sometimes</li>
+</ul>
+<p>recoverable by a tolerant parser; often needs a <strong>repair</strong> round.</p>
+<ul>
+<li><strong>Schema violations.</strong> The output parses fine but breaks your <em>contract</em>: wrong type</li>
+</ul>
+<p>(<code>&quot;priority&quot;: &quot;high&quot;</code>), out-of-range, bad enum, missing required field. This is the dangerous one</p>
+<p>because <strong>parsing succeeds</strong> — your program proceeds with a wrong object. Fix: <strong>validation</strong> then</p>
+<p><strong>repair</strong>.</p>
+<p>The mistake nearly everyone makes is treating all three as &quot;the JSON was bad&quot; and throwing a bigger</p>
+<p>regex at it. Extraction will never fix a schema violation; validation will never fix a fence. Keep them</p>
+<p>separate.</p>
+<hr>
+<h2>4. Extraction — Fix the Format, Nothing Else</h2>
+<p><code>extract_json(text)</code> strips code fences, ignores surrounding prose, and pulls out the first <strong>balanced</strong></p>
+<p><code>{…}</code> object. Scan from the first <code>{</code>, track brace depth (respecting strings), stop at the matching <code>}</code>.</p>
+<p>That&#x27;s <em>all</em> it does. It does not validate, coerce types, or fill defaults. Keeping extraction narrow is</p>
+<p>what lets you reason about reliability: after extraction you either have a JSON object or you don&#x27;t, and</p>
+<p>the next stage decides whether that object is <em>acceptable</em>. A &#x27;clean&#x27; or &#x27;fenced&#x27; output is usable after</p>
+<p>extraction with <strong>zero</strong> model calls — the cheapest possible fix, and you should always try it first.</p>
+<hr>
+<h2>5. Validation — Enforce the Contract, Return the Errors</h2>
+<p><code>validate(obj, schema)</code> walks the schema and returns a <strong>list of human-readable errors</strong> ( <code>[]</code> means</p>
+<p>valid): required-but-missing, wrong type, out-of-enum, out-of-range. Two things make this more than an</p>
+<p><code>if</code>-soup:</p>
+<ul>
+<li><strong>Return the errors, don&#x27;t just say &quot;invalid.&quot;</strong> <code>coerce</code> feeds these exact strings back to the model</li>
+</ul>
+<p>(&quot;priority: 9 exceeds max 5&quot;) so it can fix <em>that specific thing</em>. Error specificity is what makes</p>
+<p>repair converge instead of flailing.</p>
+<ul>
+<li>**The <code>bool</code>/<code>int</code> trap.** In Python <code>bool</code> is a subclass of <code>int</code>, so <code>isinstance(True, int)</code> is</li>
+</ul>
+<p><code>True</code>. A model that returns <code>&quot;priority&quot;: true</code> would sail through a naive int check. Check <code>bool</code></p>
+<p>fields <em>before</em> int fields, and reject a bool where an int is required. This is exactly the kind of</p>
+<p>silent-wrong-object bug the whole elective exists to stop.</p>
+<p>Validation is the gate. Nothing reaches your downstream code without passing it.</p>
+<hr>
+<h2>6. The Repair Loop — Hand Back the Errors, With a Budget, Fail Closed</h2>
+<p><code>coerce(message)</code> is the core:</p>
+<pre><code>prompt = task(message)
+for attempt in range(max_attempts):
+    raw = backend.generate(prompt)
+    obj = extract_json(raw)          # format
+    errors = validate(obj)           # contract
+    if not errors: return obj        # success
+    if no budget left or repair disabled: break
+    prompt = build_repair_prompt(message, raw, errors)   # hand back the SPECIFIC errors
+raise StructuredOutputError(...)     # FAIL CLOSED — never return an unvalidated object</code></pre>
+<p>Three non-negotiables:</p>
+<ul>
+<li><strong>Repair with the errors, not a blind retry.</strong> &quot;Try again&quot; makes the model repeat its mistake.</li>
+</ul>
+<p>&quot;Your <code>priority</code> was 9; the max is 5 — return only valid JSON&quot; fixes it. The repair prompt carries the</p>
+<p>validation errors.</p>
+<ul>
+<li><strong>A bounded budget.</strong> Each attempt costs a generation (latency + tokens). Cap it (<code>max_attempts</code>).</li>
+</ul>
+<p>Unbounded &quot;keep trying until valid&quot; is how a flaky model turns one request into a runaway bill.</p>
+<ul>
+<li><strong>Fail closed.</strong> When the budget is exhausted, <strong>raise</strong> — do not return the least-bad object. A</li>
+</ul>
+<p>caller that gets an exception can fall back safely; a caller handed an unvalidated object acts on</p>
+<p>garbage. The whole point of the layer is that <em>what comes out is valid, or nothing does.</em></p>
+<hr>
+<h2>7. Measure It — Reliability Is a Number (M5)</h2>
+<p>&quot;It seems more reliable now&quot; is not engineering. <code>evaluate.py</code> runs a frozen set across the failure</p>
+<p>kinds and reports, <strong>per kind</strong>, the naive baseline (raw output that parses <em>and</em> validates) vs the</p>
+<p>robust loop, plus the repair cost. Expected honest findings:</p>
+<ul>
+<li><strong>clean</strong> ~100% either way (the loop costs nothing here).</li>
+<li><strong>fenced / prose</strong> 0% naive → ~100% robust, fixed by extraction alone (no repair).</li>
+<li><strong>schema</strong> 0% naive → ~100% robust, but <strong>only via a repair round</strong> — and naive &quot;parse success&quot; is a</li>
+</ul>
+<p>lie here: it parsed and was still wrong.</p>
+<ul>
+<li><strong>unfixable</strong> 0% and <strong>stays 0%</strong> under the robust loop — failing closed is <em>correct</em>, not a bug; a</li>
+</ul>
+<p>layer that &quot;succeeds&quot; on garbage is broken.</p>
+<p>The gap between the columns is the value you added; the repair attempts are the price (this is where</p>
+<p>this elective hands off to <strong>Elective 03 — Cost &amp; Latency</strong>: every repair is a generation).</p>
+<hr>
+<h2>8. Constrained Decoding — Prevent the Error Instead of Repairing It (Extension)</h2>
+<p>Repair fixes invalid output <em>after</em> the fact. The more robust move prevents it <em>at generation</em>:</p>
+<ul>
+<li><strong>Forced tool schema.</strong> <code>anthropic-tool-use.md</code>: a tool is a name + description + <strong>JSON-schema</strong></li>
+</ul>
+<p>input, and <code>tool_choice</code> can <strong>force</strong> the model to emit exactly one tool&#x27;s arguments. Asking for a</p>
+<p>tool call rather than &quot;please return JSON&quot; gives you schema-shaped output from the provider — fewer</p>
+<p>repairs.</p>
+<ul>
+<li><strong>Guided decoding.</strong> <code>outlines-guided-generation.md</code> (Willard &amp; Louf 2023) reframes structured</li>
+</ul>
+<p>generation as walking a <strong>finite-state machine</strong> built from a regex/grammar/JSON-schema: at each step</p>
+<p>the decoder is only allowed to sample tokens that keep the output matching the schema, so invalid</p>
+<p>output is <strong>impossible by construction</strong>, at near-zero overhead.</p>
+<p>The tradeoff: constrained decoding needs provider/library support and can over-constrain (the model</p>
+<p>can&#x27;t express &quot;I don&#x27;t know&quot; if the grammar forbids it). The mature design often uses <em>both</em>: constrain</p>
+<p>where you can, and keep the validate-repair loop as the backstop for everything else. The lesson the</p>
+<p>eval teaches still holds — measure whether constraining actually cut the repair rate.</p>
+<hr>
+<h2>Milestones</h2>
+<ol>
+<li>**M1 — <code>parse_strict</code>:** strict <code>json.loads</code>; establishes the baseline failure rate.</li>
+<li>**M2 — <code>extract_json</code>:** strip fences/prose, pull the first balanced object (format noise).</li>
+<li>**M3 — <code>validate</code>:** schema errors as a list; handle the <code>bool</code>/<code>int</code> trap.</li>
+<li>**M4 — <code>build_repair_prompt</code> + <code>coerce</code>:** the validate→repair→retry loop, bounded, fail closed.</li>
+<li><strong>M5 — measure:</strong> run <code>evaluate.py</code>; report success per failure kind and the repair cost, honestly.</li>
+<li><strong>Extension:</strong> swap the fake backend for a live model; force a tool schema (<code>tool_choice</code>) and/or</li>
+</ol>
+<p>guided decoding; compare repair rate.</p>
+<hr>
+<h2>Common Misconceptions</h2>
+<ul>
+<li>**&quot;<code>json.loads</code> is enough.&quot;** It handles neither format noise nor schema violations — and on a schema</li>
+</ul>
+<p>violation it <em>succeeds</em>, handing you a wrong object.</p>
+<ul>
+<li><strong>&quot;Extraction and validation are the same step.&quot;</strong> Extraction fixes format; validation enforces the</li>
+</ul>
+<p>contract. A bigger regex never fixes a missing field.</p>
+<ul>
+<li><strong>&quot;If it parsed, it&#x27;s valid.&quot;</strong> The most dangerous output is valid JSON that breaks your schema.</li>
+<li><strong>&quot;Just retry until it works.&quot;</strong> Blind retry repeats the mistake and is unbounded cost. Repair with</li>
+</ul>
+<p>the <em>specific</em> errors, and cap attempts.</p>
+<ul>
+<li><strong>&quot;Return the best object we got.&quot;</strong> Never return an unvalidated object. Fail closed.</li>
+<li>**&quot;<code>isinstance(priority, int)</code> checks the type.&quot;** <code>True</code> passes it — <code>bool</code> is an <code>int</code>. Check bool</li>
+</ul>
+<p>first.</p>
+<ul>
+<li><strong>&quot;Reliability is a feeling.&quot;</strong> It&#x27;s a number: success rate per failure kind, and the repair cost.</li>
+</ul>
+<hr>
+<h2>Instructor Notes</h2>
+<ul>
+<li>The <strong>non-negotiable assessable idea</strong> is <strong>fail closed</strong>: <code>coerce</code> must raise (never return an</li>
+</ul>
+<p>unvalidated object) when the budget is exhausted. A learner who returns the least-bad object has</p>
+<p>inverted the entire point.</p>
+<ul>
+<li>The <strong>second</strong> is <strong>separation</strong>: extraction (format) vs validation (contract) are distinct stages.</li>
+</ul>
+<p>Watch for learners who try to validate inside <code>extract_json</code> or repair inside <code>validate</code>.</p>
+<ul>
+<li>The <strong>third</strong> is <strong>repair-with-errors</strong>: the repair prompt must carry the specific validation errors,</li>
+</ul>
+<p>and <code>EVALUATION.md</code> must report success <strong>per failure kind</strong> plus the repair cost — including that</p>
+<p>the unfixable case correctly stays failed.</p>
+<ul>
+<li>Keep it offline/deterministic: a provided <code>fake_backend</code> emits the five failure shapes and converges</li>
+</ul>
+<p>on a repair attempt for fixable cases, so the whole loop is gradeable without a provider. Live model +</p>
+<p>constrained decoding is the extension.</p>
+<ul>
+<li>The <code>bool</code>/<code>int</code> trap is a deliberate teaching moment — most learners miss it until a test catches it.</li>
+</ul>
+<hr>
+<h2>Sources</h2>
+<ul>
+<li><code>sources/official-docs/anthropic-tool-use.md</code> — tool = name + description + JSON-schema input;</li>
+</ul>
+<p><code>stop_reason: &quot;tool_use&quot;</code>; <code>tool_choice</code> (auto/any/tool/none) to <strong>force</strong> structured output; tools as</p>
+<p>the provider-native structured-output mechanism.</p>
+<ul>
+<li><code>sources/papers/outlines-guided-generation.md</code> — Willard &amp; Louf 2023: guided generation as FSM</li>
+</ul>
+<p>transitions over the vocabulary; only schema-preserving tokens are sampled, making invalid output</p>
+<p>impossible by construction at near-zero overhead (the constrained-decoding extension).</p>
+<ul>
+<li><code>sources/official-docs/mcp-tools.md</code> — <code>inputSchema</code>/optional <code>outputSchema</code> and structured tool</li>
+</ul>
+<p>results: the same &quot;declare the shape, validate against it&quot; contract at the protocol layer.</p>
+</div>
+</body>
+</html>

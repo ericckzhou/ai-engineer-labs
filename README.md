@@ -29,11 +29,11 @@ The goal is not to finish tutorials. The goal is to produce evidence of understa
 | Metric | Status |
 |---|---:|
 | Core projects | 9 |
-| Electives | 5 |
-| Source notes | 49 |
-| Rendered lessons | 14 |
-| Rendered source pages | 49 |
-| Test files | 56 |
+| Electives | 6 |
+| Source notes | 50 |
+| Rendered lessons | 15 |
+| Rendered source pages | 50 |
+| Test files | 58 |
 | Completed implementations | TBD |
 | Evaluation reports | TBD |
 | Failure analyses | TBD |
@@ -92,6 +92,7 @@ What separates a demo from a production system — hardening, cost/latency, and 
 | [Cost & Latency Engineering](projects/electives/03-cost-latency-engineering/) | Caching + a model cascade, gated by the eval | Cut cost/latency without regressing quality |
 | [LLM Observability & Ops](projects/electives/04-llm-observability-ops/) | GenAI telemetry + a per-route drift monitor | Closes the offline→online evaluation loop |
 | [Advanced RAG / Query Engineering](projects/electives/05-advanced-rag-query-engineering/) | Query rewriting, HyDE, multi-hop fusion | Eval-gated retrieval beyond naive RAG |
+| [Structured Output & Reliability](projects/electives/06-structured-output-reliability/) | An extract → validate → repair loop that fails closed | Make model output trustworthy data (recommended after P06, before P08) |
 
 ## Branch Policy
 

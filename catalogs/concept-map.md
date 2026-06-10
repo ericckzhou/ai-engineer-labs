@@ -169,6 +169,30 @@ When reasoning about a concept:
 
 ---
 
+### Structured Output & Reliability (Elective 06 — Production & Hardening track)
+
+**Extraction vs Validation (two distinct stages)**
+- Source: `sources/official-docs/anthropic-tool-use.md`
+- Lesson: `projects/electives/06-structured-output-reliability/source/lesson.agent.md`
+- Known issues: extraction fixes FORMAT (fences/prose); validation enforces the CONTRACT (type/enum/range/required) — a regex never fixes a missing field; valid JSON can still violate the schema
+
+**Schema Validation + the bool/int trap**
+- Source: `sources/official-docs/anthropic-tool-use.md`, `sources/official-docs/mcp-tools.md`
+- Lesson: `projects/electives/06-structured-output-reliability/source/lesson.agent.md`
+- Known issues: `bool` is a subclass of `int` in Python — `isinstance(True, int)` is True; check bool BEFORE int or an invalid object passes; return error STRINGS so repair can use them
+
+**Validate → Repair → Retry, Fail Closed**
+- Source: `sources/official-docs/anthropic-tool-use.md`
+- Lesson: `projects/electives/06-structured-output-reliability/source/lesson.agent.md`
+- Known issues: repair with the SPECIFIC errors (blind retry repeats the mistake); bound the attempts (unbounded retry = runaway cost); fail closed — never return an unvalidated object
+
+**Constrained Decoding (prevent invalid output at generation)**
+- Source: `sources/papers/outlines-guided-generation.md` (Willard & Louf 2023)
+- Lesson: `projects/electives/06-structured-output-reliability/source/lesson.agent.md` (extension)
+- Known issues: guided decoding masks non-schema tokens so output is valid by construction; needs logit access (not all hosted APIs expose it); guarantees STRUCTURE not semantics — a schema-valid object can still be wrong
+
+---
+
 ### Memory
 
 **Memory Stream**

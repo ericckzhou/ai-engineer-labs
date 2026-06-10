@@ -152,6 +152,16 @@ Tier 4 (Educational): sources/videos/... or books/...
 - Tier 3: `sources/articles/llm-online-evaluation-drift.md` — online eval vs offline; sample ~5–10% of traffic with an ASYNC LLM-judge (never synchronous on the path); operational/behavioral/distributional drift; aggregate **per route**, not a global mean
 - Tier 2: `sources/papers/mt-bench.md` — score with numbers, now applied to a live window per route (not a single answer)
 
+## Structured Output & Reliability (Elective 06 — Production & Hardening track)
+
+> Making a model's text trustworthy data: extract → validate → repair (fail closed), then constrained
+> decoding to prevent invalid output at generation. Recommended after P06, before P08. Source base for
+> `projects/electives/06-structured-output-reliability/`.
+
+- Tier 1: `sources/official-docs/anthropic-tool-use.md` — tools as structured output; JSON-schema input; `tool_choice` to FORCE a single tool's arguments (provider-native structured output)
+- Tier 2: `sources/papers/outlines-guided-generation.md` — Willard & Louf 2023: guided generation as FSM transitions over the vocabulary; mask non-schema tokens so output is valid by construction at near-zero overhead (constrained decoding)
+- Tier 1: `sources/official-docs/mcp-tools.md` — `inputSchema`/optional `outputSchema` + structured results; protocol-vs-execution errors (the same declare-the-shape-and-validate contract)
+
 ## Agent Self-Improvement Patterns
 
 > Optional extensions for Project 08. These are architecture comparisons, not required base-agent behavior.
