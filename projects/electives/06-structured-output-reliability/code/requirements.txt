@@ -1,0 +1,6 @@
+# Offline core (M1–M5) needs only these:
+python-dotenv>=1.0
+pytest>=7.4
+
+# Live-LLM extension only (swap fake_backend for a real model). Not needed for the offline core:
+# litellm>=1.40

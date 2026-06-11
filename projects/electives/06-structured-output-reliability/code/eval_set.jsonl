@@ -1,0 +1,6 @@
+{"id": "clean-1", "text": "My invoice charged me twice this month and I want a refund.", "kind": "clean", "fixable": true, "expect_valid": true}
+{"id": "fenced-1", "text": "The mobile app crashes every time I open the settings screen.", "kind": "fenced", "fixable": true, "expect_valid": true}
+{"id": "prose-1", "text": "How do I change the email address on my account?", "kind": "prose", "fixable": true, "expect_valid": true}
+{"id": "schema-enum-1", "text": "I was charged a late fee but I paid on time, please review.", "kind": "schema", "fixable": true, "expect_valid": true}
+{"id": "schema-missing-1", "text": "Nothing loads after I log in, just a blank white page.", "kind": "schema", "fixable": true, "expect_valid": true}
+{"id": "unfixable-1", "text": "asdkfj this is not really a support request lorem ipsum 12345", "kind": "unfixable", "fixable": false, "expect_valid": false}

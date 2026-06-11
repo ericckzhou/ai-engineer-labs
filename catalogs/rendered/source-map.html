@@ -435,6 +435,7 @@
 <li><a href="#guardrails-safety-elective-02-production-hardening-track">Guardrails &amp; Safety (Elective 02 — Production &amp; Hardening track)</a></li>
 <li><a href="#cost-latency-elective-03-production-hardening-track">Cost &amp; Latency (Elective 03 — Production &amp; Hardening track)</a></li>
 <li><a href="#ai-observability-ops-elective-04-production-hardening-track">AI Observability &amp; Ops (Elective 04 — Production &amp; Hardening track)</a></li>
+<li><a href="#structured-output-reliability-elective-06-production-hardening-track">Structured Output &amp; Reliability (Elective 06 — Production &amp; Hardening track)</a></li>
 <li><a href="#agent-self-improvement-patterns">Agent Self-Improvement Patterns</a></li>
 <li><a href="#knowledge-graphs">Knowledge Graphs</a></li>
       </ul>
@@ -577,6 +578,13 @@ Tier 4 (Educational): sources/videos/... or books/...</code></pre>
 <li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/opentelemetry-genai-semconv.html">sources/official-docs/opentelemetry-genai-semconv.md</a> — standard GenAI telemetry vocabulary (<code>gen_ai.operation.name</code>, <code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code>/<code>output_tokens</code>, <code>gen_ai.response.finish_reasons</code>); standardized attribute names so tools agree; observability is separate from but supports evaluation</li>
 <li>Tier 3: <a class="src" href="../../sources/rendered/articles/llm-online-evaluation-drift.html">sources/articles/llm-online-evaluation-drift.md</a> — online eval vs offline; sample ~5–10% of traffic with an ASYNC LLM-judge (never synchronous on the path); operational/behavioral/distributional drift; aggregate <strong>per route</strong>, not a global mean</li>
 <li>Tier 2: <a class="src" href="../../sources/rendered/papers/mt-bench.html">sources/papers/mt-bench.md</a> — score with numbers, now applied to a live window per route (not a single answer)</li>
+</ul>
+<h2 id="structured-output-reliability-elective-06-production-hardening-track">Structured Output &amp; Reliability (Elective 06 — Production &amp; Hardening track)</h2>
+<div class="callout info"><p>Making a model&#x27;s text trustworthy data: extract → validate → repair (fail closed), then constrained decoding to prevent invalid output at generation. Recommended after P06, before P08. Source base for <code>projects/electives/06-structured-output-reliability/</code>.</p></div>
+<ul>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/anthropic-tool-use.html">sources/official-docs/anthropic-tool-use.md</a> — tools as structured output; JSON-schema input; <code>tool_choice</code> to FORCE a single tool&#x27;s arguments (provider-native structured output)</li>
+<li>Tier 2: <a class="src" href="../../sources/rendered/papers/outlines-guided-generation.html">sources/papers/outlines-guided-generation.md</a> — Willard &amp; Louf 2023: guided generation as FSM transitions over the vocabulary; mask non-schema tokens so output is valid by construction at near-zero overhead (constrained decoding)</li>
+<li>Tier 1: <a class="src" href="../../sources/rendered/official-docs/mcp-tools.html">sources/official-docs/mcp-tools.md</a> — <code>inputSchema</code>/optional <code>outputSchema</code> + structured results; protocol-vs-execution errors (the same declare-the-shape-and-validate contract)</li>
 </ul>
 <h2 id="agent-self-improvement-patterns">Agent Self-Improvement Patterns</h2>
 <div class="callout info"><p>Optional extensions for Project 08. These are architecture comparisons, not required base-agent behavior.</p></div>
