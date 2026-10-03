@@ -4,6 +4,8 @@ A source-grounded, test-driven AI systems engineering lab for learning how to bu
 
 This is not a collection of AI demos. It is a structured learning system: every project combines source reading, implementation, tests, failure analysis, evaluation, and reflection.
 
+Link: https://ericckzhou.github.io/ai-engineer-labs/projects/index.html
+
 > **Start here:** [SETUP.md](SETUP.md) -> [Project Catalog](projects/index.html) -> [Project 1](projects/01-ai-chatbot/)
 
 ---
